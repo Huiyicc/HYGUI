@@ -1,16 +1,15 @@
 //
 // Created by 19254 on 24-5-13.
 //
-#include <Windows.h>
-#include "HYGUI/core/application.h"
-#include "HYGUI/core/window.h"
+#include <HYGUI/HYGUI.h>
+
 
 int main() {
-  HYGUI::HInit();
-//  auto mw = HYGUI::HCreateWindow();
-//  ShowWindow(static_cast<HWND>(mw), SW_SHOW);
-//  UpdateWindow(static_cast<HWND>(mw));
-//  HYGUI::HWindowMessageLoop(mw);
+  std::vector<char> data;
+  HYGUI::HY_ReadFile(L"res/cursor.cur", &data);
+  auto hCursor = HYGUI::HY_ImageLoadFromMemory(data.data(), data.size(), IMAGE_CURSOR, 1);
+  HYGUI::HY_ReadFile(L"res/Default.ext", &data);
+
 
   return 0;
 }

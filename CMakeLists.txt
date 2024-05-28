@@ -23,6 +23,20 @@ elseif(CMAKE_HOST_WIN32)
     # Windows
     set(OS_IS_WINDOWS TRUE)
     add_definitions(-D_HOST_WINDOWS_)
+
+#    # windows该干的事
+#    if (NOT MODULES_DIR)
+#        # boost
+#        include_directories($ENV{MODULES_DIR}/boost/include)
+#        link_directories($ENV{MODULES_DIR}/boost/lib)
+#
+#    else()
+#        # boost
+#        include_directories(${MODULES_DIR}/boost/include)
+#        link_directories(${MODULES_DIR}/boost/lib)
+#
+#    endif()
+
 elseif(CMAKE_HOST_UNIX)
     # Linux
     set(OS_IS_LINUX TRUE)
@@ -44,12 +58,16 @@ file(GLOB_RECURSE LIB_SRC src/*.cpp)
 include_directories(${SKIA_PATH}/include)
 include_directories(include)
 add_library(HYGUI STATIC ${LIB_SRC})
-
+target_include_directories(HYGUI PRIVATE interior/include)
 
 # =================
 
 
 if (NOT DEFINED NO_EXAMPLES)
+    # data
+    add_executable(ExamplesHashTable examples/data/hashtable.cpp)
+    target_link_libraries(ExamplesHashTable HYGUI)
+    # helloworld
     add_executable(HelloWorld examples/helloworld/main.cpp)
     target_link_libraries(HelloWorld HYGUI)
 endif ()
