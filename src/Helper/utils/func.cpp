@@ -6,7 +6,7 @@
 
 namespace HYGUI {
 
-void pfnDefaultFreeData(LPVOID dwData) {
+void pfnDefaultFreeData(void* dwData) {
   HY_MemFree(dwData);
 }
 
