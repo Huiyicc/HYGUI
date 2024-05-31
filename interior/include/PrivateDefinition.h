@@ -7,8 +7,7 @@
 
 #include <HYGUI/Application.h>
 #include <HYGUI/Window.h>
-#include <HYGUI/Helper/Encode.h>
-#include <HYGUI/Helper/Data.h>
+
 
 #ifdef _HOST_WINDOWS_
 #include <windows.h>
@@ -18,18 +17,17 @@
 #error "Unsupported platform"
 #endif
 
-#define PtrForceToIntptr(x) (intptr_t)((void*)(x))
 
 namespace HYGUI {
 
-extern HY_ApplicationInfo g_Li;
+extern ApplicationInfo g_app;
 
 constexpr const wchar_t *DEFAULT_CLASS_NAME = L"HYGUI";
-constexpr const char *DEFAULT_CLASS_NAMEA = "HYGUI";
 
 
-void pfnDefaultFreeData(LPVOID dwData);
 
 }
+
+#include "logs.h"
 
 #endif //HYGUI_PRIVATEDEFINITION_H

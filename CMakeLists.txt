@@ -53,12 +53,25 @@ else()
 endif()
 
 # =================
-
-file(GLOB_RECURSE LIB_SRC src/*.cpp)
+# skia
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+file(GLOB_RECURSE LIB_SRC src/*.cpp src/*.cc)
 include_directories(${SKIA_PATH}/include)
+include_directories(${SKIA_PATH})
 include_directories(include)
 add_library(HYGUI STATIC ${LIB_SRC})
+target_compile_definitions(HYGUI PRIVATE _HYGUI_MODULE_)
 target_include_directories(HYGUI PRIVATE interior/include)
+target_include_directories(HYGUI PRIVATE src/utils)
+
+# 检查是否为debug
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+    link_directories(${SKIA_PATH}/out/debug_x64_static)
+else()
+    link_directories(${SKIA_PATH}/out/release_x64_static)
+endif ()
+target_link_libraries(HYGUI PRIVATE skia)
+
 
 # =================
 

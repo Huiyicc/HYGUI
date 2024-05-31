@@ -5,11 +5,10 @@
 
 
 int main() {
-  std::vector<char> data;
-  HYGUI::HY_ReadFile(L"res/cursor.cur", &data);
-  auto hCursor = HYGUI::HY_ImageLoadFromMemory(data.data(), data.size(), IMAGE_CURSOR, 1);
-  HYGUI::HY_ReadFile(L"res/Default.ext", &data);
-
+  HYGUI::HYInit(nullptr,0);
+  auto wind = HYGUI::HYWindowCreate(nullptr, "Hello World", 100, 100, 400, 400);
+  HYGUI::HYWindowShow(wind);
+  HYGUI::HYWindowMessageLoop(wind);
 
   return 0;
 }
