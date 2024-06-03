@@ -5,8 +5,10 @@
 
 
 int main() {
-  HYGUI::HYInit(nullptr,0);
+  HYGUI::HYInit(nullptr, HYGUI::HYGlobalFlag::HYGlobalFlagGraphicDefault);
   auto wind = HYGUI::HYWindowCreate(nullptr, "Hello World", 100, 100, 400, 400);
+  HYWindowSkinHook(wind);
+
   HYGUI::HYWindowShow(wind);
   HYGUI::HYWindowMessageLoop(wind);
 

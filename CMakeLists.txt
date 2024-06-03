@@ -61,6 +61,7 @@ include_directories(${SKIA_PATH})
 include_directories(include)
 add_library(HYGUI STATIC ${LIB_SRC})
 target_compile_definitions(HYGUI PRIVATE _HYGUI_MODULE_)
+target_compile_definitions(HYGUI PRIVATE NOMINMAX)
 target_include_directories(HYGUI PRIVATE interior/include)
 target_include_directories(HYGUI PRIVATE src/utils)
 
@@ -71,7 +72,9 @@ else()
     link_directories(${SKIA_PATH}/out/release_x64_static)
 endif ()
 target_link_libraries(HYGUI PRIVATE skia)
-
+if (OS_IS_WINDOWS)
+    target_link_libraries(HYGUI PRIVATE opengl32.lib)
+endif ()
 
 # =================
 

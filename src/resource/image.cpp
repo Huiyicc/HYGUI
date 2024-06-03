@@ -22,6 +22,10 @@ ImagePtr HYImageLoadFromFile(const HYString &path) {
   return image.release();
 };
 
+void HYImageRelease(ImagePtr image) {
+  SkSafeUnref(image);
+}
+
 CursorPtr HYCursorLoadFromDefault() {
   if (g_app.Cursor) {
     return g_app.Cursor;
@@ -39,6 +43,7 @@ CursorPtr HYCursorLoadFromFile(const HYString &path) {
     return nullptr;
   }
   auto cursor = HYCursorLoadFromImage(image);
+  HYImageRelease(image);
   if (!cursor) {
     return nullptr;
   }

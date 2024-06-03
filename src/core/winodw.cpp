@@ -8,11 +8,15 @@
 
 namespace HYGUI {
 
+
+
 bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, const HYString &cursorPath) {
 #ifdef _HOST_WINDOWS_
   WNDCLASSEXW WndClass = {0};
   WndClass.cbSize = sizeof(WNDCLASSEXW);
-  WndClass.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
+  WndClass.cbClsExtra = 0;
+  WndClass.cbWndExtra = 0;
+  WndClass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
   WndClass.lpfnWndProc = DefWindowProc;
   WndClass.hInstance = (HINSTANCE) g_app.Instance;
   if (cursorPath.empty()) {
@@ -39,7 +43,7 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
 
 HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, int width, int height) {
 #ifdef _HOST_WINDOWS_
-  HWND hWnd = CreateWindowExW(0, g_app.DefaultClassName.toWStringView().data(), title.toWStringView().data(),
+  HWND hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toWStringView().data(), title.toWStringView().data(),
                               WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_LAYERED, x, y, width,
                               height, parent ? (HWND) parent->Handle : nullptr,
                               nullptr, (HINSTANCE) g_app.Instance, nullptr);
@@ -48,6 +52,18 @@ HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, 
   }
   auto window = new HYWindow;
   window->Handle = hWnd;
+  window->Width = width;
+  window->Height = height;
+  window->X = x;
+  window->Y = y;
+
+  if (g_app.WindowsTable.find(window) != g_app.WindowsTable.end()) {
+    // ????什么玩意
+    delete window;
+    return nullptr;
+  }
+  g_app.WindowsTable.insert(window);
+
   return window;
 #else
 # 实现创建窗口
@@ -55,17 +71,33 @@ HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, 
 #endif
 }
 
+void HYWindowDestroy(HYWindow *wnd) {
+  if (wnd->Handle) {
+    #ifdef _HOST_WINDOWS_
+    DestroyWindow(static_cast<HWND>(wnd->Handle));
+    #else
+    #error "Unsupported platform"
+    #endif
+    // 清理资源
+    wnd->Surface->unref();
+    delete wnd;
+    g_app.WindowsTable.erase(wnd);
+
+  }
+
+}
+
 bool HYWindowShow(HYWindow *wnd) {
-  #ifdef _HOST_WINDOWS_
+#ifdef _HOST_WINDOWS_
   return ShowWindow(static_cast<HWND>(wnd->Handle), SW_SHOW)
          && UpdateWindow(static_cast<HWND>(wnd->Handle));
-  #else
-  #error "Unsupported platform"
-  #endif
+#else
+#error "Unsupported platform"
+#endif
 }
 
 uint32_t HYWindowMessageLoop(HYWindow *wnd) {
-  #ifdef _HOST_WINDOWS_
+#ifdef _HOST_WINDOWS_
   MSG msg;
   while (IsWindow(static_cast<HWND>(wnd->Handle))) {
     if (!GetMessageW(&msg, static_cast<HWND>(wnd->Handle), 0, 0)) {
@@ -75,15 +107,15 @@ uint32_t HYWindowMessageLoop(HYWindow *wnd) {
     DispatchMessageW(&msg);
   }
   return msg.wParam;
-  #else
-  #error "Unsupported platform"
-  #endif
+#else
+#error "Unsupported platform"
+#endif
 
 }
 
 
 uint32_t HYWindowMessageLoopDialog(HYWindow *wnd, HYWindow *parent) {
-  #ifdef _HOST_WINDOWS_
+#ifdef _HOST_WINDOWS_
   if (parent != nullptr) {
     // duang↑duang↓duang↑duang↓
     SendMessageW(static_cast<HWND>(parent->Handle), WM_MOUSELEAVE, 0, 0);
@@ -108,8 +140,12 @@ uint32_t HYWindowMessageLoopDialog(HYWindow *wnd, HYWindow *parent) {
     DispatchMessage(&msg);
   }
   return msg.wParam;
-}
-
-
-}
+#else
+#error "Unsupported platform"
 #endif
+
+}
+
+
+}
+
