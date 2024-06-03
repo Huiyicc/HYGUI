@@ -24,6 +24,9 @@ extern ApplicationInfo g_app;
 
 constexpr const wchar_t *DEFAULT_CLASS_NAME = L"HYGUI";
 
+void window_paint(HYWindow *windowPtr, HWND hWnd);
+void window_recreate_surface(HYWindow *windowPtr);
+
 
 
 }

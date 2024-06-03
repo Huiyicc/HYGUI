@@ -74,7 +74,7 @@ uint32_t HYWindowMessageLoopDialog(HYWindow *wnd, HYWindow *parent= nullptr);
  * @param handle 窗口句柄
  * @return
  */
-HYWindow* GetWindowFromHandle(WINDOWHANDEL handle);
+HYWindow* HYWindowGetWindowFromHandle(WINDOWHANDEL handle);
 
 /**
  * @brief 窗口钩子

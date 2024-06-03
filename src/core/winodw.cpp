@@ -52,8 +52,12 @@ HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, 
   }
   auto window = new HYWindow;
   window->Handle = hWnd;
-  window->Width = width;
-  window->Height = height;
+  RECT wrect;
+  GetWindowRect(hWnd, &wrect);
+  window->Width = wrect.right - wrect.left;
+  window->Height = wrect.bottom - wrect.top;
+//  window->Width = width;
+//  window->Height = height;
   window->X = x;
   window->Y = y;
 
@@ -79,7 +83,9 @@ void HYWindowDestroy(HYWindow *wnd) {
     #error "Unsupported platform"
     #endif
     // 清理资源
-    wnd->Surface->unref();
+    if (wnd->Surface) {
+      wnd->Surface->unref();
+    }
     delete wnd;
     g_app.WindowsTable.erase(wnd);
 
