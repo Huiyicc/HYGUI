@@ -23,32 +23,35 @@ void window_paint(HYWindow *windowPtr, HWND hWnd) {
   //window_recreate_surface(windowPtr);
   RECT winrect;
   GetWindowRect(hWnd, &winrect);
-  // 窗口绘制事件
-  HDC hLayeredWindowDC = GetDC(hWnd);
-  HDC hCompatibleDC = CreateCompatibleDC(hLayeredWindowDC);
+
   //填充BLENDFUNCTION结构
   BLENDFUNCTION blend = {0};
   blend.BlendOp = AC_SRC_OVER;
-  blend.SourceConstantAlpha = 180;
+  blend.SourceConstantAlpha = windowPtr->Diaphaneity;
   blend.AlphaFormat = AC_SRC_ALPHA;
   //控制显示位置
   POINT ptDst = {winrect.left, winrect.top};
   //控制窗口大小
   SIZE sizeWnd = {winrect.right - winrect.left, winrect.bottom - winrect.top};
-  //为0就行
   POINT pSrc = {0, 0};
 
-  //创建一副与当前DC兼容的位图
-  HBITMAP hCustomBmp = NULL;
+  auto canvas = windowPtr->Surface->getCanvas();
+  canvas->clear(HYColorRgbToArgb(windowPtr->BackGroundColor, 255));
+  SkPaint paint;
+  paint.setAntiAlias(true);
+  // 子组件绘制
+  for (auto obj: windowPtr->Children) {
+    canvas->save();
+    canvas->translate(obj->X, obj->Y);
+    canvas->clipRect(SkRect::MakeWH(obj->Width, obj->Height));
+    obj->Canvas = canvas;
+    obj->Paint = &paint;
+    HYObjectSendEvent(obj, HYObjectEvent_Paint, 0, 0);
+    obj->Canvas = nullptr;
+    obj->Paint = nullptr;
+    canvas->restore();
+  }
 
-  hCustomBmp = CreateCompatibleBitmap(hLayeredWindowDC, sizeWnd.cx, sizeWnd.cy);
-
-  //将hCustomBmp指定到hCompatibleDC中
-  //PrintDebug("e:{}", GetLastError());
-  SelectObject(hCompatibleDC, hCustomBmp);
-  //PrintDebug("e:{}", GetLastError());
-  auto c = windowPtr->Surface->getCanvas();
-  c->clear(SK_ColorBLACK);
   SkPixmap pixmap;
   if (windowPtr->Surface->peekPixels(&pixmap)) {
     BITMAPINFO bmi = {0};
@@ -59,22 +62,15 @@ void window_paint(HYWindow *windowPtr, HWND hWnd) {
     bmi.bmiHeader.biBitCount = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
 
-    SetDIBitsToDevice(hCompatibleDC, 0, 0, pixmap.width(), pixmap.height(),
+    SetDIBitsToDevice((HDC) windowPtr->WindowLayeredCanvas, 0, 0, pixmap.width(), pixmap.height(),
                       0, 0, 0, pixmap.height(),
                       pixmap.addr(), &bmi, DIB_RGB_COLORS);
   }
-  PrintDebug("sizeWnd.cx:{},sizeWnd.cy:{}", sizeWnd.cx, sizeWnd.cy);
-  PrintDebug("pixmap.width:{},pixmap.height:{}", pixmap.width(), pixmap.height());
-
 
   //更新分层窗口
-  UpdateLayeredWindow(hWnd, hLayeredWindowDC, &ptDst, &sizeWnd, hCompatibleDC, &pSrc, NULL,
+  UpdateLayeredWindow(hWnd, (HDC) windowPtr->WindowCanvasTarget, &ptDst, &sizeWnd, (HDC) windowPtr->WindowLayeredCanvas,
+                      &pSrc, NULL,
                       &blend, ULW_ALPHA);
-
-  //释放DC
-  DeleteDC(hLayeredWindowDC);
-  DeleteDC(hCompatibleDC);
-
 
 };
 
@@ -121,21 +117,62 @@ HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {
 }
 
 void window_recreate_surface(HYWindow *windowPtr) {
+  // 更新HDC/画笔尺寸
   if (windowPtr->Surface) {
     windowPtr->Surface->unref();
   }
-  SkImageInfo info = SkImageInfo::MakeN32Premul(windowPtr->Width, windowPtr->Height);
-  sk_sp<SkSurface> rasterSurface =
-    SkSurfaces::Raster(info);
-  windowPtr->Surface = rasterSurface.release();
+  //释放DC
+  if (windowPtr->WindowCanvasTarget) {
+    DeleteDC((HDC) windowPtr->WindowCanvasTarget);
+  }
+  if (windowPtr->WindowLayeredCanvas) {
+    DeleteDC((HDC) windowPtr->WindowLayeredCanvas);
+  }
+  if (windowPtr->CustomBmp) {
+    DeleteObject((HBITMAP) windowPtr->CustomBmp);
+  }
+
+  RECT winrect;
+  GetWindowRect((HWND) windowPtr->Handle, &winrect);
+
+  windowPtr->WindowCanvasTarget = GetDC((HWND) windowPtr->Handle);
+  windowPtr->WindowLayeredCanvas = CreateCompatibleDC((HDC) windowPtr->WindowCanvasTarget);
+  //控制显示位置
+
+  //创建一副与当前DC兼容的位图
+  HBITMAP hCustomBmp = CreateCompatibleBitmap((HDC) windowPtr->WindowCanvasTarget, winrect.right - winrect.left,
+                                              winrect.bottom - winrect.top);
+
+  //将hCustomBmp指定到hCompatibleDC中
+
+  SelectObject((HDC) windowPtr->WindowLayeredCanvas, hCustomBmp);
+
+  SkImageInfo info = SkImageInfo::MakeN32(windowPtr->Width, windowPtr->Height, kPremul_SkAlphaType);
+  auto gpuSurface = SkSurfaces::RenderTarget(
+    (GrRecordingContext *) g_app.GrContext,
+    skgpu::Budgeted::kNo,
+    info
+  );
+  windowPtr->Surface = gpuSurface.release();
+  if (!windowPtr->Surface) {
+    // 硬件加速失败
+    PrintDebug("Hardware acceleration failed, fallback to software rendering");
+    info = SkImageInfo::MakeN32Premul(windowPtr->Width, windowPtr->Height);
+    sk_sp<SkSurface> rasterSurface =
+      SkSurfaces::Raster(info);
+    windowPtr->Surface = rasterSurface.release();
+  }
+  windowPtr->Canvas = windowPtr->Surface->getCanvas();
+  windowPtr->CustomBmp = hCustomBmp;
 }
 
-void *HYWindowSkinHook(HYWindow *wnd) {
+void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity) {
   wnd->OldProc = SetWindowLongPtrW((HWND) wnd->Handle, GWLP_WNDPROC, (LONG_PTR) HYWindow_WndProc);
   wnd->WindowCanvasTarget = GetDC((HWND) wnd->Handle);
+  wnd->BackGroundColor = backGroundColor;
+  wnd->Diaphaneity = diaphaneity;
   window_recreate_surface(wnd);
   window_paint(wnd, (HWND) wnd->Handle);
-  return nullptr;
 }
 
 }

@@ -7,19 +7,39 @@
 
 #include "HYGUI/Define.h"
 #include "HYGUI/String.h"
+#include "HYGUI/Color.h"
+#include "HYGUI/Object.h"
+
+#ifdef _HOST_WINDOWS_
+
+#include <windows.h>
+
+#endif
 
 namespace HYGUI {
+
+#ifdef _HOST_WINDOWS_
+constexpr int WINDOWCREATEPOINT_USEDEFAULT CW_USEDEFAULT;
+#else
+#error "Unsupported platform"
+#endif
 
 struct HYWindow {
   WINDOWHANDEL Handle = nullptr;
   VOIDPTRT OldProc = 0;
-  VOIDPTR WindowCanvasTarget = nullptr; // HDC
-  int Width = 0;
-  int Height = 0;
-  int X = 0;
-  int Y = 0;
-
   SurfacePtr Surface = nullptr;
+  CanvasPtr Canvas = nullptr;
+  VOIDPTR WindowCanvasTarget = nullptr; // HDC
+  VOIDPTR WindowLayeredCanvas = nullptr;
+  VOIDPTR CustomBmp = nullptr;
+  int Width = 0; // 窗口宽度
+  int Height = 0; // 窗口高度
+  int X = 0; // 窗口左上角x坐标
+  int Y = 0; // 窗口左上角y坐标
+  int BackGroundColor = 0; // 背景颜色
+  int Diaphaneity = 255; // 透明度
+
+  std::set<HYObject *> Children;
 };
 
 /**
@@ -35,18 +55,24 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath =
  * @brief 创建窗口
  * @param parent 父窗口
  * @param title 窗口标题
- * @param x 窗口左上角x坐标
- * @param y 窗口左上角y坐标
+ * @param x 窗口左上角x坐标 WINDOWCREATEPOINT_
+ * @param y 窗口左上角y坐标 WINDOWCREATEPOINT_
  * @param width 窗口宽度
  * @param height 窗口高度
  * @return
  */
-HYWindow* HYWindowCreate(HYWindow* parent, const HYString &title, int x, int y, int width, int height);
+HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title,
+                         int x = WINDOWCREATEPOINT_USEDEFAULT,
+                         int y = WINDOWCREATEPOINT_USEDEFAULT,
+                         int width = 800,
+                         int height = 600);
+
 /**
  * @brief 销毁窗口
  * @param wnd 窗口指针
  */
 void HYWindowDestroy(HYWindow *wnd);
+
 /**
  * @brief 显示窗口
  * @param wnd 窗口指针
@@ -67,21 +93,22 @@ uint32_t HYWindowMessageLoop(HYWindow *wnd);
  * @param parent 父窗口指针
  * @return
  */
-uint32_t HYWindowMessageLoopDialog(HYWindow *wnd, HYWindow *parent= nullptr);
+uint32_t HYWindowMessageLoopDialog(HYWindow *wnd, HYWindow *parent = nullptr);
 
 /**
  * @brief 窗口句柄获取窗口指针
  * @param handle 窗口句柄
  * @return
  */
-HYWindow* HYWindowGetWindowFromHandle(WINDOWHANDEL handle);
+HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle);
 
 /**
- * @brief 窗口钩子
+ * @brief 挂接窗口皮肤
  * @param wnd 窗口指针
- * @return
+ * @param backGroundColor 背景颜色 RGB
+ * @param diaphaneity 窗口透明度
  */
-void* HYWindowSkinHook(HYWindow *wnd);
+void HYWindowSkinHook(HYWindow *wnd,HYRGB backGroundColor,int diaphaneity);
 
 }
 

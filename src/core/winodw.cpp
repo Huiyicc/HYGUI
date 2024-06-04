@@ -9,7 +9,6 @@
 namespace HYGUI {
 
 
-
 bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, const HYString &cursorPath) {
 #ifdef _HOST_WINDOWS_
   WNDCLASSEXW WndClass = {0};
@@ -43,8 +42,16 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
 
 HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, int width, int height) {
 #ifdef _HOST_WINDOWS_
-  HWND hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toWStringView().data(), title.toWStringView().data(),
-                              WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_LAYERED, x, y, width,
+  if (x == WINDOWCREATEPOINT_USEDEFAULT) {
+    x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
+  }
+  if (y == WINDOWCREATEPOINT_USEDEFAULT) {
+    y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
+  }
+  HWND hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toWStringView().data(),
+                              title.toWStringView().data(),
+                              (WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_LAYERED) & ~WS_SYSMENU,
+                              x, y, width,
                               height, parent ? (HWND) parent->Handle : nullptr,
                               nullptr, (HINSTANCE) g_app.Instance, nullptr);
   if (hWnd == nullptr) {
@@ -56,8 +63,6 @@ HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, 
   GetWindowRect(hWnd, &wrect);
   window->Width = wrect.right - wrect.left;
   window->Height = wrect.bottom - wrect.top;
-//  window->Width = width;
-//  window->Height = height;
   window->X = x;
   window->Y = y;
 
@@ -85,6 +90,16 @@ void HYWindowDestroy(HYWindow *wnd) {
     // 清理资源
     if (wnd->Surface) {
       wnd->Surface->unref();
+    }
+    //释放DC
+    if (wnd->WindowCanvasTarget) {
+      DeleteDC((HDC) wnd->WindowCanvasTarget);
+    }
+    if (wnd->WindowLayeredCanvas) {
+      DeleteDC((HDC) wnd->WindowLayeredCanvas);
+    }
+    if (wnd->CustomBmp) {
+      DeleteObject((HBITMAP) wnd->CustomBmp);
     }
     delete wnd;
     g_app.WindowsTable.erase(wnd);

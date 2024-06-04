@@ -13,6 +13,8 @@
 #include <windows.h>
 #include <ocidl.h>
 #include <olectl.h>
+#include <atlbase.h>
+#include <atlwin.h>
 #else
 #error "Unsupported platform"
 #endif

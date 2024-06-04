@@ -9,7 +9,7 @@
 
 namespace HYGUI {
 
-void HYInit(VOIDPTR ModuleHandle,
+bool HYInit(VOIDPTR ModuleHandle,
             HYGlobalFlag DefaultGlobalFlags,
             CursorPtr DefaultCursor=nullptr,
             HYString DefaultClassName="");

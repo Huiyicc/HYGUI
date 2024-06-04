@@ -3,14 +3,18 @@
 //
 #include <HYGUI/HYGUI.h>
 
+using namespace HYGUI;
+
 
 int main() {
-  HYGUI::HYInit(nullptr, HYGUI::HYGlobalFlag::HYGlobalFlagGraphicDefault);
-  auto wind = HYGUI::HYWindowCreate(nullptr, "Hello World", 100, 100, 400, 400);
-  HYWindowSkinHook(wind);
+  HYInit(nullptr, HYGlobalFlag::HYGlobalFlagGraphicDefault);
+  auto wind = HYWindowCreate(nullptr, "Hello World");
+  HYWindowSkinHook(wind,HYRGB{255,255,255},210);
 
-  HYGUI::HYWindowShow(wind);
-  HYGUI::HYWindowMessageLoop(wind);
+  auto label = CreateLabel(wind,nullptr,L"Hello World", 10, 10, 100, 100);
+
+  HYWindowShow(wind);
+  HYWindowMessageLoop(wind);
 
   return 0;
 }
