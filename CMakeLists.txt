@@ -24,18 +24,26 @@ elseif(CMAKE_HOST_WIN32)
     set(OS_IS_WINDOWS TRUE)
     add_definitions(-D_HOST_WINDOWS_)
 
-#    # windows该干的事
-#    if (NOT MODULES_DIR)
-#        # boost
-#        include_directories($ENV{MODULES_DIR}/boost/include)
-#        link_directories($ENV{MODULES_DIR}/boost/lib)
-#
-#    else()
-#        # boost
-#        include_directories(${MODULES_DIR}/boost/include)
-#        link_directories(${MODULES_DIR}/boost/lib)
-#
-#    endif()
+    # windows该干的事
+    if (NOT MODULES_DIR)
+        # boost
+        include_directories($ENV{MODULES_DIR}/boost/include)
+        link_directories($ENV{MODULES_DIR}/boost/lib)
+
+        # glfw
+        include_directories($ENV{MODULES_DIR}/glfw/include)
+        link_directories($ENV{MODULES_DIR}/glfw/lib)
+
+    else()
+        # boost
+        include_directories(${MODULES_DIR}/boost/include)
+        link_directories(${MODULES_DIR}/boost/lib)
+
+        # glfw
+        include_directories(${MODULES_DIR}/glfw/include)
+        link_directories(${MODULES_DIR}/glfw/lib)
+
+    endif()
 
 elseif(CMAKE_HOST_UNIX)
     # Linux
@@ -61,17 +69,22 @@ include_directories(${SKIA_PATH})
 include_directories(include)
 add_library(HYGUI STATIC ${LIB_SRC})
 target_compile_definitions(HYGUI PRIVATE _HYGUI_MODULE_)
+target_compile_definitions(HYGUI PRIVATE NOMINMAX)
 target_include_directories(HYGUI PRIVATE interior/include)
 target_include_directories(HYGUI PRIVATE src/utils)
 
 # 检查是否为debug
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     link_directories(${SKIA_PATH}/out/debug_x64_static)
+    target_link_libraries(HYGUI PRIVATE glfw3d)
 else()
     link_directories(${SKIA_PATH}/out/release_x64_static)
+    target_link_libraries(HYGUI PRIVATE glfw3)
 endif ()
 target_link_libraries(HYGUI PRIVATE skia)
-
+if (OS_IS_WINDOWS)
+    target_link_libraries(HYGUI PRIVATE opengl32.lib)
+endif ()
 
 # =================
 
