@@ -3,8 +3,16 @@
 //
 #include "HYGUI/Object.h"
 #include "HYGUI/Window.h"
+#include "HYGUI/Event.h"
+#include "PrivateDefinition.h"
+
 
 namespace HYGUI {
+
+int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_info) {
+  HYWindowSendEvent(event_info.Window, 0, (intptr_t) ((void *) (&event_info)), HYObjectEventTag);
+  return 0;
+}
 
 HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height) {
   X = x;
@@ -30,6 +38,16 @@ HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, in
   return new HYObject{window, parent, x, y, width, height};
 }
 
+void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, intptr_t param1, intptr_t param2) {
+  window->EventQueue.Push({
+                            .Event = (HYObjectEvent) event,
+                            .Window = window,
+                            .Object = object,
+                            .Param1 = param1,
+                            .Param2 = param2,
+                          });
+}
+
 void HYObjectDestroy(HYObjectHandle object) {
   if (object->Parent) {
     object->Parent->Children.erase(object);
@@ -37,14 +55,6 @@ void HYObjectDestroy(HYObjectHandle object) {
   delete object;
 }
 
-int HYObjectSendEvent(HYObjectHandle object, int event, int param1, int param2) {
-  for (auto &callback: object->EventCallbacks) {
-    if (callback(object->Window, object, event, param1, param2) != 0) {
-      return 1;
-    }
-  }
-  return 0;
-}
 
 void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback &callback) {
   object->EventCallbacks.push_back(callback);

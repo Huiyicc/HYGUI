@@ -39,7 +39,7 @@ HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, in
 
 void HYObjectDestroy(HYObjectHandle object);
 
-int HYObjectSendEvent(HYObjectHandle object, int event, int param1, int param2);
+void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, intptr_t param1, intptr_t param2);
 
 void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback& callback);
 

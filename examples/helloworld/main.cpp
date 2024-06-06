@@ -12,6 +12,7 @@ int main() {
   HYWindowSkinHook(wind,HYRGB{255,255,255},210);
 
   auto label = CreateLabel(wind,nullptr,L"Hello World", 10, 10, 100, 100);
+  auto label1 = CreateLabel(wind,label,L"Hello World", 30, 50, 100, 100);
 
   HYWindowShow(wind);
   HYWindowMessageLoop(wind);

@@ -19,6 +19,30 @@
 
 namespace HYGUI {
 
+int _obj_paint(HYObject *obj, SkCanvas *canvas, SkPaint &paint) {
+  for (auto &child: obj->Children) {
+    if(_obj_paint(child, canvas, paint) != 0) {
+      break;
+    }
+  }
+  canvas->save();
+  canvas->restore();
+  canvas->translate(obj->X, obj->Y);
+  canvas->clipRect(SkRect::MakeWH(obj->Width, obj->Height));
+  obj->Canvas = canvas;
+  obj->Paint = &paint;
+  // HYObjectSendEvent(obj, HYObjectEvent_Paint, 0, 0);
+  for (auto &callback: obj->EventCallbacks) {
+    if (callback(obj->Window, obj, HYObjectEvent_Paint, 0, 0) != 0) {
+      break;
+    }
+  }
+  obj->Canvas = nullptr;
+  obj->Paint = nullptr;
+  canvas->restore();
+  return 0;
+}
+
 void window_paint(HYWindow *windowPtr, HWND hWnd) {
   //window_recreate_surface(windowPtr);
   RECT winrect;
@@ -40,16 +64,9 @@ void window_paint(HYWindow *windowPtr, HWND hWnd) {
   SkPaint paint;
   paint.setAntiAlias(true);
   // 子组件绘制
+  canvas->save();
   for (auto obj: windowPtr->Children) {
-    canvas->save();
-    canvas->translate(obj->X, obj->Y);
-    canvas->clipRect(SkRect::MakeWH(obj->Width, obj->Height));
-    obj->Canvas = canvas;
-    obj->Paint = &paint;
-    HYObjectSendEvent(obj, HYObjectEvent_Paint, 0, 0);
-    obj->Canvas = nullptr;
-    obj->Paint = nullptr;
-    canvas->restore();
+    _obj_paint(obj, canvas, paint);
   }
 
   SkPixmap pixmap;
@@ -76,6 +93,16 @@ void window_paint(HYWindow *windowPtr, HWND hWnd) {
 
 LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
   auto windowPtr = HYWindowGetWindowFromHandle(hWnd);
+  if (!windowPtr) {
+    return DefWindowProcW(hWnd, message, wParam, lParam);
+  }
+  if (message == 0 && lParam == HYObjectEventTag && wParam != NULL) {
+    // 组件消息
+    auto eventInfo = (HYObjectEventInfo *) wParam;
+    if (eventInfo->Event == HYObjectEvent_Paint) {
+      message = WM_PAINT;
+    }
+  }
   switch (message) {
     case WM_PAINT:
       // 绘制窗口
@@ -167,12 +194,17 @@ void window_recreate_surface(HYWindow *windowPtr) {
 }
 
 void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity) {
+  wnd->EventQueue.SetProcessCallback(processing_object_event);
   wnd->OldProc = SetWindowLongPtrW((HWND) wnd->Handle, GWLP_WNDPROC, (LONG_PTR) HYWindow_WndProc);
   wnd->WindowCanvasTarget = GetDC((HWND) wnd->Handle);
   wnd->BackGroundColor = backGroundColor;
   wnd->Diaphaneity = diaphaneity;
   window_recreate_surface(wnd);
   window_paint(wnd, (HWND) wnd->Handle);
+}
+
+void HYWindowSendEvent(HYWindow *window, uint32_t event, intptr_t param1, intptr_t param2) {
+  SendMessageW((HWND) window->Handle, event, param1, param2);
 }
 
 }

@@ -8,6 +8,7 @@
 #include "HYGUI/Define.h"
 #include "HYGUI/String.h"
 #include "HYGUI/Color.h"
+#include "HYGUI/Event.h"
 #include "HYGUI/Object.h"
 
 #ifdef _HOST_WINDOWS_
@@ -38,6 +39,7 @@ struct HYWindow {
   int Y = 0; // 窗口左上角y坐标
   int BackGroundColor = 0; // 背景颜色
   int Diaphaneity = 255; // 透明度
+  HYObjectEventQueue EventQueue;
 
   std::set<HYObject *> Children;
 };
@@ -109,6 +111,15 @@ HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle);
  * @param diaphaneity 窗口透明度
  */
 void HYWindowSkinHook(HYWindow *wnd,HYRGB backGroundColor,int diaphaneity);
+
+/**
+ * @brief 发送窗口事件
+ * @param window 窗口指针
+ * @param event 事件
+ * @param param1 参数1
+ * @param param2 参数2
+ */
+void HYWindowSendEvent(HYWindow *window, uint32_t event, intptr_t param1, intptr_t param2);
 
 }
 
