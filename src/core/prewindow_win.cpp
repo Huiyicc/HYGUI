@@ -19,19 +19,26 @@
 
 namespace HYGUI {
 
-int _obj_paint(HYObject *obj, SkCanvas *canvas, SkPaint &paint) {
-  for (auto &child: obj->Children) {
-    if(_obj_paint(child, canvas, paint) != 0) {
-      break;
-    }
-  }
+//void printCanvasMatrix(const SkCanvas *canvas) {
+//  SkM44 localToDevice = canvas->getLocalToDevice();
+//  SkMatrix matrix = localToDevice.asM33();
+//
+//  SkScalar values[9];
+//  matrix.get9(values);
+//
+//  std::cout << "Current Matrix:\n"
+//   << "[ 缩放X, 倾斜X, 平移X ] [" << values[0] << ", " << values[1] << ", " << values[2] << "]\n"
+//   << "[ 倾斜Y, 缩放Y, 平移Y ] [" << values[3] << ", " << values[4] << ", " << values[5] << "]\n"
+//  << "[ 透视0, 透视1, 透视2 ] [" << values[6] << ", " << values[7] << ", " << values[8] << "]" << std::endl;
+//}
+
+int _obj_paint(HYObject *obj, SkCanvas *canvas, SkPaint &paint, const HYRect &offset_point) {
   canvas->save();
-  canvas->restore();
-  canvas->translate(obj->X, obj->Y);
-  canvas->clipRect(SkRect::MakeWH(obj->Width, obj->Height));
+  canvas->translate(offset_point.x, offset_point.y);
+  canvas->clipRect(SkRect::MakeWH(offset_point.width, offset_point.height));
+  // printCanvasMatrix(canvas);
   obj->Canvas = canvas;
   obj->Paint = &paint;
-  // HYObjectSendEvent(obj, HYObjectEvent_Paint, 0, 0);
   for (auto &callback: obj->EventCallbacks) {
     if (callback(obj->Window, obj, HYObjectEvent_Paint, 0, 0) != 0) {
       break;
@@ -40,6 +47,19 @@ int _obj_paint(HYObject *obj, SkCanvas *canvas, SkPaint &paint) {
   obj->Canvas = nullptr;
   obj->Paint = nullptr;
   canvas->restore();
+  for (auto &child: obj->Children) {
+    if (_obj_paint(child, canvas, paint,
+                   {
+                     .x=offset_point.x + child->X,
+                     .y=offset_point.y + child->Y,
+                     .width=obj->Width - child->X,
+                     .height=obj->Height - child->Y
+                   }) != 0) {
+      break;
+    }
+    canvas->restore();
+  }
+
   return 0;
 }
 
@@ -66,7 +86,7 @@ void window_paint(HYWindow *windowPtr, HWND hWnd) {
   // 子组件绘制
   canvas->save();
   for (auto obj: windowPtr->Children) {
-    _obj_paint(obj, canvas, paint);
+    _obj_paint(obj, canvas, paint, {obj->X, obj->Y, obj->Width, obj->Height});
   }
 
   SkPixmap pixmap;
@@ -183,7 +203,7 @@ void window_recreate_surface(HYWindow *windowPtr) {
   windowPtr->Surface = gpuSurface.release();
   if (!windowPtr->Surface) {
     // 硬件加速失败
-    PrintDebug("Hardware acceleration failed, fallback to software rendering");
+    // PrintDebug("Hardware acceleration failed, fallback to software rendering");
     info = SkImageInfo::MakeN32Premul(windowPtr->Width, windowPtr->Height);
     sk_sp<SkSurface> rasterSurface =
       SkSurfaces::Raster(info);

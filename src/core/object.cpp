@@ -10,7 +10,7 @@
 namespace HYGUI {
 
 int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_info) {
-  HYWindowSendEvent(event_info.Window, 0, (intptr_t) ((void *) (&event_info)), HYObjectEventTag);
+  HYWindowSendEvent(event_info.Window, 0, (intptr_t)((void *) (&event_info)), HYObjectEventTag);
   return 0;
 }
 
@@ -48,6 +48,10 @@ void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, intpt
                           });
 }
 
+void HYObjectRefresh(HYObjectHandle object) {
+  HYObjectSendEvent(object->Window, object, HYObjectEvent_Paint, 0, 0);
+}
+
 void HYObjectDestroy(HYObjectHandle object) {
   if (object->Parent) {
     object->Parent->Children.erase(object);
@@ -58,6 +62,10 @@ void HYObjectDestroy(HYObjectHandle object) {
 
 void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback &callback) {
   object->EventCallbacks.push_back(callback);
+}
+
+void HYObjectSetUserData(HYObjectHandle object, intptr_t key, void *data) {
+  object->UserData[key] = data;
 }
 
 }

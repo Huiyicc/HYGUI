@@ -46,7 +46,7 @@ typedef VOIDPTR WINDOWHANDEL;
 typedef SkImage *ImagePtr;
 typedef SkSurface *SurfacePtr;
 typedef SkCanvas *CanvasPtr;
-typedef SkPaint* PaintPtr;
+typedef SkPaint *PaintPtr;
 typedef VOIDPTR CursorPtr;
 
 
@@ -59,7 +59,14 @@ struct ApplicationInfo {
   CursorPtr Cursor = nullptr;
   VOIDPTR Icon = nullptr;
   VOIDPTR IconSm = nullptr;
-  std::set<HYWindow*> WindowsTable;
+  std::set<HYWindow *> WindowsTable;
+};
+
+struct HYRect {
+  int x = 0;
+  int y = 0;
+  int width = 0;
+  int height = 0;
 };
 
 }

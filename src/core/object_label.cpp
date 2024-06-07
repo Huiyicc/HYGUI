@@ -7,8 +7,12 @@
 namespace HYGUI {
 
 int label_event_paint(HYWindow *window, HYObject *object, HYObjectEvent event, int param1, int param2) {
-  SkRect rect = SkRect::MakeXYWH(0, 0, 100, 100);
-  object->Paint->setColor(SK_ColorBLUE);
+  auto label = reinterpret_cast<HYLabel *>(object);
+  SkRect rect = SkRect::MakeXYWH(0, 0, label->Width, label->Height);
+  object->Paint->setColor(SkColorSetARGB(label->BackgroundColor.a,
+                                         label->BackgroundColor.r,
+                                         label->BackgroundColor.g,
+                                         label->BackgroundColor.b));
   object->Canvas->drawRect(rect, *object->Paint);
   return 0;
 }
@@ -22,10 +26,17 @@ int label_event(HYWindow *window, HYObject *obj, int event, int param1, int para
 }
 
 HYLabelhandle
-CreateLabel(HYWindow *window, HYObjectHandle parent, const wchar_t *text, int x, int y, int width, int height) {
+HYLabelCreate(HYWindow *window, HYObjectHandle parent, const wchar_t *text, int x, int y, int width, int height) {
   auto label = new HYLabel{window, parent, text, x, y, width, height};
   HYObjectAddEventCallback(reinterpret_cast<HYObjectHandle>(label), label_event);
   return label;
+}
+
+void HYLabelSetBackgroundColor(HYLabelhandle label, const HYARGB &color, bool refresh) {
+  label->BackgroundColor = color;
+  if (refresh) {
+    HYObjectRefresh(label);
+  }
 }
 
 
