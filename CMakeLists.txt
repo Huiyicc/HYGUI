@@ -30,18 +30,18 @@ elseif(CMAKE_HOST_WIN32)
         include_directories($ENV{MODULES_DIR}/boost/include)
         link_directories($ENV{MODULES_DIR}/boost/lib)
 
-        # glfw
-        include_directories($ENV{MODULES_DIR}/glfw/include)
-        link_directories($ENV{MODULES_DIR}/glfw/lib)
+#        # glfw
+#        include_directories($ENV{MODULES_DIR}/glfw/include)
+#        link_directories($ENV{MODULES_DIR}/glfw/lib)
 
     else()
         # boost
         include_directories(${MODULES_DIR}/boost/include)
         link_directories(${MODULES_DIR}/boost/lib)
 
-        # glfw
-        include_directories(${MODULES_DIR}/glfw/include)
-        link_directories(${MODULES_DIR}/glfw/lib)
+#        # glfw
+#        include_directories(${MODULES_DIR}/glfw/include)
+#        link_directories(${MODULES_DIR}/glfw/lib)
 
     endif()
 
@@ -73,13 +73,17 @@ target_compile_definitions(HYGUI PRIVATE NOMINMAX)
 target_include_directories(HYGUI PRIVATE interior/include)
 target_include_directories(HYGUI PRIVATE src/utils)
 
+if(MSVC)
+    target_link_options(${PROJECT_NAME} PRIVATE "/NODEFAULTLIB:libcmt.lib")
+endif()
+
 # 检查是否为debug
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     link_directories(${SKIA_PATH}/out/debug_x64_static)
-    target_link_libraries(HYGUI PRIVATE glfw3d)
+    # target_link_libraries(HYGUI PRIVATE glfw3d)
 else()
     link_directories(${SKIA_PATH}/out/release_x64_static)
-    target_link_libraries(HYGUI PRIVATE glfw3)
+    # target_link_libraries(HYGUI PRIVATE glfw3)
 endif ()
 target_link_libraries(HYGUI PRIVATE skia)
 if (OS_IS_WINDOWS)

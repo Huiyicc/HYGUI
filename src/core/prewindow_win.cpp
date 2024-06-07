@@ -19,50 +19,6 @@
 
 namespace HYGUI {
 
-//void printCanvasMatrix(const SkCanvas *canvas) {
-//  SkM44 localToDevice = canvas->getLocalToDevice();
-//  SkMatrix matrix = localToDevice.asM33();
-//
-//  SkScalar values[9];
-//  matrix.get9(values);
-//
-//  std::cout << "Current Matrix:\n"
-//   << "[ 缩放X, 倾斜X, 平移X ] [" << values[0] << ", " << values[1] << ", " << values[2] << "]\n"
-//   << "[ 倾斜Y, 缩放Y, 平移Y ] [" << values[3] << ", " << values[4] << ", " << values[5] << "]\n"
-//  << "[ 透视0, 透视1, 透视2 ] [" << values[6] << ", " << values[7] << ", " << values[8] << "]" << std::endl;
-//}
-
-int _obj_paint(HYObject *obj, SkCanvas *canvas, SkPaint &paint, const HYRect &offset_point) {
-  canvas->save();
-  canvas->translate(offset_point.x, offset_point.y);
-  canvas->clipRect(SkRect::MakeWH(offset_point.width, offset_point.height));
-  // printCanvasMatrix(canvas);
-  obj->Canvas = canvas;
-  obj->Paint = &paint;
-  for (auto &callback: obj->EventCallbacks) {
-    if (callback(obj->Window, obj, HYObjectEvent_Paint, 0, 0) != 0) {
-      break;
-    }
-  }
-  obj->Canvas = nullptr;
-  obj->Paint = nullptr;
-  canvas->restore();
-  for (auto &child: obj->Children) {
-    if (_obj_paint(child, canvas, paint,
-                   {
-                     .x=offset_point.x + child->X,
-                     .y=offset_point.y + child->Y,
-                     .width=obj->Width - child->X,
-                     .height=obj->Height - child->Y
-                   }) != 0) {
-      break;
-    }
-    canvas->restore();
-  }
-
-  return 0;
-}
-
 void window_paint(HYWindow *windowPtr, HWND hWnd) {
   //window_recreate_surface(windowPtr);
   RECT winrect;
