@@ -26,7 +26,7 @@ int label_event(HYWindow *window, HYObject *obj, int event, int param1, int para
 }
 
 HYLabelhandle
-HYLabelCreate(HYWindow *window, HYObjectHandle parent, const wchar_t *text, int x, int y, int width, int height) {
+HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString& text, int x, int y, int width, int height) {
   auto label = new HYLabel{window, parent, text, x, y, width, height};
   HYObjectAddEventCallback(reinterpret_cast<HYObjectHandle>(label), label_event);
   return label;

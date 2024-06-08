@@ -42,7 +42,12 @@ void window_paint(HYWindow *windowPtr, HWND hWnd) {
   // 子组件绘制
   canvas->save();
   for (auto obj: windowPtr->Children) {
-    _obj_paint(obj, canvas, paint, {obj->X, obj->Y, obj->Width, obj->Height});
+    _obj_paint(obj, canvas, paint, {
+      windowPtr->ClientRect.x + obj->X,
+      windowPtr->ClientRect.y + obj->Y,
+      windowPtr->ClientRect.width - obj->X,
+      windowPtr->ClientRect.height - obj->Y
+      });
   }
 
   SkPixmap pixmap;
@@ -72,12 +77,14 @@ LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
   if (!windowPtr) {
     return DefWindowProcW(hWnd, message, wParam, lParam);
   }
+  bool obj_event = false;
   if (message == 0 && lParam == HYObjectEventTag && wParam != NULL) {
     // 组件消息
     auto eventInfo = (HYObjectEventInfo *) wParam;
     if (eventInfo->Event == HYObjectEvent_Paint) {
       message = WM_PAINT;
     }
+    obj_event = true;
   }
   switch (message) {
     case WM_PAINT:
@@ -104,8 +111,26 @@ LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
       // 销毁窗口
       PostQuitMessage(0);
       break;
-    default:
+    case WM_MOUSEMOVE: {
+      // 鼠标移动
+      auto x = GET_X_LPARAM(lParam);
+      auto y = GET_Y_LPARAM(lParam);
+      PrintDebug("Mouse move on window [{},{}]", x, y);
+      auto obj = HYObjectObjFromMousePos(windowPtr, x,y);
+      if (obj) {
+        PrintDebug("Mouse move on object {} ,[{},{}]", obj->Name.toStringView(), x, y);
+      }
+
+    }
+    default: {
+      if (obj_event) {
+        // 组件事件
+        auto eventInfo = (HYObjectEventInfo *) wParam;
+        HYObjectSendEvent(windowPtr, eventInfo->Object, eventInfo->Event, eventInfo->Param1, eventInfo->Param2);
+      }
       return CallWindowProcW((WNDPROC) windowPtr->OldProc, hWnd, message, wParam, lParam);
+    }
+
   }
   return 0;
 };
@@ -175,6 +200,10 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity) {
   wnd->WindowCanvasTarget = GetDC((HWND) wnd->Handle);
   wnd->BackGroundColor = backGroundColor;
   wnd->Diaphaneity = diaphaneity;
+  LONG_PTR style = GetWindowLongPtrW((HWND) wnd->Handle, GWL_STYLE);
+  style &= ~(WS_CAPTION | WS_THICKFRAME | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+  SetWindowLongPtrW((HWND) wnd->Handle, GWL_STYLE, style);
+  SetWindowPos((HWND) wnd->Handle, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
   window_recreate_surface(wnd);
   window_paint(wnd, (HWND) wnd->Handle);
 }

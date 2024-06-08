@@ -15,9 +15,13 @@ struct HYObject;
 
 constexpr int HYObjectEventTag = 233;
 enum HYObjectEvent {
-  HYObjectEvent_Create, // 对象创建
+  // ...
+  // 预留事件
+  // ...
+  HYObjectEvent_Create = 100, // 对象创建
   HYObjectEvent_Destroy, // 对象销毁
   HYObjectEvent_Paint, // 对象重绘
+  HYObjectEvent_MouseMove, // 鼠标移动
 };
 
 struct HYObjectEventInfo {

@@ -94,9 +94,9 @@ endif ()
 
 
 if (NOT DEFINED NO_EXAMPLES)
-    # data
-    add_executable(ExamplesHashTable examples/data/hashtable.cpp)
-    target_link_libraries(ExamplesHashTable HYGUI)
+#    # data
+#    add_executable(ExamplesHashTable examples/data/hashtable.cpp)
+#    target_link_libraries(ExamplesHashTable HYGUI)
     # helloworld
     add_executable(HelloWorld examples/helloworld/main.cpp)
     target_link_libraries(HelloWorld HYGUI)

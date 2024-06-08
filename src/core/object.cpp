@@ -9,19 +9,7 @@
 
 namespace HYGUI {
 
-//void printCanvasMatrix(const SkCanvas *canvas) {
-//  SkM44 localToDevice = canvas->getLocalToDevice();
-//  SkMatrix matrix = localToDevice.asM33();
-//
-//  SkScalar values[9];
-//  matrix.get9(values);
-//
-//  std::cout << "Current Matrix:\n"
-//   << "[ 缩放X, 倾斜X, 平移X ] [" << values[0] << ", " << values[1] << ", " << values[2] << "]\n"
-//   << "[ 倾斜Y, 缩放Y, 平移Y ] [" << values[3] << ", " << values[4] << ", " << values[5] << "]\n"
-//  << "[ 透视0, 透视1, 透视2 ] [" << values[6] << ", " << values[7] << ", " << values[8] << "]" << std::endl;
-//}
-
+// 组件绘制消息
 int _obj_paint(HYObject *obj, SkCanvas *canvas, SkPaint &paint, const HYRect &offset_point) {
   canvas->save();
   canvas->translate(offset_point.x, offset_point.y);
@@ -53,18 +41,20 @@ int _obj_paint(HYObject *obj, SkCanvas *canvas, SkPaint &paint, const HYRect &of
   return 0;
 }
 
-int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_info) {
-  HYWindowSendEvent(event_info.Window, 0, (intptr_t)((void *) (&event_info)), HYObjectEventTag);
+// 组件事件_鼠标移动
+int _obj_mouse_move(HYObject *obj, int x, int y) {
   return 0;
 }
 
-HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height) {
-  X = x;
-  Y = y;
-  Width = width;
-  Height = height;
-  Parent = parent;
-  Window = window;
+int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_info) {
+  HYWindowSendEvent(event_info.Window, 0, (intptr_t) ((void *) (&event_info)), HYObjectEventTag);
+  return 0;
+}
+
+HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
+                   const HYString &className, const HYString &name, int id) :
+  Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height),
+  ClassName(className), Name(name), ID(id) {
   if (parent) {
     parent->Children.insert(this);
   } else {
@@ -72,14 +62,15 @@ HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int wi
   }
 }
 
-HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height) {
+HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
+                              const HYString &className, const HYString &name, int id) {
   if (!window) {
     return nullptr;
   }
   if (!window->Handle) {
     return nullptr;
   }
-  return new HYObject{window, parent, x, y, width, height};
+  return new HYObject{window, parent, x, y, width, height, className, name, id};
 }
 
 void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, intptr_t param1, intptr_t param2) {
@@ -93,6 +84,9 @@ void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, intpt
 }
 
 void HYObjectRefresh(HYObjectHandle object) {
+  if (!object) {
+    return;
+  }
   HYObjectSendEvent(object->Window, object, HYObjectEvent_Paint, 0, 0);
 }
 
@@ -103,6 +97,9 @@ void HYObjectDestroy(HYObjectHandle object) {
   delete object;
 }
 
+bool HYObject::contains(int px, int py) const {
+  return px >= X && px < (X + Width) && py >= Y && py < (Y + Height);
+}
 
 void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback &callback) {
   object->EventCallbacks.push_back(callback);
@@ -110,6 +107,72 @@ void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback
 
 void HYObjectSetUserData(HYObjectHandle object, intptr_t key, void *data) {
   object->UserData[key] = data;
+}
+
+void HYObjectSetClassName(HYObjectHandle object, const HYString &className) {
+  object->ClassName = className;
+}
+
+void HYObjectSetName(HYObjectHandle object, const HYString &name) {
+  object->Name = name;
+}
+
+void HYObjectSetID(HYObjectHandle object, int id) {
+  object->ID = id;
+}
+
+// 递归查找子对象
+HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py, int offsetX, int offsetY) {
+  if (!obj->contains(px - offsetX, py - offsetY)) {
+    return nullptr;
+  }
+
+  // 更新相对坐标
+  offsetX += obj->X;
+  offsetY += obj->Y;
+
+  for (HYObjectHandle child : obj->Children) {
+    auto found = HYObjectObjFromMousePos(child, px, py, offsetX, offsetY);
+    if (found) {
+      return found;
+    }
+  }
+
+  return obj;
+}
+
+HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int px, int py) {
+  HYObjectHandle topObject = nullptr;
+
+  for (HYObjectHandle obj : window->Children) {
+    auto found = HYObjectObjFromMousePos(obj, px, py, 0, 0);
+    if (found) {
+      topObject = found;
+    }
+  }
+
+  return topObject;
+
+//  for (auto &obj: window->Children) {
+//    // 检查目标坐标是否在当前对象范围内
+//    if (px >= obj->X && px < obj->X + obj->Width &&
+//      py >= obj->Y && py < obj->Y + obj->Height) {
+//      // 如果当前对象有子对象，继续在子对象中查找
+//      if (!obj->Children.empty()) {
+//        auto result = HYObjectObjFromMousePos(obj->Window, px - obj->X, py - obj->Y);
+//        if (result != nullptr) {
+//          return result; // 找到了更深层的匹配对象
+//        } else {
+//          return obj; // 当前对象没有子对象且坐标在其范围内，即为最上层匹配对象
+//        }
+//      } else {
+//        // 当前对象没有子对象且坐标在其范围内，即为最上层匹配对象
+//        return obj;
+//      }
+//    }
+//  }
+//  // 如果遍历完所有子对象都没找到匹配的，返回nullptr
+//  return nullptr;
 }
 
 }

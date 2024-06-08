@@ -37,9 +37,12 @@ struct HYWindow {
   int Height = 0; // 窗口高度
   int X = 0; // 窗口左上角x坐标
   int Y = 0; // 窗口左上角y坐标
+  HYRect ClientRect = {0, 0, 0, 0}; // 客户区域
+
   int BackGroundColor = 0; // 背景颜色
   int Diaphaneity = 255; // 透明度
   HYObjectEventQueue EventQueue;
+
 
   std::set<HYObject *> Children;
 };

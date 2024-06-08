@@ -48,7 +48,7 @@ HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, 
   if (y == WINDOWCREATEPOINT_USEDEFAULT) {
     y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
   }
-  HWND hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toWStringView().data(),
+  auto hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toWStringView().data(),
                               title.toWStringView().data(),
                               (WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_LAYERED) & ~WS_SYSMENU,
                               x, y, width,
@@ -65,6 +65,20 @@ HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, 
   window->Height = wrect.bottom - wrect.top;
   window->X = x;
   window->Y = y;
+  RECT clientRect;
+  GetClientRect(hWnd, &clientRect);
+  RECT rect;
+  GetWindowRect(hWnd, &rect);
+  window->ClientRect = {0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top};
+
+//  RECT clientRect;
+//  GetClientRect(hWnd, &clientRect);
+//  RECT rect;
+//  GetWindowRect(hWnd, &rect);
+//  int titleBarHeight = GetSystemMetrics(SM_CYCAPTION);
+//  window->ClientRect = {0,0,clientRect.right, clientRect.bottom};
+//  window->ClientRect.x = (rect.right - rect.left - clientRect.right) / 2;
+//  window->ClientRect.y = titleBarHeight;
 
   if (g_app.WindowsTable.find(window) != g_app.WindowsTable.end()) {
     // ????什么玩意
