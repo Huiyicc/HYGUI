@@ -40,7 +40,7 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
 #endif
 }
 
-HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, int width, int height) {
+HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
 #ifdef _HOST_WINDOWS_
   if (x == WINDOWCREATEPOINT_USEDEFAULT) {
     x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
@@ -94,7 +94,7 @@ HYWindow *HYWindowCreate(HYWindow *parent, const HYString &title, int x, int y, 
 #endif
 }
 
-void HYWindowDestroy(HYWindow *wnd) {
+void HYWindowDestroy(HYWindowHandel wnd) {
   if (wnd->Handle) {
     #ifdef _HOST_WINDOWS_
     DestroyWindow(static_cast<HWND>(wnd->Handle));
@@ -122,7 +122,7 @@ void HYWindowDestroy(HYWindow *wnd) {
 
 }
 
-bool HYWindowShow(HYWindow *wnd) {
+bool HYWindowShow(HYWindowHandel wnd) {
 #ifdef _HOST_WINDOWS_
   return ShowWindow(static_cast<HWND>(wnd->Handle), SW_SHOW)
          && UpdateWindow(static_cast<HWND>(wnd->Handle));
@@ -131,7 +131,7 @@ bool HYWindowShow(HYWindow *wnd) {
 #endif
 }
 
-uint32_t HYWindowMessageLoop(HYWindow *wnd) {
+uint32_t HYWindowMessageLoop(HYWindowHandel wnd) {
 #ifdef _HOST_WINDOWS_
   MSG msg;
   while (IsWindow(static_cast<HWND>(wnd->Handle))) {
@@ -149,7 +149,7 @@ uint32_t HYWindowMessageLoop(HYWindow *wnd) {
 }
 
 
-uint32_t HYWindowMessageLoopDialog(HYWindow *wnd, HYWindow *parent) {
+uint32_t HYWindowMessageLoopDialog(HYWindowHandel wnd, HYWindow *parent) {
 #ifdef _HOST_WINDOWS_
   if (parent != nullptr) {
     // duang↑duang↓duang↑duang↓
@@ -179,6 +179,20 @@ uint32_t HYWindowMessageLoopDialog(HYWindow *wnd, HYWindow *parent) {
 #error "Unsupported platform"
 #endif
 
+}
+
+void HYWindowUserDataAdd(HYWindowHandel window, intptr_t key, intptr_t data) {
+  window->UserData[key] = data;
+};
+
+void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
+                            const std::function<bool(HYWindowHandel window, intptr_t key,
+                                                     intptr_t value)> &callback) {
+  if (window->UserData.find(key) != window->UserData.end()) {
+    if (!callback || callback(window, key, window->UserData[key])) {
+      window->UserData.erase(key);
+    }
+  }
 }
 
 

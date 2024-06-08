@@ -140,8 +140,9 @@ HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py, int o
   offsetX += obj->X;
   offsetY += obj->Y;
 
-  for (HYObjectHandle child: obj->Children) {
-    auto found = HYObjectObjFromMousePos(child, px, py, offsetX, offsetY);
+  // 从后往前遍历子对象
+  for (auto it = obj->Children.rbegin(); it != obj->Children.rend(); ++it) {
+    auto found = HYObjectObjFromMousePos(*it, px, py, offsetX, offsetY);
     if (found) {
       return found;
     }
@@ -152,36 +153,14 @@ HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py, int o
 
 HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int px, int py) {
   HYObjectHandle topObject = nullptr;
-
-  for (HYObjectHandle obj: window->Children) {
-    auto found = HYObjectObjFromMousePos(obj, px, py, 0, 0);
+  // 从后往前遍历子对象
+  for (auto it = window->Children.rbegin(); it != window->Children.rend(); ++it) {
+    auto found = HYObjectObjFromMousePos(*it, px, py, 0, 0);
     if (found) {
       topObject = found;
     }
   }
-
   return topObject;
-
-//  for (auto &obj: window->Children) {
-//    // 检查目标坐标是否在当前对象范围内
-//    if (px >= obj->X && px < obj->X + obj->Width &&
-//      py >= obj->Y && py < obj->Y + obj->Height) {
-//      // 如果当前对象有子对象，继续在子对象中查找
-//      if (!obj->Children.empty()) {
-//        auto result = HYObjectObjFromMousePos(obj->Window, px - obj->X, py - obj->Y);
-//        if (result != nullptr) {
-//          return result; // 找到了更深层的匹配对象
-//        } else {
-//          return obj; // 当前对象没有子对象且坐标在其范围内，即为最上层匹配对象
-//        }
-//      } else {
-//        // 当前对象没有子对象且坐标在其范围内，即为最上层匹配对象
-//        return obj;
-//      }
-//    }
-//  }
-//  // 如果遍历完所有子对象都没找到匹配的，返回nullptr
-//  return nullptr;
 }
 
 }

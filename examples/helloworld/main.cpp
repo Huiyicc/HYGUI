@@ -16,15 +16,20 @@ int main() {
   auto wind = HYWindowCreate(nullptr, "Hello World");
   HYWindowSkinHook(wind,HYRGB{255,255,255},210);
 
-  auto label = HYLabelCreate(wind,nullptr,"Hello World", 50, 50, 100, 100);
+  auto label = HYLabelCreate(wind,nullptr,"Hello World", 50, 50, 200, 200);
   HYLabelSetBackgroundColor(label,HYARGB{255,0,255,0}, true);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label),"标签绿");
 
-  auto label_1 = HYLabelCreate(wind,label,"label", 50, 50, 100, 100);
+  auto label_1 = HYLabelCreate(wind,label,"label", 10, 10, 180, 180);
   HYLabelSetBackgroundColor(label_1,HYARGB{255,255,0,0}, true);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label_1),"标签红");
 
-  auto label_2 = HYLabelCreate(wind,label,"label", 5, 60, 90, 50);
+  auto label_1_1 = HYLabelCreate(wind,label_1,"label", 5, 100, 180, 180);
+  HYLabelSetBackgroundColor(label_1_1,HYARGB{255,255,120,0}, true);
+  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label_1_1),"标签红_子");
+
+
+  auto label_2 = HYLabelCreate(wind,label,"label", 150, 0, 30, 180);
   HYLabelSetBackgroundColor(label_2,HYARGB{255,0,0,255}, true);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label_2),"标签蓝");
 
