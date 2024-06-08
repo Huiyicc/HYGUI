@@ -105,8 +105,17 @@ void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback
   object->EventCallbacks.push_back(callback);
 }
 
-void HYObjectSetUserData(HYObjectHandle object, intptr_t key, void *data) {
+void HYObjectUserDataAdd(HYObjectHandle object, intptr_t key, intptr_t data) {
   object->UserData[key] = data;
+}
+
+void HYObjectUserDataRemove(HYObjectHandle object, intptr_t key,
+                            const std::function<bool(HYObjectHandle object, intptr_t key, intptr_t value)> &callback) {
+  if (object->UserData.find(key) != object->UserData.end()) {
+    if (!callback || callback(object, key, object->UserData[key])) {
+      object->UserData.erase(key);
+    }
+  }
 }
 
 void HYObjectSetClassName(HYObjectHandle object, const HYString &className) {
@@ -131,7 +140,7 @@ HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py, int o
   offsetX += obj->X;
   offsetY += obj->Y;
 
-  for (HYObjectHandle child : obj->Children) {
+  for (HYObjectHandle child: obj->Children) {
     auto found = HYObjectObjFromMousePos(child, px, py, offsetX, offsetY);
     if (found) {
       return found;
@@ -144,7 +153,7 @@ HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py, int o
 HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int px, int py) {
   HYObjectHandle topObject = nullptr;
 
-  for (HYObjectHandle obj : window->Children) {
+  for (HYObjectHandle obj: window->Children) {
     auto found = HYObjectObjFromMousePos(obj, px, py, 0, 0);
     if (found) {
       topObject = found;

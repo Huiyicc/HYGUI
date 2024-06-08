@@ -69,6 +69,12 @@ struct HYRect {
   int height = 0;
 };
 
+struct HYPoint {
+  int x = 0;
+  int y = 0;
+};
+
+
 }
 
 

@@ -8,6 +8,7 @@
 #include <gpu/GrBackendSurface.h>
 #include "HYGUI/Application.h"
 #include "HYGUI/Window.h"
+#include "HYGUI/Mouse.h"
 #include "PrivateDefinition.h"
 #include "include/core/SkCanvas.h"
 #include "include/gpu/gl/GrGLTypes.h"
@@ -47,7 +48,7 @@ void window_paint(HYWindow *windowPtr, HWND hWnd) {
       windowPtr->ClientRect.y + obj->Y,
       windowPtr->ClientRect.width - obj->X,
       windowPtr->ClientRect.height - obj->Y
-      });
+    });
   }
 
   SkPixmap pixmap;
@@ -86,53 +87,73 @@ LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
     }
     obj_event = true;
   }
-  switch (message) {
-    case WM_PAINT:
-      // 绘制窗口
-      window_paint(windowPtr, hWnd);
-      break;
-    case WM_SIZE: {
-      // 窗口大小改变
-      {
-        RECT winrect;
-        GetWindowRect(hWnd, &winrect);
-        windowPtr->Width = winrect.right - winrect.left;
-        windowPtr->Height = winrect.bottom - winrect.top;
-      }
-      window_recreate_surface(windowPtr);
-      window_paint(windowPtr, hWnd);
+  if (message == WM_PAINT) {
+    window_paint(windowPtr, hWnd);
+  } else if (message == WM_CLOSE) {
+    // 关闭窗口
+    HYWindowDestroy(windowPtr);
+  } else if (message == WM_DESTROY) {
+    // 销毁窗口
+    PostQuitMessage(0);
+  } else if (message == WM_SIZE) {
+    // 窗口大小改变
+    {
+      RECT winrect;
+      GetWindowRect(hWnd, &winrect);
+      windowPtr->Width = winrect.right - winrect.left;
+      windowPtr->Height = winrect.bottom - winrect.top;
     }
-      break;
-    case WM_CLOSE:
-      // 关闭窗口
-      HYWindowDestroy(windowPtr);
-      break;
-    case WM_DESTROY:
-      // 销毁窗口
-      PostQuitMessage(0);
-      break;
-    case WM_MOUSEMOVE: {
-      // 鼠标移动
-      auto x = GET_X_LPARAM(lParam);
-      auto y = GET_Y_LPARAM(lParam);
+    window_recreate_surface(windowPtr);
+    window_paint(windowPtr, hWnd);
+  } else if (message == WM_MOUSEMOVE) {
+    // 鼠标移动
+    auto x = GET_X_LPARAM(lParam);
+    auto y = GET_Y_LPARAM(lParam);
+    if (windowPtr->Drag) {
+      // 拖动窗口
+      auto mP = HYMouseGetPosition();
+      RECT rect;
+      GetWindowRect(hWnd, &rect);
+      auto dx = mP.x - windowPtr->oldMousePoint.x;
+      auto dy = mP.y - windowPtr->oldMousePoint.y;
+
+      MoveWindow(hWnd, windowPtr->oldWinPoint.x + dx, windowPtr->oldWinPoint.y + dy, windowPtr->Width,
+                 windowPtr->Height, false);
+
+    } else {
       PrintDebug("Mouse move on window [{},{}]", x, y);
-      auto obj = HYObjectObjFromMousePos(windowPtr, x,y);
+      auto obj = HYObjectObjFromMousePos(windowPtr, x, y);
       if (obj) {
         PrintDebug("Mouse move on object {} ,[{},{}]", obj->Name.toStringView(), x, y);
       }
-
     }
-    default: {
-      if (obj_event) {
-        // 组件事件
-        auto eventInfo = (HYObjectEventInfo *) wParam;
-        HYObjectSendEvent(windowPtr, eventInfo->Object, eventInfo->Event, eventInfo->Param1, eventInfo->Param2);
-      }
-      return CallWindowProcW((WNDPROC) windowPtr->OldProc, hWnd, message, wParam, lParam);
+  } else if (message == WM_LBUTTONDOWN) {
+    // 鼠标按下
+    auto x = GET_X_LPARAM(lParam);
+    auto y = GET_Y_LPARAM(lParam);
+    if (y<windowPtr->TitleBarHeight) {
+      // 标题栏区域内事件
+      auto mP = HYMouseGetPosition();
+      windowPtr->oldMousePoint = {mP.x,mP.y};
+      RECT rect;
+      GetWindowRect(hWnd, &rect);
+      windowPtr->oldWinPoint = {rect.left,rect.top};
+      windowPtr->Drag = true;
     }
-
+  } else if (message == WM_LBUTTONUP) {
+    // 鼠标抬起
+    windowPtr->Drag = false;
+    windowPtr->oldWinPoint = {0,0};
+    windowPtr->oldMousePoint = {0,0};
   }
-  return 0;
+
+  if (obj_event) {
+    // 组件事件
+    auto eventInfo = (HYObjectEventInfo *) wParam;
+    HYObjectSendEvent(windowPtr, eventInfo->Object, eventInfo->Event, eventInfo->Param1, eventInfo->Param2);
+  }
+
+  return CallWindowProcW((WNDPROC) windowPtr->OldProc, hWnd, message, wParam, lParam);
 };
 
 HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {

@@ -52,7 +52,7 @@ struct HYObject : public HYObjectBase {
   PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
   std::set<HYObject *> Children; // 子对象
   std::vector<HYObjectEventCallback> EventCallbacks; // 事件回调
-  std::unordered_map<intptr_t, void *> UserData; // 用户数据
+  std::unordered_map<intptr_t, intptr_t> UserData; // 用户数据
 
   // 判断给定坐标是否在当前对象范围内
   bool contains(int px, int py) const;
@@ -161,9 +161,22 @@ void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback
  *
  * @param object 对象的句柄，将为该对象设置用户数据。
  * @param key 用户数据的键，用于标识特定的用户数据。
- * @param data 用户数据的指针。
+ * @param data 用户数据值。
  */
-void HYObjectSetUserData(HYObjectHandle object, intptr_t key, void *data);
+void HYObjectUserDataAdd(HYObjectHandle object, intptr_t key, intptr_t data);
+
+/**
+ * @brief 从对象获取用户数据。
+ *
+ * 该函数用于从指定的对象中获取与指定键关联的用户数据。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param key 用户数据的键，用于标识特定的用户数据。
+ * @param callback 回调函数，如果key存在则调用回调函数，回调为nullptr或者返回true删除数据，否则终止删除。
+ */
+void HYObjectUserDataRemove(HYObjectHandle object, intptr_t key,
+                            const std::function<bool(HYObjectHandle object, intptr_t key,
+                                                     intptr_t value)> &callback = nullptr);
 
 /**
  * @brief 从鼠标位置获取对象句柄。
@@ -178,7 +191,6 @@ void HYObjectSetUserData(HYObjectHandle object, intptr_t key, void *data);
  * @return HYObjectHandle 鼠标位置的对象的句柄。
  */
 HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int x, int y);
-
 
 
 }
