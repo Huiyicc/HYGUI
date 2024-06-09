@@ -15,6 +15,8 @@
 #include <olectl.h>
 #include <atlbase.h>
 #include <atlwin.h>
+#elif defined(_HOST_APPLE_)
+
 #else
 #error "Unsupported platform"
 #endif

@@ -19,6 +19,23 @@ if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
     # macOS
     set(OS_IS_APPLE TRUE)
     add_definitions(-D_HOST_APPLE_)
+
+    # 寻找boost
+    find_package(Boost REQUIRED)
+    include_directories(${Boost_INCLUDE_DIRS})
+    link_directories(${Boost_LIBRARY_DIRS})
+
+    # 寻找icu
+    set (C_INCLUDE_PATH C_INCLUDE_PATH:${ICU_PATH}/include)
+    set (CPLUS_INCLUDE_PATH CPLUS_INCLUDE_PATH:${ICU_PATH}/include)
+    set (LD_LIBRARY_PATH LD_LIBRARY_PATH:${ICU_PATH}/lib)
+    set (LIBRARY_PATH LIBRARY_PATH:${ICU_PATH}/lib)
+    include_directories(${ICU_PATH}/include)
+#    find_package(icu4c REQUIRED)
+#    include_directories(${icu4c_INCLUDE_DIRS})
+#    link_directories(${icu4c_LIBRARY_DIRS})
+
+
 elseif(CMAKE_HOST_WIN32)
     # Windows
     set(OS_IS_WINDOWS TRUE)
@@ -88,6 +105,8 @@ endif ()
 target_link_libraries(HYGUI PRIVATE skia)
 if (OS_IS_WINDOWS)
     target_link_libraries(HYGUI PRIVATE opengl32.lib)
+elseif (OS_IS_APPLE)
+    target_link_libraries(HYGUI PRIVATE iconv)
 endif ()
 
 # =================
