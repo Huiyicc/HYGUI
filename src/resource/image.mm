@@ -4,6 +4,9 @@
 #include "HYGUI/Image.h"
 #include "PrivateDefinition.h"
 #include <ApplicationServices/ApplicationServices.h>
+#ifdef _HOST_APPLE_
+#include <Cocoa/Cocoa.h>
+#endif
 
 namespace HYGUI {
 

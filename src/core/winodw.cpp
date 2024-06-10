@@ -35,13 +35,15 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
   }
   WndClass.lpszClassName = className.toWStringView().data();
   return RegisterClassExW(&WndClass);
-#else
-#error "Unsupported platform"
+#elif defined(_HOST_APPLE_)
+  return true;
 #endif
 }
 
-HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
+
 #ifdef _HOST_WINDOWS_
+HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
+
   if (x == WINDOWCREATEPOINT_USEDEFAULT) {
     x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
   }
@@ -88,19 +90,16 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   g_app.WindowsTable.insert(window);
 
   return window;
-#else
-# 实现创建窗口
-#error "Unsupported platform"
-#endif
-}
 
+}
+#endif
+
+#ifdef _HOST_WINDOWS_
 void HYWindowDestroy(HYWindowHandel wnd) {
   if (wnd->Handle) {
-    #ifdef _HOST_WINDOWS_
+
     DestroyWindow(static_cast<HWND>(wnd->Handle));
-    #else
-    #error "Unsupported platform"
-    #endif
+
     // 清理资源
     if (wnd->Surface) {
       wnd->Surface->unref();
@@ -121,36 +120,34 @@ void HYWindowDestroy(HYWindowHandel wnd) {
   }
 
 }
-
-bool HYWindowShow(HYWindowHandel wnd) {
+#endif
 #ifdef _HOST_WINDOWS_
+bool HYWindowShow(HYWindowHandel wnd) {
   return ShowWindow(static_cast<HWND>(wnd->Handle), SW_SHOW)
          && UpdateWindow(static_cast<HWND>(wnd->Handle));
-#else
-#error "Unsupported platform"
-#endif
 }
+#endif
 
-uint32_t HYWindowMessageLoop(HYWindowHandel wnd) {
 #ifdef _HOST_WINDOWS_
-  MSG msg;
-  while (IsWindow(static_cast<HWND>(wnd->Handle))) {
-    if (!GetMessageW(&msg, static_cast<HWND>(wnd->Handle), 0, 0)) {
-      break;
-    }
-    TranslateMessage(&msg);
-    DispatchMessageW(&msg);
+uint32_t
+HYWindowMessageLoop(HYWindowHandel
+wnd) {
+
+MSG msg;
+while (IsWindow(static_cast<HWND>(wnd->Handle))) {
+  if (!GetMessageW(&msg, static_cast<HWND>(wnd->Handle), 0, 0)) {
+    break;
   }
-  return msg.wParam;
-#else
-#error "Unsupported platform"
+  TranslateMessage(&msg);
+  DispatchMessageW(&msg);
+}
+return msg.wParam;
+}
 #endif
 
-}
-
-
-uint32_t HYWindowMessageLoopDialog(HYWindowHandel wnd, HYWindow *parent) {
 #ifdef _HOST_WINDOWS_
+uint32_t HYWindowMessageLoopDialog(HYWindowHandel wnd, HYWindow *parent) {
+
   if (parent != nullptr) {
     // duang↑duang↓duang↑duang↓
     SendMessageW(static_cast<HWND>(parent->Handle), WM_MOUSELEAVE, 0, 0);
@@ -175,21 +172,21 @@ uint32_t HYWindowMessageLoopDialog(HYWindowHandel wnd, HYWindow *parent) {
     DispatchMessage(&msg);
   }
   return msg.wParam;
-#else
-#error "Unsupported platform"
-#endif
-
 }
+#endif
 
 void HYWindowUserDataAdd(HYWindowHandel window, intptr_t key, intptr_t data) {
   window->UserData[key] = data;
 };
 
 void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
-                            const std::function<bool(HYWindowHandel window, intptr_t key,
-                                                     intptr_t value)> &callback) {
+                            const std::function<
+                                bool(HYWindowHandel window, intptr_t key, intptr_t value)
+                            > &callback) {
+
   if (window->UserData.find(key) != window->UserData.end()) {
-    if (!callback || callback(window, key, window->UserData[key])) {
+    if (!callback ||
+        callback(window, key, window->UserData[key])) {
       window->UserData.erase(key);
     }
   }

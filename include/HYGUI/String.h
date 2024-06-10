@@ -37,12 +37,12 @@ public:
   explicit operator std::string();
   explicit operator std::wstring();
 
-  std::wstring_view toWStringView() const;
-  std::string_view toStringView() const;
+  std::wstring_view toStdWStringView() const;
+  std::string_view toStdStringView() const;
 
   std::string toStdString()const;
 
-  std::wstring toWString()const;
+  std::wstring toStdWString()const;
 
   bool empty() const;
 

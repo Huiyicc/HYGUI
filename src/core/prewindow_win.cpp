@@ -20,8 +20,9 @@
 
 namespace HYGUI {
 
-void window_paint(HYWindow *windowPtr, HWND hWnd) {
+void window_paint(HYWindow *windowPtr) {
   //window_recreate_surface(windowPtr);
+  auto hWnd = (HWND)windowPtr->Handle;
   RECT winrect;
   GetWindowRect(hWnd, &winrect);
 
@@ -88,7 +89,7 @@ LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
     obj_event = true;
   }
   if (message == WM_PAINT) {
-    window_paint(windowPtr, hWnd);
+    window_paint(windowPtr);
   } else if (message == WM_CLOSE) {
     // 关闭窗口
     HYWindowDestroy(windowPtr);
@@ -104,7 +105,7 @@ LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
       windowPtr->Height = winrect.bottom - winrect.top;
     }
     window_recreate_surface(windowPtr);
-    window_paint(windowPtr, hWnd);
+    window_paint(windowPtr);
   } else if (message == WM_MOUSEMOVE) {
     // 鼠标移动
     auto x = GET_X_LPARAM(lParam);
@@ -235,5 +236,8 @@ void HYWindowSendEvent(HYWindow *window, uint32_t event, intptr_t param1, intptr
 
 }
 
-
+#elif defined(_HOST_APPLE_)
+namespace HYGUI {
+void empty_pre_win() {}
+}
 #endif

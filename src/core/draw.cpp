@@ -3,3 +3,6 @@
 //
 #include "HYGUI/Draw.h"
 
+namespace HYGUI {
+void empty_draw() {}
+}

@@ -70,17 +70,17 @@ void HYExit() {
   }
 }
 
-VOIDPTR HYGetModuleHandle(
-  #ifdef _HOST_WINDOWS_
-  VOIDPTR lpModuleName
-  #else
-  #endif
-) {
-  #ifdef _HOST_WINDOWS_
-  return GetModuleHandleW((LPCWSTR) lpModuleName);
-  #else
-  #error "Unsupported platform"
-  #endif
-}
+//VOIDPTR HYGetModuleHandle(
+//  #ifdef _HOST_WINDOWS_
+//  VOIDPTR lpModuleName
+//  #else
+//  #endif
+//) {
+//  #ifdef _HOST_WINDOWS_
+//  return GetModuleHandleW((LPCWSTR) lpModuleName);
+//  #else
+//  #error "Unsupported platform"
+//  #endif
+//}
 
 }

@@ -136,11 +136,11 @@ bool HYString::operator!=(const wchar_t *pData) {
   return m_wstrData != pData;
 }
 
-std::wstring_view HYString::toWStringView() const {
+std::wstring_view HYString::toStdWStringView() const {
   return m_wstrData;
 }
 
-std::string_view HYString::toStringView() const {
+std::string_view HYString::toStdStringView() const {
   return m_strData;
 }
 
@@ -148,7 +148,7 @@ std::string HYString::toStdString() const {
   return m_strData;
 }
 
-std::wstring HYString::toWString() const {
+std::wstring HYString::toStdWString() const {
   return m_wstrData;
 }
 

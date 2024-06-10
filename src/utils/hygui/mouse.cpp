@@ -14,8 +14,10 @@ HYPoint HYMouseGetPosition() {
   GetCursorPos(&point);
   return {point.x, point.y};
 }
-#elif defined(_HOST_MACOS_)
-#error "Unsupported platform"
+#elif defined(_HOST_APPLE_)
+namespace HYGUI {
+void empty_mouse() {}
+}
 #endif
 
 }

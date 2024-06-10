@@ -20,9 +20,10 @@
 namespace HYGUI {
 
 #ifdef _HOST_WINDOWS_
-constexpr int WINDOWCREATEPOINT_USEDEFAULT CW_USEDEFAULT;
-#else
-#error "Unsupported platform"
+constexpr int WINDOWCREATEPOINT_USEDEFAULT = CW_USEDEFAULT;
+#elif defined(_HOST_APPLE_)
+#include <limits>
+constexpr int WINDOWCREATEPOINT_USEDEFAULT = std::numeric_limits<int>::max();
 #endif
 
 struct HYWindow;
