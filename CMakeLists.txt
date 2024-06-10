@@ -20,6 +20,8 @@ if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
     set(OS_IS_APPLE TRUE)
     add_definitions(-D_HOST_APPLE_)
 
+    enable_language(OBJCXX)
+
     # 寻找boost
     find_package(Boost REQUIRED)
     include_directories(${Boost_INCLUDE_DIRS})
@@ -81,6 +83,9 @@ endif()
 # skia
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 file(GLOB_RECURSE LIB_SRC src/*.cpp src/*.cc)
+if (OS_IS_APPLE)
+    file(GLOB_RECURSE LIB_SRC ${LIB_SRC} src/*.mm)
+endif ()
 include_directories(${SKIA_PATH}/include)
 include_directories(${SKIA_PATH})
 include_directories(include)

@@ -7,15 +7,15 @@
 #endif
 
 namespace HYGUI {
-
+#ifdef _HOST_WINDOWS_
 HYPoint HYMouseGetPosition() {
-  #ifdef _HOST_WINDOWS_
+
   POINT point;
   GetCursorPos(&point);
   return {point.x, point.y};
-  #else
-  #error "Unsupported platform"
-  #endif
 }
+#elif defined(_HOST_MACOS_)
+#error "Unsupported platform"
+#endif
 
 }

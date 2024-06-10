@@ -25,33 +25,18 @@ ImagePtr HYImageLoadFromFile(const HYString &path) {
 void HYImageRelease(ImagePtr image) {
   SkSafeUnref(image);
 }
-
+#ifdef _HOST_WINDOWS_
 CursorPtr HYCursorLoadFromDefault() {
   if (g_app.Cursor) {
     return g_app.Cursor;
   }
-  #ifdef _HOST_WINDOWS_
+
   return LoadCursorW(nullptr, reinterpret_cast<LPCWSTR>(IDC_ARROW));
-  #else
-  #error "Unsupported platform"
-  #endif
 }
 
-CursorPtr HYCursorLoadFromFile(const HYString &path) {
-  auto image = HYImageLoadFromFile(path);
-  if (!image) {
-    return nullptr;
-  }
-  auto cursor = HYCursorLoadFromImage(image);
-  HYImageRelease(image);
-  if (!cursor) {
-    return nullptr;
-  }
-  return cursor;
-}
+
 
 CursorPtr HYCursorLoadFromImage(ImagePtr image) {
-  #ifdef _HOST_WINDOWS_
   // 加载光标
   int width = image->width();
   int height = image->height();
@@ -88,10 +73,24 @@ CursorPtr HYCursorLoadFromImage(ImagePtr image) {
     return nullptr;
   }
   return cursor;
-  #else
-  // 加载光标
-  #error "Unsupported platform"
-  #endif
+
 };
+#elif defined(_HOST_APPLE_)
+#else
+#error "Unsupported platform"
+#endif
+
+CursorPtr HYCursorLoadFromFile(const HYString &path) {
+  auto image = HYImageLoadFromFile(path);
+  if (!image) {
+    return nullptr;
+  }
+  auto cursor = HYCursorLoadFromImage(image);
+  HYImageRelease(image);
+  if (!cursor) {
+    return nullptr;
+  }
+  return cursor;
+}
 
 }

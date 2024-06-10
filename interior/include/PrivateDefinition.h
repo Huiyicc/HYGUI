@@ -16,7 +16,7 @@
 #include <atlbase.h>
 #include <atlwin.h>
 #elif defined(_HOST_APPLE_)
-
+#include <Cocoa/Cocoa.h>
 #else
 #error "Unsupported platform"
 #endif
