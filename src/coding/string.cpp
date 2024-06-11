@@ -15,15 +15,13 @@ namespace HYGUI {
 
 wchar_t *C2W_(const char *str) {
   #ifdef _HOST_WINDOWS_
-  int len = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
-auto wstr = new wchar_t[len];
-MultiByteToWideChar(CP_ACP, 0, str, -1, wstr, len);
-return wstr;
+  int len = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
+  auto wstr = new wchar_t[len];
+  MultiByteToWideChar(CP_ACP, 0, str, -1, wstr, len);
+  return wstr;
   #elif defined(_HOST_APPLE_)
-  // 创建一个 ICU UnicodeString 对象
   auto unicodeString = icu::UnicodeString::fromUTF8(icu::StringPiece(str));
 
-  // 准备一个 wchar_t 缓冲区来接收转换后的数据
   auto wstr = new wchar_t[unicodeString.length() + 1];
   UErrorCode status = U_ZERO_ERROR;
   unicodeString.toUTF32(reinterpret_cast<UChar32 *>(wstr), unicodeString.length() + 1, status);
@@ -36,10 +34,10 @@ return wstr;
 
 char *W2C_(const wchar_t *wstr) {
   #ifdef _HOST_WINDOWS_
-  int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
-auto cstr = new char[len];
-WideCharToMultiByte(CP_ACP, 0, str, -1, cstr, len, NULL, NULL);
-return cstr;
+  int len = WideCharToMultiByte(CP_ACP, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
+  auto cstr = new char[len];
+  WideCharToMultiByte(CP_ACP, 0, wstr, -1, cstr, len, nullptr, nullptr);
+  return cstr;
   #elif defined(_HOST_APPLE_)
   auto unicodeString = icu::UnicodeString::fromUTF32(reinterpret_cast<const UChar32 *>(wstr), -1);
 

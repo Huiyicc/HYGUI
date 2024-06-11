@@ -22,7 +22,7 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
     WndClass.hCursor = g_app.Cursor ? (HCURSOR) g_app.Cursor : LoadCursorW(nullptr,
                                                                            reinterpret_cast<LPCWSTR>(IDC_ARROW));
   } else {
-    WndClass.hCursor = LoadCursorFromFileW(cursorPath.toWStringView().data());
+    WndClass.hCursor = LoadCursorFromFileW(cursorPath.toStdWStringView().data());
   }
   WndClass.hbrBackground = (HBRUSH) GetStockObject(NULL_BRUSH);
   if (iconPath.empty()) {
@@ -30,10 +30,10 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
     WndClass.hIconSm = g_app.IconSm ? (HICON) g_app.IconSm : LoadIconW(nullptr,
                                                                        reinterpret_cast<LPCWSTR>(IDI_APPLICATION));
   } else {
-    WndClass.hIcon = LoadIconW((HINSTANCE) g_app.Instance, iconPath.toWStringView().data());
-    WndClass.hIconSm = LoadIconW((HINSTANCE) g_app.Instance, iconPath.toWStringView().data());
+    WndClass.hIcon = LoadIconW((HINSTANCE) g_app.Instance, iconPath.toStdWStringView().data());
+    WndClass.hIconSm = LoadIconW((HINSTANCE) g_app.Instance, iconPath.toStdWStringView().data());
   }
-  WndClass.lpszClassName = className.toWStringView().data();
+  WndClass.lpszClassName = className.toStdWStringView().data();
   return RegisterClassExW(&WndClass);
 #elif defined(_HOST_APPLE_)
   return true;
@@ -50,8 +50,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   if (y == WINDOWCREATEPOINT_USEDEFAULT) {
     y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
   }
-  auto hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toWStringView().data(),
-                              title.toWStringView().data(),
+  auto hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toStdWStringView().data(),
+                              title.toStdWStringView().data(),
                               (WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_LAYERED) & ~WS_SYSMENU,
                               x, y, width,
                               height, parent ? (HWND) parent->Handle : nullptr,

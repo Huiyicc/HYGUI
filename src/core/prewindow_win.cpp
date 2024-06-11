@@ -125,7 +125,7 @@ LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
       PrintDebug("Mouse move on window [{},{}]", x, y);
       auto obj = HYObjectObjFromMousePos(windowPtr, x, y);
       if (obj) {
-        PrintDebug("Mouse move on object {} ,[{},{}]", obj->Name.toStringView(), x, y);
+        PrintDebug("Mouse move on object {} ,[{},{}]", obj->Name.toStdStringView(), x, y);
       }
     }
   } else if (message == WM_LBUTTONDOWN) {
@@ -227,7 +227,7 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity) {
   SetWindowLongPtrW((HWND) wnd->Handle, GWL_STYLE, style);
   SetWindowPos((HWND) wnd->Handle, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
   window_recreate_surface(wnd);
-  window_paint(wnd, (HWND) wnd->Handle);
+  window_paint(wnd);
 }
 
 void HYWindowSendEvent(HYWindow *window, uint32_t event, intptr_t param1, intptr_t param2) {
