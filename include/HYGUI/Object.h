@@ -49,7 +49,7 @@ struct HYObject : public HYObjectBase {
   int ID = 0; // 组件ID
 
   CanvasPtr Canvas = nullptr; // 画布,用于绘制,除了绘制事件外不应该直接操作
-  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
+//  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
   std::set<HYObject *> Children; // 子对象
   std::vector<HYObjectEventCallback> EventCallbacks; // 事件回调
   std::unordered_map<intptr_t, intptr_t> UserData; // 用户数据
@@ -129,7 +129,7 @@ void HYObjectSetName(HYObjectHandle object, const HYString &name);
 void HYObjectSetID(HYObjectHandle object, int id);
 
 /**
- * @brief 向对象发送事件。
+ * @brief 同步向对象发送事件。
  *
  * 该函数用于向指定的对象发送一个事件，对象可以根据事件类型执行相应的操作。
  * 例如，点击事件可能导致对象触发一个动作或改变其状态。
@@ -140,7 +140,21 @@ void HYObjectSetID(HYObjectHandle object, int id);
  * @param param1 事件的第一个参数，具体含义取决于事件类型。
  * @param param2 事件的第二个参数，具体含义取决于事件类型。
  */
-void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, intptr_t param1, intptr_t param2);
+void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2);
+
+/**
+ * @brief 异步向对象发送事件。
+ *
+ * 该函数用于向指定的对象发送一个事件，对象可以根据事件类型执行相应的操作。
+ * 例如，点击事件可能导致对象触发一个动作或改变其状态。
+ *
+ * @param window 窗口的指针，事件将在这个窗口内被处理。
+ * @param object 接收事件的对象的句柄。
+ * @param event 发送的事件类型。
+ * @param param1 事件的第一个参数，具体含义取决于事件类型。
+ * @param param2 事件的第二个参数，具体含义取决于事件类型。
+ */
+void HYObjectPostEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2);
 
 /**
  * @brief 为对象添加事件回调函数。
@@ -191,6 +205,43 @@ void HYObjectUserDataRemove(HYObjectHandle object, intptr_t key,
  * @return HYObjectHandle 鼠标位置的对象的句柄。
  */
 HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int x, int y);
+
+/**
+ * @brief 获取对象内某个坐标的绝对坐标。
+ *
+ * 该函数用于获取对象的绝对坐标，即对象中的点在窗口内的坐标。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param x 对象内的x坐标。
+ * @param y 对象内的y坐标。
+ * */
+
+
+/**
+ * @brief 获取窗口坐标转换到对象内的相对坐标。
+ *
+ * 该函数用于将窗口坐标转换为对象内的相对坐标。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param windowX 窗口的x坐标。
+ * @param windowY 窗口的y坐标。
+ * @return HYPoint 对象内的相对坐标。
+ * */
+HYPoint HYObjectGetRelativePoint(HYObjectHandle object, int windowX, int windowY);
+
+/**
+ * @brief 获取对象在窗口上嵌套裁剪后窗口坐标上的实际可视范围。
+ *
+ * 该函数用于计算并返回对象在窗口上，经过所有父级对象嵌套裁剪后，
+ * 实际可视的矩形区域。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @return HYRect 可视区域的矩形坐标信息。
+ * */
+HYRect HYObjectGetNestedClippedVisibleArea(HYObjectHandle object, const HYRect &rect = {0, 0, 0, 0});
+
+PaintPtr HYObjectBeginPaint(HYObjectHandle object, const HYRect &rect = {0, 0, 0, 0});
+void HYObjectEndPaint(HYObjectHandle object,SkPaint*repaint);
 
 
 }

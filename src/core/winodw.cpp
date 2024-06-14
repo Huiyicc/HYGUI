@@ -17,7 +17,8 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
   WndClass.cbWndExtra = 0;
   WndClass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
   WndClass.lpfnWndProc = DefWindowProc;
-  WndClass.hInstance = (HINSTANCE) g_app.Instance;
+  WndClass.hInstance = (HINSTANCE)
+  g_app.Instance;
   if (cursorPath.empty()) {
     WndClass.hCursor = g_app.Cursor ? (HCURSOR) g_app.Cursor : LoadCursorW(nullptr,
                                                                            reinterpret_cast<LPCWSTR>(IDC_ARROW));
@@ -30,8 +31,10 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
     WndClass.hIconSm = g_app.IconSm ? (HICON) g_app.IconSm : LoadIconW(nullptr,
                                                                        reinterpret_cast<LPCWSTR>(IDI_APPLICATION));
   } else {
-    WndClass.hIcon = LoadIconW((HINSTANCE) g_app.Instance, iconPath.toStdWStringView().data());
-    WndClass.hIconSm = LoadIconW((HINSTANCE) g_app.Instance, iconPath.toStdWStringView().data());
+    WndClass.hIcon = LoadIconW((HINSTANCE)
+    g_app.Instance, iconPath.toStdWStringView().data());
+    WndClass.hIconSm = LoadIconW((HINSTANCE)
+    g_app.Instance, iconPath.toStdWStringView().data());
   }
   WndClass.lpszClassName = className.toStdWStringView().data();
   return RegisterClassExW(&WndClass);
@@ -42,6 +45,7 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
 
 
 #ifdef _HOST_WINDOWS_
+
 HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
 
   if (x == WINDOWCREATEPOINT_USEDEFAULT) {
@@ -73,28 +77,20 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   GetWindowRect(hWnd, &rect);
   window->ClientRect = {0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top};
 
-//  RECT clientRect;
-//  GetClientRect(hWnd, &clientRect);
-//  RECT rect;
-//  GetWindowRect(hWnd, &rect);
-//  int titleBarHeight = GetSystemMetrics(SM_CYCAPTION);
-//  window->ClientRect = {0,0,clientRect.right, clientRect.bottom};
-//  window->ClientRect.x = (rect.right - rect.left - clientRect.right) / 2;
-//  window->ClientRect.y = titleBarHeight;
-
   if (g_app.WindowsTable.find(window) != g_app.WindowsTable.end()) {
     // ????什么玩意
     delete window;
     return nullptr;
   }
   g_app.WindowsTable.insert(window);
-
   return window;
 
 }
+
 #endif
 
 #ifdef _HOST_WINDOWS_
+
 void HYWindowDestroy(HYWindowHandel wnd) {
   if (wnd->Handle) {
 
@@ -106,10 +102,12 @@ void HYWindowDestroy(HYWindowHandel wnd) {
     }
     //释放DC
     if (wnd->WindowCanvasTarget) {
-      DeleteDC((HDC) wnd->WindowCanvasTarget);
+      DeleteDC((HDC)
+      wnd->WindowCanvasTarget);
     }
     if (wnd->WindowLayeredCanvas) {
-      DeleteDC((HDC) wnd->WindowLayeredCanvas);
+      DeleteDC((HDC)
+      wnd->WindowLayeredCanvas);
     }
     if (wnd->CustomBmp) {
       DeleteObject((HBITMAP) wnd->CustomBmp);
@@ -120,32 +118,39 @@ void HYWindowDestroy(HYWindowHandel wnd) {
   }
 
 }
+
 #endif
 #ifdef _HOST_WINDOWS_
+
 bool HYWindowShow(HYWindowHandel wnd) {
   return ShowWindow(static_cast<HWND>(wnd->Handle), SW_SHOW)
          && UpdateWindow(static_cast<HWND>(wnd->Handle));
 }
+
 #endif
 
 #ifdef _HOST_WINDOWS_
+
 uint32_t
-HYWindowMessageLoop(HYWindowHandel
-wnd) {
-
-MSG msg;
-while (IsWindow(static_cast<HWND>(wnd->Handle))) {
-  if (!GetMessageW(&msg, static_cast<HWND>(wnd->Handle), 0, 0)) {
-    break;
+HYWindowMessageLoop(HYWindowHandel wnd) {
+  MSG msg;
+  while (IsWindow(static_cast<HWND>(wnd->Handle))) {
+    if (!GetMessageW(&msg, static_cast<HWND>(wnd->Handle), 0, 0)) {
+      break;
+    }
+    TranslateMessage(&msg);
+    DispatchMessageW(&msg);
+    if (!wnd->EventQueue.IsRunning()) {
+      wnd->EventQueue.Start();
+    }
   }
-  TranslateMessage(&msg);
-  DispatchMessageW(&msg);
+  return msg.wParam;
 }
-return msg.wParam;
-}
+
 #endif
 
 #ifdef _HOST_WINDOWS_
+
 uint32_t HYWindowMessageLoopDialog(HYWindowHandel wnd, HYWindow *parent) {
 
   if (parent != nullptr) {
@@ -173,6 +178,7 @@ uint32_t HYWindowMessageLoopDialog(HYWindowHandel wnd, HYWindow *parent) {
   }
   return msg.wParam;
 }
+
 #endif
 
 void HYWindowUserDataAdd(HYWindowHandel window, intptr_t key, intptr_t data) {
@@ -181,7 +187,7 @@ void HYWindowUserDataAdd(HYWindowHandel window, intptr_t key, intptr_t data) {
 
 void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
                             const std::function<
-                                bool(HYWindowHandel window, intptr_t key, intptr_t value)
+                              bool(HYWindowHandel window, intptr_t key, intptr_t value)
                             > &callback) {
 
   if (window->UserData.find(key) != window->UserData.end()) {

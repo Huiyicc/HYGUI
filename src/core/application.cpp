@@ -32,6 +32,7 @@ bool HYInit(VOIDPTR ModuleHandle,
   if (((int) g_app.GlobalFlags & (int) HYGlobalFlag::HYGlobalFlagGraphicNone)==(int) HYGlobalFlag::HYGlobalFlagGraphicNone) {
     g_app.GrContext = GrDirectContexts::MakeGL().release();
   }
+
 //  if (((int) g_app.GlobalFlags & (int) HYGlobalFlag::HYGlobalFlagGraphicGL) ==
 //      (int) HYGlobalFlag::HYGlobalFlagGraphicGL) {
 ////    // 初始化Skia

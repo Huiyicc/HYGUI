@@ -28,9 +28,8 @@ struct HYObjectEventInfo {
   HYObjectEvent Event;
   HYWindow *Window;
   HYObject* Object;
-  intptr_t Param1;
-  intptr_t Param2;
-
+  uint64_t Param1;
+  uint32_t Param2;
 };
 
 typedef HYAsyncQueueProcessor<HYObjectEventInfo> HYObjectEventQueue;

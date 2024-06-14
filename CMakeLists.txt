@@ -122,6 +122,6 @@ if (NOT DEFINED NO_EXAMPLES)
 #    add_executable(ExamplesHashTable examples/data/hashtable.cpp)
 #    target_link_libraries(ExamplesHashTable HYGUI)
     # helloworld
-    add_executable(HelloWorld examples/helloworld/main.cpp)
+    add_executable(HelloWorld examples/helloworld/helloworld.cpp)
     target_link_libraries(HelloWorld HYGUI)
 endif ()

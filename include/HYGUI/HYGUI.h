@@ -6,6 +6,7 @@
 #define HYGUI_HYGUI_H
 
 #include <HYGUI/Define.h>
+#include <HYGUI/Point.h>
 #include <HYGUI/Application.h>
 #include <HYGUI/Coding.h>
 
@@ -18,5 +19,6 @@
 #include <HYGUI/Draw.h>
 #include <HYGUI/Image.h>
 #include <HYGUI/Mouse.h>
+
 
 #endif //HYGUI_HYGUI_H

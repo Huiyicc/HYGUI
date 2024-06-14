@@ -75,7 +75,9 @@ public:
    */
   void Start(const AsyncQueueProcessCallback &processCallback) {
     m_running = true;
-    m_process = processCallback;
+    if (processCallback!=nullptr) {
+      m_process = processCallback;
+    }
     m_thread = std::thread([this]() {
 
       while (m_running) {
@@ -117,6 +119,13 @@ public:
     }
     m_data_available_cv.notify_one();
   };
+  void Push(const TYPE &&data) {
+    {
+      std::lock_guard<std::mutex> lock(m_queue_mutex);
+      m_queue->push(data);
+    }
+    m_data_available_cv.notify_one();
+  };
 
   /**
    * @brief 是否为空
@@ -128,7 +137,7 @@ public:
   /**
    * @brief 获取队列大小
    */
-  size_t Size(){
+  size_t Size() {
     return m_queue->size();
   };
 

@@ -62,20 +62,10 @@ struct ApplicationInfo {
   std::set<HYWindow *> WindowsTable;
 };
 
-struct HYRect {
-  int x = 0;
-  int y = 0;
-  int width = 0;
-  int height = 0;
-};
-
-struct HYPoint {
-  int x = 0;
-  int y = 0;
-};
 
 
 }
 
+#include "Point.h"
 
 #endif //HYGUI_DEFINE_H

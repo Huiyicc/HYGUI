@@ -22,7 +22,7 @@ namespace HYGUI {
 
 void window_paint(HYWindow *windowPtr) {
   //window_recreate_surface(windowPtr);
-  auto hWnd = (HWND)windowPtr->Handle;
+  auto hWnd = (HWND) windowPtr->Handle;
   RECT winrect;
   GetWindowRect(hWnd, &winrect);
 
@@ -38,18 +38,13 @@ void window_paint(HYWindow *windowPtr) {
   POINT pSrc = {0, 0};
 
   auto canvas = windowPtr->Surface->getCanvas();
-  canvas->clear(HYColorRgbToArgb(windowPtr->BackGroundColor, 255));
+  canvas->clear(static_cast<int>(HYColorRgbToArgb(windowPtr->BackGroundColor, 255)));
   SkPaint paint;
   paint.setAntiAlias(true);
   // 子组件绘制
   canvas->save();
   for (auto obj: windowPtr->Children) {
-    _obj_paint(obj, canvas, paint, {
-      windowPtr->ClientRect.x + obj->X,
-      windowPtr->ClientRect.y + obj->Y,
-      windowPtr->ClientRect.width - obj->X,
-      windowPtr->ClientRect.height - obj->Y
-    });
+    HYObjectSendEvent(windowPtr,obj,HYObjectEvent::HYObjectEvent_Paint,0,1);
   }
 
   SkPixmap pixmap;
@@ -77,25 +72,34 @@ void window_paint(HYWindow *windowPtr) {
 LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
   auto windowPtr = HYWindowGetWindowFromHandle(hWnd);
   if (!windowPtr) {
+    PrintDebug("Window not found");
     return DefWindowProcW(hWnd, message, wParam, lParam);
   }
-  bool obj_event = false;
-  if (message == 0 && lParam == HYObjectEventTag && wParam != NULL) {
-    // 组件消息
-    auto eventInfo = (HYObjectEventInfo *) wParam;
-    if (eventInfo->Event == HYObjectEvent_Paint) {
-      message = WM_PAINT;
-    }
-    obj_event = true;
-  }
+  bool obj_event = true;
+
+//  if (message == HYObjectEventTag && lParam == HYObjectEventTag && wParam != NULL) {
+//    // 组件消息
+//    auto eventInfo = (HYObjectEventInfo *) wParam;
+//    if (eventInfo->Event == HYObjectEvent_Paint) {
+//      message = WM_PAINT;
+//    }
+//    obj_event = true;
+//  }
   if (message == WM_PAINT) {
     window_paint(windowPtr);
+    // obj_event = true;
+    if (!windowPtr->IsReady) {
+      windowPtr->IsReady = true;
+    }
+    // obj_event = true;
   } else if (message == WM_CLOSE) {
     // 关闭窗口
     HYWindowDestroy(windowPtr);
+    obj_event = false;
   } else if (message == WM_DESTROY) {
     // 销毁窗口
     PostQuitMessage(0);
+    obj_event = false;
   } else if (message == WM_SIZE) {
     // 窗口大小改变
     {
@@ -106,10 +110,17 @@ LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
     }
     window_recreate_surface(windowPtr);
     window_paint(windowPtr);
+    obj_event = false;
   } else if (message == WM_MOUSEMOVE) {
     // 鼠标移动
     auto x = GET_X_LPARAM(lParam);
     auto y = GET_Y_LPARAM(lParam);
+    // 防止无限触发
+    HYPoint np = {x, y};
+    if (windowPtr->oldMouseMovePoint == np) {
+      return CallWindowProcW((WNDPROC) windowPtr->OldProc, hWnd, message, wParam, lParam);
+    }
+    windowPtr->oldMouseMovePoint = np;
     if (windowPtr->Drag) {
       // 拖动窗口
       auto mP = HYMouseGetPosition();
@@ -122,47 +133,61 @@ LRESULT CALLBACK HYWindow_WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
                  windowPtr->Height, false);
 
     } else {
-      PrintDebug("Mouse move on window [{},{}]", x, y);
+
       auto obj = HYObjectObjFromMousePos(windowPtr, x, y);
       if (obj) {
-        PrintDebug("Mouse move on object {} ,[{},{}]", obj->Name.toStdStringView(), x, y);
+        // 转换坐标
+        auto [x1,y1] = HYObjectGetRelativePoint(obj, x, y);
+        HYObjectSendEvent(windowPtr, obj, HYObjectEvent_MouseMove, wParam, HYPointGenLParam(x1, y1));
       }
     }
   } else if (message == WM_LBUTTONDOWN) {
     // 鼠标按下
     auto x = GET_X_LPARAM(lParam);
     auto y = GET_Y_LPARAM(lParam);
-    if (y<windowPtr->TitleBarHeight) {
+    if (y < windowPtr->TitleBarHeight) {
       // 标题栏区域内事件
       auto mP = HYMouseGetPosition();
-      windowPtr->oldMousePoint = {mP.x,mP.y};
+      windowPtr->oldMousePoint = {mP.x, mP.y};
       RECT rect;
       GetWindowRect(hWnd, &rect);
-      windowPtr->oldWinPoint = {rect.left,rect.top};
+      windowPtr->oldWinPoint = {rect.left, rect.top};
       windowPtr->Drag = true;
     }
   } else if (message == WM_LBUTTONUP) {
     // 鼠标抬起
     windowPtr->Drag = false;
-    windowPtr->oldWinPoint = {0,0};
-    windowPtr->oldMousePoint = {0,0};
+    windowPtr->oldWinPoint = {0, 0};
+    windowPtr->oldMousePoint = {0, 0};
   }
 
-  if (obj_event) {
-    // 组件事件
-    auto eventInfo = (HYObjectEventInfo *) wParam;
-    HYObjectSendEvent(windowPtr, eventInfo->Object, eventInfo->Event, eventInfo->Param1, eventInfo->Param2);
-  }
+//  if (obj_event) {
+//    // 组件事件
+//    auto eventInfo = (HYObjectEventInfo *) wParam;
+//    // HYObjectSendEvent(windowPtr, eventInfo->Object, eventInfo->Event, eventInfo->Param1, eventInfo->Param2);
+//    for (auto obj: windowPtr->Children) {
+//      for (auto cobj: obj->Children) {
+//        if (obj == eventInfo->Object) {
+//          // _obj_event(windowPtr, obj, eventInfo->Event, eventInfo->Param1, eventInfo->Param2);
+//          HYObjectSendEvent(windowPtr, obj, eventInfo->Event, eventInfo->Param1, eventInfo->Param2);
+//          break;
+//        }
+//      }
+//    }
+//  }
 
   return CallWindowProcW((WNDPROC) windowPtr->OldProc, hWnd, message, wParam, lParam);
 };
 
 HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {
-  for (auto &iter: g_app.WindowsTable) {
-    if (iter->Handle == handle) {
-      return iter;
+  if (!g_app.WindowsTable.empty()) {
+    for (auto &iter: g_app.WindowsTable) {
+      if (iter->Handle == handle) {
+        return iter;
+      }
     }
   }
+
   return nullptr;
 }
 
@@ -230,8 +255,8 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity) {
   window_paint(wnd);
 }
 
-void HYWindowSendEvent(HYWindow *window, uint32_t event, intptr_t param1, intptr_t param2) {
-  SendMessageW((HWND) window->Handle, event, param1, param2);
+uint64_t HYWindowSendEvent(HYWindow *window, uint32_t event, uint64_t param1, uint32_t param2) {
+  return SendMessageW((HWND) window->Handle, event, param1, param2);
 }
 
 }

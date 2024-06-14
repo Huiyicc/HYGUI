@@ -37,6 +37,7 @@ struct HYWindow {
   VOIDPTR WindowCanvasTarget = nullptr; // HDC
   VOIDPTR WindowLayeredCanvas = nullptr;
   VOIDPTR CustomBmp = nullptr;
+  bool IsReady = false;
   int Width = 0; // 窗口宽度
   int Height = 0; // 窗口高度
   int X = 0; // 窗口左上角x坐标
@@ -50,8 +51,12 @@ struct HYWindow {
 
   bool Drag = false; // 是否拖动
   HYPoint oldMousePoint = {0, 0}; // 旧鼠标位置
+  HYPoint oldMouseMovePoint = {0, 0}; // 旧鼠标移动位置 (win下有可能无限触发移动事件)
   HYPoint oldWinPoint = {0, 0}; // 旧窗口位置
 
+  std::mutex PaintMutex; // 绘制锁
+  std::condition_variable PaintCV; // 绘制条件变量
+  std::mutex MessageMutex; // 消息锁
   std::unordered_map<intptr_t, intptr_t> UserData; // 用户数据
   std::set<HYObject *> Children; // 组件树
 };
@@ -128,10 +133,11 @@ void HYWindowSkinHook(HYWindowHandel wnd,HYRGB backGroundColor,int diaphaneity);
  * @brief 发送窗口事件
  * @param window 窗口指针
  * @param event 事件
- * @param param1 参数1
- * @param param2 参数2
+ * @param param1 参数1,宽消息
+ * @param param2 参数2,窄消息
+ * @return 返回值
  */
-void HYWindowSendEvent(HYWindowHandel window, uint32_t event, intptr_t param1, intptr_t param2);
+uint64_t HYWindowSendEvent(HYWindowHandel window, uint32_t event, uint64_t param1, uint32_t param2);
 
 /**
  * @brief 为窗口对象设置用户数据。
