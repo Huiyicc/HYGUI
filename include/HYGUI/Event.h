@@ -24,6 +24,16 @@ enum HYObjectEvent {
   HYObjectEvent_MouseMove, // 鼠标移动
 };
 
+enum HYWindowEvent {
+  // ...
+  // 预留事件
+  // ...
+  HYWindowEvent_Create = 100, // 窗口创建
+  HYWindowEvent_Destroy, // 窗口销毁
+  HYWindowEvent_Paint, // 窗口重绘
+  HYWindowEvent_MouseMove, // 鼠标移动
+};
+
 struct HYObjectEventInfo {
   HYObjectEvent Event;
   HYWindow *Window;

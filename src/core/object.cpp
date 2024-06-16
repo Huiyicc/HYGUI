@@ -13,23 +13,28 @@ namespace HYGUI {
 
 // 组件绘制消息
 int _obj_paint(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
+  int r = 0;
   for (auto &callback: obj->EventCallbacks) {
-    if (callback(obj->Window, obj, HYObjectEvent_Paint, 0, 0) != 0) {
+    r = callback(obj->Window, obj, event, param1, param2);
+    if (r != 0) {
       break;
     }
   }
   if (!obj->Children.empty()) {
     for (auto &child: obj->Children) {
-      _obj_paint(window, child, event, param1, param2);
+      r = _obj_paint(window, child, event, param1, param2);
+      if (r != 0) {
+        break;
+      }
     }
   }
-  return 0;
+  return r;
 }
 
 // 组件事件_鼠标移动
 int _obj_mouse_move(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
   auto p = HYPointFromLParam(param2);
-  // PrintDebug("obj_mouse_move {} {} {}",obj->Name.toStdStringView(), p.x, p.y);
+  PrintDebug("obj_mouse_move {} {} {}", obj->Name.toStdStringView(), p.x, p.y);
   return 0;
 }
 
@@ -59,11 +64,62 @@ HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int wi
                    const HYString &className, const HYString &name, int id) :
   Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height),
   ClassName(className), Name(name), ID(id) {
+  RawObjRect = {x, y, width, height};
   if (parent) {
     parent->Children.insert(this);
+    if (x < 0) {
+      VisibleRect.x = parent->VisibleRect.x;
+      VisibleRect.width = x + width;
+
+    } else {
+      VisibleRect.x = parent->VisibleRect.x + x;
+      VisibleRect.width = width;
+    }
+    if (y < 0) {
+      VisibleRect.y = parent->VisibleRect.y;
+      VisibleRect.height = y + height;
+    } else {
+      VisibleRect.y = parent->VisibleRect.y + y;
+      VisibleRect.height = height;
+    }
+    VisibleRect.width = std::max(0, VisibleRect.width);
+    VisibleRect.height = std::max(0, VisibleRect.height);
+    if (VisibleRect.width > parent->Width) {
+      VisibleRect.width = parent->Width;
+    }
+    if (VisibleRect.height > parent->Height) {
+      VisibleRect.height = parent->Height;
+    }
+    RawObjRect.x = parent->VisibleRect.x + x;
+    RawObjRect.y = parent->VisibleRect.y + y;
+
   } else {
     window->Children.insert(this);
+    if (x < 0) {
+      VisibleRect.x = 0;
+      VisibleRect.width = x + width;
+    } else {
+      VisibleRect.x = x;
+      VisibleRect.width = width;
+    }
+    if (y < 0) {
+      VisibleRect.y = 0;
+      VisibleRect.height = y + height;
+    } else {
+      VisibleRect.y = y;
+      VisibleRect.height = height;
+    }
+    VisibleRect.width = std::max(0, VisibleRect.width);
+    VisibleRect.height = std::max(0, VisibleRect.height);
+    if (VisibleRect.width > window->Width) {
+      VisibleRect.width = window->Width;
+    }
+    if (VisibleRect.height > window->Height) {
+      VisibleRect.height = window->Height;
+    }
+
   }
+
   // HYObjectAddEventCallback(this, _obj_event);
 }
 
@@ -79,46 +135,16 @@ HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, in
 }
 
 void HYObjectPostEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2) {
-  std::lock_guard<std::mutex> lock(window->MessageMutex);
-  if (!window->EventQueue.IsRunning()) {
-    window->EventQueue.Start();
-  }
-  HYObjectEventInfo i = {
-    (HYObjectEvent) event,
-    window,
-    object,
-    param1,
-    param2,
-  };
-  // 有序发送
-  window->EventQueue.Push(i);
+  _obj_event(window, object, event, param1, param2);
 }
 
 void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2) {
-  std::lock_guard<std::mutex> lock(window->MessageMutex);
-  if (!window->EventQueue.IsRunning()) {
-    window->EventQueue.Start();
-  }
-  HYObjectEventInfo i = {
-    (HYObjectEvent) event,
-    window,
-    object,
-    param1,
-    param2,
-  };
-  bool wl = true;
-  bool isPush = false;
-  while (wl) {
-    if (!window->EventQueue.Empty()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-      continue;
-    }
-    if (!isPush) {
-      window->EventQueue.Push(i);
-      isPush = true;
-      continue;
-    }
-    wl = false;
+  _obj_event(window, object, event, param1, param2);
+}
+
+void HYObjectSendEventLIst(HYWindow *window, int event, uint64_t param1, uint32_t param2) {
+  for (auto &obj: window->Children) {
+    _obj_event(window, obj, event, param1, param2);
   }
 }
 
@@ -169,91 +195,45 @@ void HYObjectSetID(HYObjectHandle object, int id) {
   object->ID = id;
 }
 
-// 递归查找子对象
-HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py, int offsetX, int offsetY) {
-  if (!obj->contains(px - offsetX, py - offsetY)) {
-    return nullptr;
-  }
 
-  // 更新相对坐标
-  offsetX += obj->X;
-  offsetY += obj->Y;
-
-  // 从后往前遍历子对象
+HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py) {
+  HYObjectHandle topObject = nullptr;
   for (auto it = obj->Children.rbegin(); it != obj->Children.rend(); ++it) {
-    auto found = HYObjectObjFromMousePos(*it, px, py, offsetX, offsetY);
-    if (found) {
-      return found;
+    topObject = HYObjectObjFromMousePos(*it, px, py);
+    if (topObject) {
+      return topObject;
     }
   }
-
-  return obj;
+  // 没有子组件命中
+  return HYPointIsInsideRectangle({px, py}, obj->VisibleRect) ? obj : nullptr;
 }
 
 HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int px, int py) {
   HYObjectHandle topObject = nullptr;
-  // 从后往前遍历子对象
   for (auto it = window->Children.rbegin(); it != window->Children.rend(); ++it) {
-    auto found = HYObjectObjFromMousePos(*it, px, py, 0, 0);
-    if (found) {
-      topObject = found;
+    topObject = HYObjectObjFromMousePos(*it, px, py);
+    if (topObject) {
+      break;
     }
   }
   return topObject;
 }
 
 HYPoint HYObjectGetRelativePoint(HYObjectHandle object, int windowX, int windowY) {
-  HYPoint raw;
-  if (object->Parent) {
-    auto tmp = HYObjectGetRelativePoint(object->Parent, windowX, windowY);
-    raw.x = tmp.x - object->X;
-    raw.y = tmp.y - object->Y;
-  } else {
-    raw.x = windowX - object->X;
-    raw.y = windowY - object->Y;
-  }
-  return raw;
+  return {
+    windowX - object->RawObjRect.x,
+    windowY - object->RawObjRect.y
+  };
 }
 
-HYRect HYObjectGetNestedClippedVisibleArea(HYObjectHandle object, const HYRect &rect) {
-  HYRect raw;
-  if (rect.x == 0
-      && rect.y == 0
-      && rect.width == 0
-      && rect.height == 0) {
-    raw = {object->X,
-           object->Y,
-           object->Width, object->Height};
-  } else {
-    raw = rect;
-  }
-
-  if (raw.x < 0) {
-    raw.width += raw.x;
-    raw.x = 0;
-  }
-  if (raw.y < 0) {
-    raw.height += raw.y;
-    raw.y = 0;
-  }
-  if (object->Parent) {
-    // 还有上级父区域
-    auto tmp = HYObjectGetNestedClippedVisibleArea(object->Parent);
-    if (raw.width > tmp.width) {
-      raw.width = tmp.width;
-    }
-    if (raw.height > tmp.height) {
-      raw.height = tmp.height;
-    }
-    raw.x += tmp.x;
-    raw.y += tmp.y;
-  }
-  return raw;
+HYRect HYObjectGetNestedClippedVisibleArea(HYObjectHandle object) {
+  return object->VisibleRect;
 }
 
-PaintPtr HYObjectBeginPaint(HYObjectHandle object, const HYRect &rect) {
+PaintPtr HYObjectBeginPaint(HYObjectHandle object) {
+  object->Window->PaintMutex.lock();
   // 计算实际可视区域
-  HYRect lct = HYObjectGetNestedClippedVisibleArea(object, rect);
+  HYRect lct = HYObjectGetNestedClippedVisibleArea(object);
   // 创建画布
   object->Canvas = object->Window->Canvas;
   object->Canvas->save();
@@ -268,10 +248,11 @@ PaintPtr HYObjectBeginPaint(HYObjectHandle object, const HYRect &rect) {
 }
 
 
-void HYObjectEndPaint(HYObjectHandle object,SkPaint*repaint) {
+void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint) {
   object->Canvas->restore();
   object->Canvas = nullptr;
   delete repaint;
+  object->Window->PaintMutex.unlock();
 }
 
 }

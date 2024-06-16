@@ -18,36 +18,38 @@
 #endif
 
 //#include <GLFW/glfw3.h>
+#include "SDL2/SDL.h"
 
 namespace HYGUI {
 
 ApplicationInfo g_app;
 
+
 bool HYInit(VOIDPTR ModuleHandle,
             HYGlobalFlag DefaultGlobalFlags,
             CursorPtr DefaultCursor,
             HYString DefaultClassName) {
+  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    g_app.LastError = SDL_GetError();
+    PrintError(g_app.LastError);
+    return false;
+  };
+  auto &l = g_app;
   g_app.Instance = ModuleHandle;
   g_app.GlobalFlags = DefaultGlobalFlags;
-  if (((int) g_app.GlobalFlags & (int) HYGlobalFlag::HYGlobalFlagGraphicNone)==(int) HYGlobalFlag::HYGlobalFlagGraphicNone) {
+  if (((int) g_app.GlobalFlags & (int) HYGlobalFlag::HYGlobalFlagGraphicNone) ==
+      (int) HYGlobalFlag::HYGlobalFlagGraphicNone) {
     g_app.GrContext = GrDirectContexts::MakeGL().release();
   }
-
-//  if (((int) g_app.GlobalFlags & (int) HYGlobalFlag::HYGlobalFlagGraphicGL) ==
-//      (int) HYGlobalFlag::HYGlobalFlagGraphicGL) {
-////    // 初始化Skia
-////    if (glfwInit() != GLFW_TRUE) {
-////      g_app.LastError = "glfwInit failed";
-////      PrintError(g_app.LastError);
-////      return false;
-////    }
-////    // 创建OpenGL上下文
-////    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-////    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-////    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-////    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-////    g_app.GrContext = GrDirectContexts::MakeGL().release();
-//  }
+  // 注册sdl事件
+  g_app.EventCustomStart = SDL_RegisterEvents(2);
+  if (g_app.EventCustomStart == (Uint32) -1) {
+    g_app.LastError = SDL_GetError();
+    PrintError(g_app.LastError);
+    return false;
+  }
+  g_app.EventWindow = g_app.EventCustomStart + 1;
+  g_app.EventObject = g_app.EventCustomStart + 2;
   if (DefaultCursor != nullptr) {
     g_app.Cursor = DefaultCursor;
   } else {
@@ -66,22 +68,11 @@ bool HYInit(VOIDPTR ModuleHandle,
 }
 
 void HYExit() {
+  SDL_Quit();
   if (g_app.GrContext) {
     SkSafeUnref((GrDirectContext *) g_app.GrContext);
   }
 }
 
-//VOIDPTR HYGetModuleHandle(
-//  #ifdef _HOST_WINDOWS_
-//  VOIDPTR lpModuleName
-//  #else
-//  #endif
-//) {
-//  #ifdef _HOST_WINDOWS_
-//  return GetModuleHandleW((LPCWSTR) lpModuleName);
-//  #else
-//  #error "Unsupported platform"
-//  #endif
-//}
 
 }

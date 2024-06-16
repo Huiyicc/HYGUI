@@ -19,8 +19,8 @@
 #endif
 #include <HYGUI/Application.h>
 #include <HYGUI/Window.h>
-
-
+#include "Defer.h"
+#include "SDL2/SDL.h"
 
 namespace HYGUI {
 
@@ -28,12 +28,10 @@ extern ApplicationInfo g_app;
 
 constexpr const wchar_t *DEFAULT_CLASS_NAME = L"HYGUI";
 
-void window_paint(HYWindow *windowPtr);
+void window_paint(HYWindow *, SDL_WindowEvent *) ;
 void window_recreate_surface(HYWindow *windowPtr);
 int processing_object_event(HYObjectEventQueue*queue, HYObjectEventInfo&event_info);
-// int _obj_paint(HYObject *obj, SkCanvas *canvas, SkPaint &paint, const HYRect &offset_point);
-// int _obj_event(HYWindow *window, HYObject *obj, int event, int param1, int param2);
-void _obj_event_list(HYWindow *window, HYObject *obj, int event, int param1, int param2);
+void adjustwindow_by_sdl(uint32_t id,SDL_Window *sdl_window,void*hwnd);
 
 }
 

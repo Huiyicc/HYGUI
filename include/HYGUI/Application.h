@@ -14,12 +14,9 @@ bool HYInit(VOIDPTR ModuleHandle,
             CursorPtr DefaultCursor=nullptr,
             HYString DefaultClassName="");
 
-//VOIDPTR HYGetModuleHandle(
-//#ifdef _HOST_WINDOWS_
-//  VOIDPTR lpModuleName = nullptr
-//#else
-//#endif
-//);
+
+void HYExit();
+
 
 }
 #endif //HYGUI_APP_H

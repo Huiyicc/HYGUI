@@ -17,6 +17,9 @@
 
 #endif
 
+struct SDL_Window;
+struct SDL_Renderer;
+
 namespace HYGUI {
 
 #ifdef _HOST_WINDOWS_
@@ -30,6 +33,12 @@ struct HYWindow;
 typedef HYWindow* HYWindowHandel;
 
 struct HYWindow {
+  uint32_t ID = 0;
+  SDL_Window* SDLWindow = nullptr;
+  SDL_Renderer* SDLRenderer = nullptr;
+  bool IsInit = false;
+  bool Show = false;
+
   WINDOWHANDEL Handle = nullptr;
   VOIDPTRT OldProc = 0;
   SurfacePtr Surface = nullptr;
@@ -95,16 +104,10 @@ void HYWindowDestroy(HYWindowHandel wnd);
 /**
  * @brief 显示窗口
  * @param wnd 窗口指针
- * @return
  */
-bool HYWindowShow(HYWindowHandel wnd);
+void HYWindowShow(HYWindow* wind);
 
-/**
- * @brief 窗口消息循环
- * @param wnd 窗口指针
- * @return
- */
-uint32_t HYWindowMessageLoop(HYWindowHandel wnd);
+uint32_t HYWindowMessageLoop();
 
 /**
  * @brief 对话框窗口消息循环

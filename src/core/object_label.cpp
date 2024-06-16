@@ -2,6 +2,7 @@
 // Created by 19254 on 24-6-4.
 //
 #include "HYGUI/ObjectLabel.h"
+#include "HYGUI/Paint.h"
 #include "logs.h"
 
 namespace HYGUI {
@@ -11,10 +12,9 @@ int label_event_paint(HYWindow *window, HYObject *object, HYObjectEvent event, i
 
   auto label = reinterpret_cast<HYLabel *>(object);
   SkRect rect = SkRect::MakeXYWH(0, 0, label->Width, label->Height);
-  paint->setColor(SkColorSetARGB(label->BackgroundColor.a,
-                                         label->BackgroundColor.r,
-                                         label->BackgroundColor.g,
-                                         label->BackgroundColor.b));
+
+  HYPaintSetColor(paint,label->BackgroundColor);
+
   object->Canvas->drawRect(rect, *paint);
 
   HYObjectEndPaint(object, paint);

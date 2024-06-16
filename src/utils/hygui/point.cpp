@@ -16,5 +16,13 @@ HYPoint HYPointFromLParam(uint32_t lParam) {
   };
 }
 
+bool HYPointIsInsideRectangle(const HYPoint& point, const HYRect& rectangle) {
+  if (point.x >= rectangle.x && point.x <= (rectangle.x + rectangle.width)) {
+    if (point.y >= rectangle.y && point.y <= (rectangle.y + rectangle.height)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 }

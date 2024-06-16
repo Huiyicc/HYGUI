@@ -28,6 +28,7 @@
 #include <set>
 #include <unordered_map>
 #include "String.h"
+#include <mutex>
 
 namespace HYGUI {
 
@@ -60,6 +61,10 @@ struct ApplicationInfo {
   VOIDPTR Icon = nullptr;
   VOIDPTR IconSm = nullptr;
   std::set<HYWindow *> WindowsTable;
+  std::mutex WindowsTableMutex;
+  uint32_t EventCustomStart;
+  uint32_t EventWindow;
+  uint32_t EventObject;
 };
 
 

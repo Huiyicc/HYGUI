@@ -49,6 +49,10 @@ elseif(CMAKE_HOST_WIN32)
         include_directories($ENV{MODULES_DIR}/boost/include)
         link_directories($ENV{MODULES_DIR}/boost/lib)
 
+        # SDL2
+        include_directories($ENV{MODULES_DIR}/SDL/include)
+        link_directories($ENV{MODULES_DIR}/SDL/lib)
+
 #        # glfw
 #        include_directories($ENV{MODULES_DIR}/glfw/include)
 #        link_directories($ENV{MODULES_DIR}/glfw/lib)
@@ -57,6 +61,10 @@ elseif(CMAKE_HOST_WIN32)
         # boost
         include_directories(${MODULES_DIR}/boost/include)
         link_directories(${MODULES_DIR}/boost/lib)
+
+        # SDL2
+        include_directories($ENV{MODULES_DIR}/SDL/include)
+        link_directories($ENV{MODULES_DIR}/SDL/lib)
 
 #        # glfw
 #        include_directories(${MODULES_DIR}/glfw/include)
@@ -110,6 +118,8 @@ endif ()
 target_link_libraries(HYGUI PRIVATE skia)
 if (OS_IS_WINDOWS)
     target_link_libraries(HYGUI PRIVATE opengl32.lib)
+    target_link_libraries(HYGUI PRIVATE SDL2-static Winmm Setupapi Imm32 Version)
+
 elseif (OS_IS_APPLE)
     target_link_libraries(HYGUI PRIVATE iconv)
 endif ()
@@ -123,5 +133,5 @@ if (NOT DEFINED NO_EXAMPLES)
 #    target_link_libraries(ExamplesHashTable HYGUI)
     # helloworld
     add_executable(HelloWorld examples/helloworld/helloworld.cpp)
-    target_link_libraries(HelloWorld HYGUI)
+    target_link_libraries(HelloWorld PRIVATE HYGUI)
 endif ()
