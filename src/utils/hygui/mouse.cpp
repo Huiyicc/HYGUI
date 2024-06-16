@@ -2,22 +2,17 @@
 // Created by 19254 on 24-6-9.
 //
 #include "HYGUI/Mouse.h"
+#include "SDL2/SDL.h"
 #ifdef _HOST_WINDOWS_
 #include <windows.h>
 #endif
 
 namespace HYGUI {
-#ifdef _HOST_WINDOWS_
-HYPoint HYMouseGetPosition() {
 
-  POINT point;
-  GetCursorPos(&point);
-  return {point.x, point.y};
+HYPoint HYMouseGetPosition() {
+  HYPoint point;
+  SDL_GetGlobalMouseState(&point.x,&point.y);
+  return point;
 }
-#elif defined(_HOST_APPLE_)
-namespace HYGUI {
-void empty_mouse() {}
-}
-#endif
 
 }
