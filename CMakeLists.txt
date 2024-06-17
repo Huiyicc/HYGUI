@@ -33,7 +33,18 @@ if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
     set (LD_LIBRARY_PATH LD_LIBRARY_PATH:${ICU_PATH}/lib)
     set (LIBRARY_PATH LIBRARY_PATH:${ICU_PATH}/lib)
     include_directories(${ICU_PATH}/include)
-#    find_package(icu4c REQUIRED)
+    link_directories(${ICU_PATH}/lib)
+
+    # SDL2
+    include_directories(${SDL_PATH}/include)
+    link_directories(${SDL_PATH}/lib)
+
+    find_library(COCOA_LIBRARY Cocoa)
+    find_library(APPKIT_LIBRARY AppKit)
+    find_library(FOUNDATION_LIBRARY Foundation)
+
+
+    #    find_package(icu4c REQUIRED)
 #    include_directories(${icu4c_INCLUDE_DIRS})
 #    link_directories(${icu4c_LIBRARY_DIRS})
 
@@ -127,7 +138,7 @@ if (OS_IS_WINDOWS)
     target_link_libraries(HYGUI PRIVATE SDL2-static Winmm Setupapi Imm32 Version)
 
 elseif (OS_IS_APPLE)
-    target_link_libraries(HYGUI PRIVATE iconv)
+    target_link_libraries(HYGUI PRIVATE  icudata icutu icui18n icuuc SDL2 ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY})
 endif ()
 
 # =================

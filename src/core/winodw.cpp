@@ -108,7 +108,67 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   g_app.WindowsTable.insert(window);
   return window;
 }
+#elif  defined(_HOST_APPLE_)
+HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
+  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
+  auto &debug_app = g_app;
+  SDL_DisplayMode dsinfo;
+  SDL_GetDesktopDisplayMode(0, &dsinfo);
+  if (x == WINDOWCREATEPOINT_USEDEFAULT) {
+    x = (dsinfo.w - width) / 2;
+  }
+  if (y == WINDOWCREATEPOINT_USEDEFAULT) {
+    y = (dsinfo.h - height) / 2;
+  }
+//  auto hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toStdWStringView().data(),
+//                              title.toStdWStringView().data(),
+//                              (WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_LAYERED) & ~WS_SYSMENU,
+//                              x, y, width,
+//                              height, parent ? (HWND) parent->Handle : nullptr,
+//                              nullptr, (HINSTANCE) g_app.Instance, nullptr);
+  auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), x, y, width, height,
+                                   SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
+  if (sdl_wind == nullptr) {
+    return nullptr;
+  }
 
+  // SDL_ShowWindow(sdl_wind);
+//  auto id = SDL_GetWindowID(sdl_wind);
+// auto w=  SDL_GetWindowFromID(id);
+  SDL_SysWMinfo info;
+  SDL_VERSION(&info.version);
+  //SDL_SysWMinfo info;
+  if (!SDL_GetWindowWMInfo(sdl_wind, &info)) {
+    g_app.LastError = SDL_GetError();
+    return nullptr;
+  };
+  auto hWnd = info.info.cocoa.window;
+  if (hWnd == nullptr) {
+    return nullptr;
+  }
+  auto window = new HYWindow;
+  window->ID = SDL_GetWindowID(sdl_wind);
+  window->SDLRenderer = SDL_CreateRenderer(
+      sdl_wind, // 关联的窗口
+      -1, // 使用默认的驱动索引
+      SDL_RENDERER_ACCELERATED // 使用硬件加速
+  );
+  window->SDLWindow = sdl_wind;
+  window->Handle = hWnd;
+  SDL_GetWindowPosition(sdl_wind, &window->X, &window->Y);
+  SDL_GetWindowSize(sdl_wind, &window->Width, &window->Height);
+  window->ClientRect = {0, 0, window->Width, window->Height};
+
+  window->WindowCanvasTarget = info.info.cocoa.window;
+
+  if (g_app.WindowsTable.find(window) != g_app.WindowsTable.end()) {
+    // ????什么玩意
+    delete window;
+    return nullptr;
+  }
+  g_app.WindowsTable.insert(window);
+  return window;
+}
 #endif
 
 
@@ -194,7 +254,12 @@ uint32_t HYWindowMessageLoop() {
     auto sdlWindow = SDL_GetWindowFromID(event.window.windowID);
     SDL_SysWMinfo winfo;
     SDL_GetWindowWMInfo(sdlWindow, &winfo);
+    #ifdef _HOST_WINDOWS_
     auto hWnd = winfo.info.win.window;
+    #elif defined(_HOST_APPLE_)
+    auto hWnd =winfo.info.cocoa.window;
+    #endif
+
 
     auto window = HYWindowGetWindowFromHandle(hWnd);
     if (!window) {
