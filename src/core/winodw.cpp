@@ -15,6 +15,7 @@
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include <SDL2/SDL_opengl.h>
 #include <gpu/GrBackendSurface.h>
+#include <include/gpu/gl/GrGLAssembleInterface.h>
 
 namespace HYGUI {
 
@@ -99,7 +100,9 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // 准备GrContext
-  auto skInterface = GrGLMakeNativeInterface();
+  // auto skInterface = GrGLMakeNativeInterface();
+  auto skInterface = GrGLMakeAssembledInterface(
+    nullptr, (GrGLGetProc) * [](void*, const char* p) -> void* { return (void*)SDL_GL_GetProcAddress(p); });
   if (!skInterface) {
     SDL_DestroyWindow(sdl_wind);
     return nullptr;
