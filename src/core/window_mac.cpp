@@ -81,7 +81,7 @@ void window_recreate_surface(HYWindow *windowPtr) {
   binfo.fFormat = GL_RGB8;
   #endif
   // GrBackendRenderTarget target(dw, dh, kMsaaSampleCount, kStencilBits, info);
-  auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width, windowPtr->ClientRect.height,
+  auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width-100, windowPtr->ClientRect.height-100,
                                                  0, g_app.kStencilBits,
                                                  binfo);
 

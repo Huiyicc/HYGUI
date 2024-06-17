@@ -44,7 +44,7 @@ bool HYInit(VOIDPTR ModuleHandle,
   #else
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   #endif
-  SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
+  //SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
 
   g_app.kStencilBits = 8;  // skia需要8位模板缓冲区
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
