@@ -54,6 +54,9 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
 #endif
 }
 
+GrGLFuncPtr glgetpoc(void* ctx, const char name[]) {
+  return (GrGLFuncPtr)SDL_GL_GetProcAddress(name);
+}
 
 HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
@@ -102,7 +105,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   // 准备GrContext
   // auto skInterface = GrGLMakeNativeInterface();
   auto skInterface = GrGLMakeAssembledInterface(
-    nullptr, (GrGLGetProc) * [](void*, const char* p) -> void* { return (void*)SDL_GL_GetProcAddress(p); });
+    nullptr, glgetpoc);
+  //nullptr, (GrGLGetProc) * [](void*, const char* p) -> void* { return (void*)SDL_GL_GetProcAddress(p); });
   if (!skInterface) {
     SDL_DestroyWindow(sdl_wind);
     return nullptr;
