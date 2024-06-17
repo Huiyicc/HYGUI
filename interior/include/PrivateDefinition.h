@@ -22,6 +22,8 @@
 #include "Defer.h"
 #include "SDL2/SDL.h"
 
+struct SDL_SysWMinfo;
+
 namespace HYGUI {
 
 extern ApplicationInfo g_app;
@@ -32,6 +34,7 @@ void window_paint(HYWindow *, SDL_WindowEvent *) ;
 void window_recreate_surface(HYWindow *windowPtr);
 int processing_object_event(HYObjectEventQueue*queue, HYObjectEventInfo&event_info);
 void adjustwindow_by_sdl(uint32_t id,SDL_Window *sdl_window,void*hwnd);
+void adjust_win_tyle(SDL_SysWMinfo* wmInfo);
 
 }
 

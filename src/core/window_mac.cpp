@@ -35,6 +35,13 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity) {
 //  SetWindowPos((HWND) wnd->Handle, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 
   SDL_SetWindowOpacity(wnd->SDLWindow,(float)(diaphaneity) / 255.0f);
+
+  SDL_SysWMinfo wmInfo;
+  SDL_VERSION(&wmInfo.version);
+  if (SDL_GetWindowWMInfo(wnd->SDLWindow, &wmInfo)) {
+    adjust_win_tyle(&wmInfo);
+  }
+
   window_recreate_surface(wnd);
   // window_paint(wnd);
   SDL_Event event;
@@ -81,7 +88,7 @@ void window_recreate_surface(HYWindow *windowPtr) {
   binfo.fFormat = GL_RGB8;
   #endif
   // GrBackendRenderTarget target(dw, dh, kMsaaSampleCount, kStencilBits, info);
-  auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width-100, windowPtr->ClientRect.height-100,
+  auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width, windowPtr->ClientRect.height,
                                                  0, g_app.kStencilBits,
                                                  binfo);
 
