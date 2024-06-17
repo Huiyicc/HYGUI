@@ -53,6 +53,7 @@ typedef VOIDPTR CursorPtr;
 
 struct ApplicationInfo {
   HYString LastError;
+  int kStencilBits;
   VOIDPTR Instance = nullptr;
   VOIDPTR GrContext = nullptr;
   HYGlobalFlag GlobalFlags = HYGlobalFlag::HYGlobalFlagGraphicDefault;

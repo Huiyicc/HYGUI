@@ -33,6 +33,11 @@ struct HYWindow;
 typedef HYWindow* HYWindowHandel;
 
 struct HYWindow {
+  VOIDPTR GrCtx = nullptr; // 设备上下文
+  VOIDPTR SDLGl = nullptr; // sdl设备上下文
+
+  int kStencilBits = 8; // skia需要8位模板缓冲区
+
   uint32_t ID = 0;
   SDL_Window* SDLWindow = nullptr;
   SDL_Renderer* SDLRenderer = nullptr;

@@ -8,6 +8,13 @@
 #include "SDL2/SDL.h"
 #include <SDL2/SDL_syswm.h>
 #include <map>
+#include <gpu/ganesh/SkSurfaceGanesh.h>
+#include "include/gpu/gl/GrGLInterface.h"
+#include "include/gpu/ganesh/gl/GrGLDirectContext.h"
+#include "include/gpu/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
+#include <SDL2/SDL_opengl.h>
+#include <gpu/GrBackendSurface.h>
 
 namespace HYGUI {
 
@@ -47,71 +54,9 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
 }
 
 
-#ifdef _HOST_WINDOWS_
-
-
 HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
-  auto &debug_app = g_app;
-  if (x == WINDOWCREATEPOINT_USEDEFAULT) {
-    x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
-  }
-  if (y == WINDOWCREATEPOINT_USEDEFAULT) {
-    y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
-  }
-//  auto hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toStdWStringView().data(),
-//                              title.toStdWStringView().data(),
-//                              (WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_LAYERED) & ~WS_SYSMENU,
-//                              x, y, width,
-//                              height, parent ? (HWND) parent->Handle : nullptr,
-//                              nullptr, (HINSTANCE) g_app.Instance, nullptr);
-  auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), x, y, width, height,
-                                   SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
-  if (sdl_wind == nullptr) {
-    return nullptr;
-  }
 
-  // SDL_ShowWindow(sdl_wind);
-//  auto id = SDL_GetWindowID(sdl_wind);
-// auto w=  SDL_GetWindowFromID(id);
-  SDL_SysWMinfo info;
-  SDL_VERSION(&info.version);
-  //SDL_SysWMinfo info;
-  if (!SDL_GetWindowWMInfo(sdl_wind, &info)) {
-    g_app.LastError = SDL_GetError();
-    return nullptr;
-  };
-  auto hWnd = info.info.win.window;
-  if (hWnd == nullptr) {
-    return nullptr;
-  }
-  auto window = new HYWindow;
-  window->ID = SDL_GetWindowID(sdl_wind);
-  window->SDLRenderer = SDL_CreateRenderer(
-    sdl_wind, // 关联的窗口
-    -1, // 使用默认的驱动索引
-    SDL_RENDERER_ACCELERATED // 使用硬件加速
-  );
-  window->SDLWindow = sdl_wind;
-  window->Handle = hWnd;
-  SDL_GetWindowPosition(sdl_wind, &window->X, &window->Y);
-  SDL_GetWindowSize(sdl_wind, &window->Width, &window->Height);
-  window->ClientRect = {0, 0, window->Width, window->Height};
-
-  window->WindowCanvasTarget = info.info.win.hdc;
-
-  if (g_app.WindowsTable.find(window) != g_app.WindowsTable.end()) {
-    // ????什么玩意
-    delete window;
-    return nullptr;
-  }
-  g_app.WindowsTable.insert(window);
-  return window;
-}
-#elif  defined(_HOST_APPLE_)
-HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
-  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
-  auto &debug_app = g_app;
   SDL_DisplayMode dsinfo;
   SDL_GetDesktopDisplayMode(0, &dsinfo);
   if (x == WINDOWCREATEPOINT_USEDEFAULT) {
@@ -120,46 +65,106 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   if (y == WINDOWCREATEPOINT_USEDEFAULT) {
     y = (dsinfo.h - height) / 2;
   }
-//  auto hWnd = CreateWindowExW(WS_EX_LAYERED, g_app.DefaultClassName.toStdWStringView().data(),
-//                              title.toStdWStringView().data(),
-//                              (WS_OVERLAPPEDWINDOW | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_LAYERED) & ~WS_SYSMENU,
-//                              x, y, width,
-//                              height, parent ? (HWND) parent->Handle : nullptr,
-//                              nullptr, (HINSTANCE) g_app.Instance, nullptr);
+
   auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), x, y, width, height,
-                                   SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
+                                   SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
   if (sdl_wind == nullptr) {
     return nullptr;
   }
+  // 创建OpenGL上下文
+  SDL_GLContext glContext = SDL_GL_CreateContext(sdl_wind);
+  if (glContext == nullptr) {
+    SDL_DestroyWindow(sdl_wind);
+    return nullptr;
+  }
 
-  // SDL_ShowWindow(sdl_wind);
-//  auto id = SDL_GetWindowID(sdl_wind);
-// auto w=  SDL_GetWindowFromID(id);
+  // 设置OpenGL属性
+  int success = SDL_GL_MakeCurrent(sdl_wind, glContext);
+  if (success != 0) {
+    SDL_DestroyWindow(sdl_wind);
+    SDL_GL_DeleteContext(glContext);
+    return nullptr;
+  }
+  static const int kMsaaSampleCount = 0; //4;
+
+  // 获取窗口像素格式
+  uint32_t windowFormat = SDL_GetWindowPixelFormat(sdl_wind);
+  int contextType;
+  SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextType);
+  int dw, dh;
+  SDL_GL_GetDrawableSize(sdl_wind, &dw, &dh);
+  glViewport(0, 0, dw, dh);
+  glClearColor(1, 1, 1, 1);
+  glClearStencil(0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+  // 准备GrContext
+  auto skInterface = GrGLMakeNativeInterface();
+  if (!skInterface) {
+    SDL_DestroyWindow(sdl_wind);
+    return nullptr;
+  }
+  // 准备contexts
+  sk_sp<GrDirectContext> grContext(GrDirectContexts::MakeGL(skInterface));
+  if (!grContext) {
+    SDL_DestroyWindow(sdl_wind);
+    SDL_GL_DeleteContext(glContext);
+    return nullptr;
+  }
+
+//  GrBackend backend = GrBackend::kOpenGL_GrBackend;
+//  GrContextOptions options;
+//  auto dContext = GrDirectContexts::MakeGL(skInterface, options);
+// // auto dContext = GrDirectContexts::MakeGL();
+//  if (!dContext) {
+//    SDL_DestroyWindow(sdl_wind);
+//    return nullptr;
+//  }
+
+  // auto skCtx = GrDirectContexts::MakeGL(skInterface);
+
+  auto window = new HYWindow;
+  window->GrCtx = grContext.release();
+  window->SDLGl = glContext;
+  window->ID = SDL_GetWindowID(sdl_wind);
+  window->SDLRenderer = SDL_CreateRenderer(
+    sdl_wind, // 关联的窗口
+    -1, // 使用默认的驱动索引
+    SDL_RENDERER_ACCELERATED // 使用硬件加速
+  );
+  window->SDLWindow = sdl_wind;
+  window->ClientRect={0,0,dw,dh};
   SDL_SysWMinfo info;
   SDL_VERSION(&info.version);
-  //SDL_SysWMinfo info;
   if (!SDL_GetWindowWMInfo(sdl_wind, &info)) {
     g_app.LastError = SDL_GetError();
+    SDL_DestroyWindow(sdl_wind);
+    grContext->unref();
+    delete window;
     return nullptr;
   };
+#ifdef _HOST_WINDOWS_
+  auto hWnd = info.info.win.window;
+#elif defined(_HOST_APPLE_)
   auto hWnd = info.info.cocoa.window;
+#else
+#error "Not support"
+#endif
   if (hWnd == nullptr) {
     return nullptr;
   }
-  auto window = new HYWindow;
-  window->ID = SDL_GetWindowID(sdl_wind);
-  window->SDLRenderer = SDL_CreateRenderer(
-      sdl_wind, // 关联的窗口
-      -1, // 使用默认的驱动索引
-      SDL_RENDERER_ACCELERATED // 使用硬件加速
-  );
-  window->SDLWindow = sdl_wind;
+
   window->Handle = hWnd;
   SDL_GetWindowPosition(sdl_wind, &window->X, &window->Y);
   SDL_GetWindowSize(sdl_wind, &window->Width, &window->Height);
   window->ClientRect = {0, 0, window->Width, window->Height};
-
+#ifdef _HOST_WINDOWS_
+  window->WindowCanvasTarget = info.info.win.hdc;
+#elif defined(_HOST_APPLE_)
   window->WindowCanvasTarget = info.info.cocoa.window;
+#else
+#error "Not support"
+#endif
 
   if (g_app.WindowsTable.find(window) != g_app.WindowsTable.end()) {
     // ????什么玩意
@@ -169,13 +174,11 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   g_app.WindowsTable.insert(window);
   return window;
 }
-#endif
 
 
 void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
-  SDL_SetRenderDrawColor(windowPtr->SDLRenderer, 0, 0, 0, 0);
-
-  //window_recreate_surface(windowPtr);
+//  SDL_SetRenderDrawColor(windowPtr->SDLRenderer, 0, 0, 0, 255);
+//  SDL_RenderClear(windowPtr->SDLRenderer);
 
   auto canvas = windowPtr->Surface->getCanvas();
   canvas->clear(HYColorRGBToARGBInt(windowPtr->BackGroundColor, 255));
@@ -185,22 +188,17 @@ void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
   canvas->restore();
   canvas->save();
   for (auto obj: windowPtr->Children) {
+    // 子组件绘制
     HYObjectSendEvent(windowPtr, obj, HYObjectEvent::HYObjectEvent_Paint, 0, 1);
   }
 
-  SkPixmap pixmap;
-  windowPtr->Surface->peekPixels(&pixmap);
-  void *pixels;
-  int pitch;
-  SDL_Texture *sdlTexture = SDL_CreateTexture(windowPtr->SDLRenderer, SDL_PIXELFORMAT_ABGR8888,
-                                              SDL_TEXTUREACCESS_STREAMING, windowPtr->Width, windowPtr->Height);
-  SDL_LockTexture(sdlTexture, nullptr, &pixels, &pitch);
-  std::memcpy(pixels, pixmap.addr(), pixmap.computeByteSize());
-  SDL_UnlockTexture(sdlTexture);
+  ((GrDirectContext *) windowPtr->GrCtx)->flush(windowPtr->Surface);
 
-  SDL_RenderClear(windowPtr->SDLRenderer);
-  SDL_RenderCopy(windowPtr->SDLRenderer, sdlTexture, nullptr, nullptr);
-  SDL_RenderPresent(windowPtr->SDLRenderer);
+  // 将绘制的内容显示到窗口
+
+
+  SDL_GL_SwapWindow(windowPtr->SDLWindow);
+
 };
 
 
@@ -293,7 +291,7 @@ uint32_t HYWindowMessageLoop() {
           // 准备移动窗口
           window->Drag = true;
           auto wp = HYMouseGetPosition();
-          window->oldMousePoint = {wp.x,wp.y};
+          window->oldMousePoint = {wp.x, wp.y};
           window->oldWinPoint = {window->X, window->Y};
         } else {
           // 通知子组件
@@ -323,7 +321,7 @@ uint32_t HYWindowMessageLoop() {
         auto obj = HYObjectObjFromMousePos(window, event.button.x, event.button.y);
         if (obj) {
           // 转换坐标
-          auto [x1,y1] = HYObjectGetRelativePoint(obj, event.button.x, event.button.y);
+          auto [x1, y1] = HYObjectGetRelativePoint(obj, event.button.x, event.button.y);
           HYObjectSendEvent(window, obj, HYObjectEvent_MouseMove, 0, HYPointGenLParam(x1, y1));
         }
         // HYObjectSendEventLIst(window, HYObjectEvent::HYObjectEvent_MouseMove, 0, HYPointGenLParam(event.button.x, event.button.y));
