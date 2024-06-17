@@ -8,7 +8,6 @@
 #include "SDL2/SDL.h"
 #include <SDL2/SDL_syswm.h>
 #include <map>
-#include <gpu/ganesh/SkSurfaceGanesh.h>
 #include "include/gpu/gl/GrGLInterface.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
 #include "include/gpu/GrDirectContext.h"
@@ -91,6 +90,13 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   }
   static const int kMsaaSampleCount = 0; //4;
 
+//  int major, minor, profile;
+//  SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
+//  SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor);
+//  SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &profile);
+//  printf("OpenGL Version: %d.%d\n", major, minor);
+//  printf("OpenGL Profile: %d\n", profile);
+
   // 获取窗口像素格式
   uint32_t windowFormat = SDL_GetWindowPixelFormat(sdl_wind);
   int contextType;
@@ -103,9 +109,10 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // 准备GrContext
-  // auto skInterface = GrGLMakeNativeInterface();
-  auto skInterface = GrGLMakeAssembledInterface(
-    nullptr, glgetpoc);
+  auto skInterface = GrGLMakeNativeInterface();
+  if (!skInterface) {
+    skInterface = GrGLMakeAssembledInterface(nullptr,glgetpoc);
+  }
   //nullptr, (GrGLGetProc) * [](void*, const char* p) -> void* { return (void*)SDL_GL_GetProcAddress(p); });
   if (!skInterface) {
     SDL_DestroyWindow(sdl_wind);

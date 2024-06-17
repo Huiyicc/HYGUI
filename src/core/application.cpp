@@ -33,7 +33,9 @@ bool HYInit(VOIDPTR ModuleHandle,
   // 初始化sdl gl
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
+  #if defined(_HOST_APPLE_)
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+  #endif
   #if defined(_HOST_ANDROID_) || defined(_HOST_IOS_)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
@@ -42,6 +44,8 @@ bool HYInit(VOIDPTR ModuleHandle,
   #else
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   #endif
+  SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
+
   g_app.kStencilBits = 8;  // skia需要8位模板缓冲区
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);

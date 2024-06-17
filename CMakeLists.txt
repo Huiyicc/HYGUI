@@ -42,7 +42,7 @@ if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
     find_library(COCOA_LIBRARY Cocoa)
     find_library(APPKIT_LIBRARY AppKit)
     find_library(FOUNDATION_LIBRARY Foundation)
-
+    find_package(OpenGL REQUIRED)
 
     #    find_package(icu4c REQUIRED)
 #    include_directories(${icu4c_INCLUDE_DIRS})
@@ -138,7 +138,8 @@ if (OS_IS_WINDOWS)
     target_link_libraries(HYGUI PRIVATE SDL2-static Winmm Setupapi Imm32 Version)
 
 elseif (OS_IS_APPLE)
-    target_link_libraries(HYGUI PRIVATE  icudata icutu icui18n icuuc SDL2 ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY})
+    target_link_libraries(HYGUI PRIVATE  icudata icutu icui18n icuuc SDL2 ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY} OpenGL::GL)
+
 endif ()
 
 # =================

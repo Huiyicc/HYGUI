@@ -9,11 +9,16 @@
 #include "SDL2/SDL.h"
 #include "include/core/SkCanvas.h"
 #include "include/gpu/gl/GrGLTypes.h"
-#include "include/gpu/ganesh/SkSurfaceGanesh.h"
+// #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
+#include "include/gpu/GrBackendSurface.h"
+#include "include/gpu/GrDirectContext.h"
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkSurface.h"
 #include <SDL2/SDL_syswm.h>
+#include <SDL2/SDL_opengl.h>
+#include <gpu/ganesh/SkSurfaceGanesh.h>
+#include <src/gpu/ganesh/gl/GrGLDefines.h>
 
 
 namespace HYGUI {
@@ -64,30 +69,31 @@ void window_recreate_surface(HYWindow *windowPtr) {
   SDL_SysWMinfo winfo;
   SDL_GetWindowWMInfo(windowPtr->SDLWindow, &winfo);
   windowPtr->WindowCanvasTarget = winfo.info.cocoa.window;
-  // windowPtr->WindowLayeredCanvas = CreateCompatibleDC((HDC) windowPtr->WindowCanvasTarget);
-  //控制显示位置
 
-  //创建一副与当前DC兼容的位图
-//  HBITMAP hCustomBmp = CreateCompatibleBitmap((HDC) windowPtr->WindowCanvasTarget, winrect.right - winrect.left,
-//                                              winrect.bottom - winrect.top);
+  // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
+  GrGLint buffer;
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
+  GrGLFramebufferInfo binfo;
+  binfo.fFBOID = (GrGLuint) buffer;
+  #if defined(_HOST_ANDROID_)
+  binfo.fFormat =  GL_RGB8_OES;
+  #else
+  binfo.fFormat = GL_RGB8;
+  #endif
+  // GrBackendRenderTarget target(dw, dh, kMsaaSampleCount, kStencilBits, info);
+  auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width, windowPtr->ClientRect.height,
+                                                 0, g_app.kStencilBits,
+                                                 binfo);
 
-  //将hCustomBmp指定到hCompatibleDC中
-  // SelectObject((HDC) windowPtr->WindowLayeredCanvas, hCustomBmp);
-  auto colorSpace = SkColorSpace::MakeSRGB();
-  SkImageInfo info = SkImageInfo::MakeN32(windowPtr->Width, windowPtr->Height,SkAlphaType::kPremul_SkAlphaType);
-//  auto gpuSurface = SkSurfaces::RenderTarget(
-//      (GrRecordingContext *) g_app.GrContext,
-//      skgpu::Budgeted::kNo,
-//      info
-//  );
-//  windowPtr->Surface = gpuSurface.release();
-  windowPtr->Surface=nullptr;
+  SkSurfaceProps props;
+  sk_sp<SkSurface> surface(SkSurfaces::WrapBackendRenderTarget(((GrDirectContext *) windowPtr->GrCtx), grtarget,
+                                                               kBottomLeft_GrSurfaceOrigin,
+                                                               kRGB_888x_SkColorType, nullptr, &props));
+  windowPtr->Surface = surface.release();
   if (!windowPtr->Surface) {
     // 硬件加速失败
-    // PrintDebug("Hardware acceleration failed, fallback to software rendering");
-    sk_sp<SkSurface> rasterSurface =
-        SkSurfaces::Raster(info);
-    windowPtr->Surface = rasterSurface.release();
+    PrintError("Hardware acceleration failed, fallback to software rendering");
+    exit(1);
   }
   windowPtr->Canvas = windowPtr->Surface->getCanvas();
   // windowPtr->CustomBmp = hCustomBmp;
