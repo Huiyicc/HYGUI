@@ -9,6 +9,7 @@
 #include <functional>
 #include "HYGUI/Define.h"
 #include "HYGUI/Event.h"
+#include "HYGUI/Draw.h"
 
 namespace HYGUI {
 
@@ -35,6 +36,7 @@ typedef HYObject *HYObjectHandle;
 struct HYObject : public HYObjectBase {
   HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height, const HYString &className,
            const HYString &name = "", int id = 0);
+  ~HYObject() override;
 
   HYWindow *Window = nullptr; // 归属窗口
   HYObject *Parent = nullptr; // 父对象,为nullptr时表示为一级对象

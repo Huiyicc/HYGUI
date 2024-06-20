@@ -33,6 +33,7 @@ struct HYWindow;
 typedef HYWindow* HYWindowHandel;
 
 struct HYWindow {
+  virtual ~HYWindow();
   VOIDPTR GrCtx = nullptr; // 设备上下文
   VOIDPTR SDLGl = nullptr; // sdl设备上下文
 
@@ -45,12 +46,9 @@ struct HYWindow {
   bool Show = false;
 
   WINDOWHANDEL Handle = nullptr;
-  VOIDPTRT OldProc = 0;
   SurfacePtr Surface = nullptr;
   CanvasPtr Canvas = nullptr;
-  VOIDPTR WindowCanvasTarget = nullptr; // HDC
-  VOIDPTR WindowLayeredCanvas = nullptr;
-  VOIDPTR CustomBmp = nullptr;
+
   bool IsReady = false;
   int Width = 0; // 窗口宽度
   int Height = 0; // 窗口高度

@@ -44,10 +44,6 @@ struct HYWindow;
 typedef void *VOIDPTR;
 typedef intptr_t VOIDPTRT;
 typedef VOIDPTR WINDOWHANDEL;
-typedef SkImage *ImagePtr;
-typedef SkSurface *SurfacePtr;
-typedef SkCanvas *CanvasPtr;
-typedef SkPaint *PaintPtr;
 typedef VOIDPTR CursorPtr;
 
 
@@ -72,6 +68,7 @@ struct ApplicationInfo {
 
 }
 
+#include "Draw.h"
 #include "Point.h"
 
 #endif //HYGUI_DEFINE_H

@@ -2,9 +2,9 @@
 // Created by 19254 on 24-5-13.
 //
 #include <HYGUI/HYGUI.h>
+#include <iostream>
 
 using namespace HYGUI;
-
 
 int main() {
 

@@ -23,8 +23,7 @@ namespace HYGUI {
 
 void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity) {
   wnd->EventQueue.SetProcessCallback(processing_object_event);
-  //wnd->OldProc = SetWindowLongPtrW((HWND) wnd->Handle, GWLP_WNDPROC, (LONG_PTR) HYWindow_WndProc);
-  wnd->WindowCanvasTarget = GetDC((HWND) wnd->Handle);
+
   wnd->BackGroundColor = HYColorRGBToInt(backGroundColor);
   wnd->Diaphaneity = diaphaneity;
   LONG_PTR style = GetWindowLongPtrW((HWND) wnd->Handle, GWL_STYLE);
@@ -49,24 +48,12 @@ void window_recreate_surface(HYWindow *windowPtr) {
   if (windowPtr->Surface) {
     windowPtr->Surface->unref();
   }
-  //释放DC
-//  if (windowPtr->WindowCanvasTarget) {
-//    DeleteDC((HDC) windowPtr->WindowCanvasTarget);
-//  }
-//  if (windowPtr->WindowLayeredCanvas) {
-//    DeleteDC((HDC) windowPtr->WindowLayeredCanvas);
-//  }
-//  if (windowPtr->CustomBmp) {
-//    DeleteObject((HBITMAP) windowPtr->CustomBmp);
-//  }
 
   RECT winrect;
   GetWindowRect((HWND) windowPtr->Handle, &winrect);
 
-  // windowPtr->WindowCanvasTarget = GetDC((HWND) windowPtr->Handle);
   SDL_SysWMinfo winfo;
   SDL_GetWindowWMInfo(windowPtr->SDLWindow, &winfo);
-  windowPtr->WindowCanvasTarget = winfo.info.win.hdc;
 
   // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
   GrGLint buffer;
@@ -100,85 +87,6 @@ void window_recreate_surface(HYWindow *windowPtr) {
 //  windowPtr->Canvas->scale((float) (windowPtr->ClientRect.width) / (float) dm.w,
 //                           (float) windowPtr->ClientRect.height / (float) dm.h);
 
-  //  SkColorType colorType = kRGBA_8888_SkColorType;
-//  GrGLint buffer;
-//  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
-//  auto bg = GrBackendRenderTargets::MakeGL(windowPtr->Width, windowPtr->Height, 0, 0, GrGLFramebufferInfo{(GrGLuint)buffer, GL_BGRA8_EXT});
-//  sk_sp<SkSurface> surface = SkSurfaces::WrapBackendRenderTarget(
-//    ((GrDirectContext *)windowPtr->GrCtx), bg, kBottomLeft_GrSurfaceOrigin, colorType, nullptr, nullptr);
-//  windowPtr->Surface = surface.release();
-//  backendRenderTarget(windowPtr->Width, windowPtr->Height, 0, 0, GrGLFramebufferInfo{(GrGLuint)buffer, GL_RGBA8});
-
-
-//  SkSurfaceProps surfaceProps(0, kUnknown_SkPixelGeometry);
-//  GrGLFramebufferInfo framebufferInfo;
-//  framebufferInfo.fFBOID = 0; // 默认帧缓冲ID
-//  framebufferInfo.fFormat = GR_GL_RGBA8;
-//  SkColorType colorType = kRGBA_8888_SkColorType;
-//  auto bgr = GrBackendRenderTargets::MakeGL(windowPtr->Width, windowPtr->Height, 0, 8, framebufferInfo);
-//  sk_sp<SkSurface> surface(SkSurfaces::WrapBackendRenderTarget(
-//    ((GrDirectContext *)windowPtr->GrCtx),
-//    bgr,
-//    kBottomLeft_GrSurfaceOrigin,
-//    colorType,
-//    nullptr,
-//    &surfaceProps)
-//    );
-//  windowPtr->Surface = surface.release();
-//  windowPtr->Canvas = windowPtr->Surface->getCanvas();
-
-//  SkImageInfo info = SkImageInfo::MakeN32(windowPtr->Width, windowPtr->Height,SkAlphaType::kPremul_SkAlphaType);
-//  auto gpuSurface = SkSurfaces::RenderTarget(
-//    (GrDirectContext *) windowPtr->GrCtx,
-//    skgpu::Budgeted::kNo,
-//    info
-//  );
-//  windowPtr->Surface = gpuSurface.release();
-//  if (!windowPtr->Surface) {
-//    // 硬件加速失败
-//    PrintError("Hardware acceleration failed, fallback to software rendering");
-//    exit(1);
-//  }
-//  windowPtr->Canvas = windowPtr->Surface->getCanvas();
-
-
-////  SkImageInfo imageInfo = SkImageInfo::MakeN32Premul(winrect.right - winrect.left,
-////                                                     winrect.bottom - winrect.top);
-//  SkImageInfo info = SkImageInfo::MakeN32(windowPtr->Width, windowPtr->Height,SkAlphaType::kPremul_SkAlphaType);
-//  auto surface = SkSurfaces::RenderTarget(((GrDirectContext*)windowPtr->GrCtx),
-//                                          skgpu::Budgeted::kNo,
-//                                          info);
-//  windowPtr->Surface = surface.release();
-//  windowPtr->Canvas = windowPtr->Surface->getCanvas();
-
-
-
-//  windowPtr->WindowLayeredCanvas = CreateCompatibleDC((HDC) windowPtr->WindowCanvasTarget);
-//  //控制显示位置
-//
-//  //创建一副与当前DC兼容的位图
-//  HBITMAP hCustomBmp = CreateCompatibleBitmap((HDC) windowPtr->WindowCanvasTarget, winrect.right - winrect.left,
-//                                              winrect.bottom - winrect.top);
-//
-//  //将hCustomBmp指定到hCompatibleDC中
-//  SelectObject((HDC) windowPtr->WindowLayeredCanvas, hCustomBmp);
-//  auto colorSpace = SkColorSpace::MakeSRGB();
-//  SkImageInfo info = SkImageInfo::MakeN32(windowPtr->Width, windowPtr->Height,SkAlphaType::kPremul_SkAlphaType);
-//  auto gpuSurface = SkSurfaces::RenderTarget(
-//    (GrRecordingContext *) g_app.GrContext,
-//    skgpu::Budgeted::kNo,
-//    info
-//  );
-//  windowPtr->Surface = gpuSurface.release();
-//  if (!windowPtr->Surface) {
-//    // 硬件加速失败
-//    // PrintDebug("Hardware acceleration failed, fallback to software rendering");
-//    sk_sp<SkSurface> rasterSurface =
-//      SkSurfaces::Raster(info);
-//    windowPtr->Surface = rasterSurface.release();
-//  }
-//  windowPtr->Canvas = windowPtr->Surface->getCanvas();
-//  windowPtr->CustomBmp = hCustomBmp;
 }
 
 void adjustwindow_by_sdl(uint32_t id, SDL_Window *sdl_window, void *handel) {
@@ -198,7 +106,6 @@ void adjustwindow_by_sdl(uint32_t id, SDL_Window *sdl_window, void *handel) {
     SDL_GetWindowPosition(sdl_window, &window->X, &window->Y);
     SDL_GetWindowSize(sdl_window, &window->Width, &window->Height);
     window->ClientRect = {0, 0, window->Width, window->Height};
-    window->WindowCanvasTarget = winfo.info.win.hdc;
     break;
   }
 }
@@ -208,24 +115,12 @@ void HYWindowDestroy(HYWindowHandel wnd) {
   if (wnd->GrCtx) {
     ((GrDirectContext *) wnd->GrCtx)->unref();
   }
-  SDL_DestroyWindow(wnd->SDLWindow);
   SDL_GL_DeleteContext((SDL_GLContext *) wnd->SDLGl);
+  SDL_DestroyWindow(wnd->SDLWindow);
 
   // 清理资源
   if (wnd->Surface) {
     wnd->Surface->unref();
-  }
-  //释放DC
-  if (wnd->WindowCanvasTarget) {
-    DeleteDC((HDC)
-               wnd->WindowCanvasTarget);
-  }
-  if (wnd->WindowLayeredCanvas) {
-    DeleteDC((HDC)
-               wnd->WindowLayeredCanvas);
-  }
-  if (wnd->CustomBmp) {
-    DeleteObject((HBITMAP) wnd->CustomBmp);
   }
   delete wnd;
   g_app.WindowsTable.erase(wnd);

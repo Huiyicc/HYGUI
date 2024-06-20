@@ -119,8 +119,13 @@ HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int wi
     }
 
   }
+}
 
-  // HYObjectAddEventCallback(this, _obj_event);
+HYObject::~HYObject() {
+  for (auto &child: Children) {
+    delete child;
+  }
+  Children.clear();
 }
 
 HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
@@ -132,10 +137,6 @@ HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, in
     return nullptr;
   }
   return new HYObject{window, parent, x, y, width, height, className, name, id};
-}
-
-void HYObjectPostEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2) {
-  _obj_event(window, object, event, param1, param2);
 }
 
 void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2) {

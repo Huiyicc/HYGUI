@@ -19,6 +19,24 @@
 
 namespace HYGUI {
 
+HYWindow::~HYWindow() {
+  for (auto obj: Children) {
+    delete obj;
+  }
+  if (GrCtx) {
+    ((GrDirectContext *) GrCtx)->unref();
+  }
+  if (Surface) {
+    Surface->unref();
+  }
+  if (SDLGl) {
+    SDL_GL_DeleteContext(SDLGl);
+  }
+  if (SDLWindow) {
+    SDL_DestroyWindow(SDLWindow);
+  }
+
+}
 
 bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, const HYString &cursorPath) {
 #ifdef _HOST_WINDOWS_
@@ -54,8 +72,8 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
 #endif
 }
 
-GrGLFuncPtr glgetpoc(void* ctx, const char name[]) {
-  return (GrGLFuncPtr)SDL_GL_GetProcAddress(name);
+GrGLFuncPtr glgetpoc(void *ctx, const char name[]) {
+  return (GrGLFuncPtr) SDL_GL_GetProcAddress(name);
 }
 
 HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
@@ -103,10 +121,12 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // 准备GrContext
-  // auto skInterface = GrGLMakeNativeInterface();
-  auto skInterface = GrGLMakeAssembledInterface(
-    nullptr, glgetpoc);
-  //nullptr, (GrGLGetProc) * [](void*, const char* p) -> void* { return (void*)SDL_GL_GetProcAddress(p); });
+  auto skInterface = GrGLMakeNativeInterface();
+  if (!skInterface) {
+    skInterface = GrGLMakeAssembledInterface(
+      nullptr, glgetpoc);
+  }
+
   if (!skInterface) {
     SDL_DestroyWindow(sdl_wind);
     return nullptr;
@@ -119,32 +139,17 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     return nullptr;
   }
 
-//  GrBackend backend = GrBackend::kOpenGL_GrBackend;
-//  GrContextOptions options;
-//  auto dContext = GrDirectContexts::MakeGL(skInterface, options);
-// // auto dContext = GrDirectContexts::MakeGL();
-//  if (!dContext) {
-//    SDL_DestroyWindow(sdl_wind);
-//    return nullptr;
-//  }
-
-  // auto skCtx = GrDirectContexts::MakeGL(skInterface);
-
   auto window = new HYWindow;
   window->GrCtx = grContext.release();
   window->SDLGl = glContext;
   window->ID = SDL_GetWindowID(sdl_wind);
-//  window->SDLRenderer = SDL_CreateRenderer(
-//    sdl_wind, // 关联的窗口
-//    -1, // 使用默认的驱动索引
-//    SDL_RENDERER_ACCELERATED // 使用硬件加速
-//  );
   window->SDLWindow = sdl_wind;
-  window->ClientRect={0,0,dw,dh};
+  window->ClientRect = {0, 0, dw, dh};
   SDL_SysWMinfo info;
   SDL_VERSION(&info.version);
   if (!SDL_GetWindowWMInfo(sdl_wind, &info)) {
     g_app.LastError = SDL_GetError();
+    SDL_GL_DeleteContext(glContext);
     SDL_DestroyWindow(sdl_wind);
     grContext->unref();
     delete window;
@@ -165,13 +170,6 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   SDL_GetWindowPosition(sdl_wind, &window->X, &window->Y);
   SDL_GetWindowSize(sdl_wind, &window->Width, &window->Height);
   window->ClientRect = {0, 0, window->Width, window->Height};
-#ifdef _HOST_WINDOWS_
-  window->WindowCanvasTarget = info.info.win.hdc;
-#elif defined(_HOST_APPLE_)
-  window->WindowCanvasTarget = info.info.cocoa.window;
-#else
-#error "Not support"
-#endif
 
   if (g_app.WindowsTable.find(window) != g_app.WindowsTable.end()) {
     // ????什么玩意
@@ -202,7 +200,6 @@ void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
   ((GrDirectContext *) windowPtr->GrCtx)->flush(windowPtr->Surface);
 
   // 将绘制的内容显示到窗口
-
 
   SDL_GL_SwapWindow(windowPtr->SDLWindow);
 
