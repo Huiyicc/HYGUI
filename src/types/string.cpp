@@ -1,6 +1,8 @@
 //
 // Created by 19254 on 24-5-31.
 //
+#include <cstring>
+
 #include "HYGUI/String.h"
 #include "HYGUI/Coding.h"
 

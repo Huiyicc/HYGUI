@@ -13,6 +13,7 @@
 #include <atlbase.h>
 #include <atlwin.h>
 #elif defined(_HOST_APPLE_)
+#elif defined(_HOST_LINUX_)
 
 #else
 #error "Unsupported platform"

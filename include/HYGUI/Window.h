@@ -24,7 +24,7 @@ namespace HYGUI {
 
 #ifdef _HOST_WINDOWS_
 constexpr int WINDOWCREATEPOINT_USEDEFAULT = CW_USEDEFAULT;
-#elif defined(_HOST_APPLE_)
+#elif defined(_HOST_APPLE_) || defined(_HOST_LINUX_)
 #include <limits>
 constexpr int WINDOWCREATEPOINT_USEDEFAULT = std::numeric_limits<int>::max();
 #endif

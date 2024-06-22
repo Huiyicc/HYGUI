@@ -76,7 +76,8 @@ bool HYInit(VOIDPTR ModuleHandle,
   if (DefaultCursor != nullptr) {
     g_app.Cursor = DefaultCursor;
   } else {
-    g_app.Cursor = HYCursorLoadFromDefault();
+    // g_app.Cursor = HYCursorLoadFromDefault();
+    g_app.Cursor = nullptr;
   }
   if (DefaultClassName.empty()) {
     DefaultClassName = DEFAULT_CLASS_NAME;

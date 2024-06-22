@@ -21,20 +21,21 @@ ImagePtr HYImageLoadFromFile(const HYString& path);
  * @param path
  * @return
  * */
-CursorPtr HYCursorLoadFromFile(const HYString& path);
+CursorPtr HYCursorLoadFromFile(HYWindow *wind, const HYString& path);
 
 /**
  * @brief 从图像指针创建光标指针
  * @param image
  * @return
  * */
-CursorPtr HYCursorLoadFromImage(ImagePtr image);
+CursorPtr HYCursorLoadFromImage(HYWindow wind, ImagePtr image);
 
 /**
  * @brief 从默认光标创建光标指针
  * @return
  * */
-CursorPtr HYCursorLoadFromDefault();
+CursorPtr HYCursorLoadFromDefault(HYWindow* wind);
+
 
 }
 

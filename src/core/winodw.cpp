@@ -159,6 +159,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   auto hWnd = info.info.win.window;
 #elif defined(_HOST_APPLE_)
   auto hWnd = info.info.cocoa.window;
+#elif defined(_HOST_LINUX_)
+  auto hWnd = info.info.x11.display;
 #else
 #error "Not support"
 #endif
@@ -260,6 +262,8 @@ uint32_t HYWindowMessageLoop() {
     auto hWnd = winfo.info.win.window;
     #elif defined(_HOST_APPLE_)
     auto hWnd =winfo.info.cocoa.window;
+#elif defined(_HOST_LINUX_)
+    auto hWnd =winfo.info.x11.display;
     #endif
 
 

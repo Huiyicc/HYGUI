@@ -87,6 +87,18 @@ elseif(CMAKE_HOST_UNIX)
     # Linux
     set(OS_IS_LINUX TRUE)
     add_definitions(-D_HOST_LINUX_)
+
+    # SDL2
+    include_directories(${MODULES_DIR}/SDL/include)
+    link_directories(${MODULES_DIR}/SDL/lib)
+
+    # boost
+    include_directories(${MODULES_DIR}/boost/include)
+    link_directories(${MODULES_DIR}/boost/lib)
+
+    # icu
+    include_directories(${MODULES_DIR}/icu/include)
+    link_directories(${MODULES_DIR}/icu/lib)
 endif()
 
 # 检查指针大小, 32位还是64位
@@ -139,6 +151,12 @@ if (OS_IS_WINDOWS)
 
 elseif (OS_IS_APPLE)
     target_link_libraries(HYGUI PRIVATE  icudata icutu icui18n icuuc SDL2 ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY} OpenGL::GL)
+
+elseif (OS_IS_LINUX)
+    target_link_libraries(HYGUI PRIVATE SDL2 X11
+            GL GLU glut
+            png jpeg freetype
+    )
 
 endif ()
 

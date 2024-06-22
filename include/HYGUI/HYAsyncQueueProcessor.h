@@ -5,6 +5,7 @@
 #ifndef AUDIO_CLIENT_ASYNCQUEUEPROCESSOR_H
 #define AUDIO_CLIENT_ASYNCQUEUEPROCESSOR_H
 
+#include <condition_variable>
 #include <boost/lockfree/queue.hpp>
 #include <memory>
 #include <thread>
