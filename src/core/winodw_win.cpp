@@ -120,7 +120,8 @@ void HYWindowDestroy(HYWindowHandel wnd) {
 
   // 清理资源
   if (wnd->Surface) {
-    wnd->Surface->unref();
+    //wnd->Surface->unref();
+    SkSafeUnref(wnd->Surface);
   }
   delete wnd;
   g_app.WindowsTable.erase(wnd);

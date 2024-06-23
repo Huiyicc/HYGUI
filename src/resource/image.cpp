@@ -44,7 +44,7 @@ CursorPtr HYCursorLoadFromDefault() {
 
 
 
-CursorPtr HYCursorLoadFromImage(ImagePtr image) {
+CursorPtr HYCursorLoadFromImage(HYWindow*wnd,ImagePtr image) {
   // 加载光标
   int width = image->width();
   int height = image->height();
@@ -85,7 +85,7 @@ CursorPtr HYCursorLoadFromImage(ImagePtr image) {
 };
 #elif defined(_HOST_APPLE_)
 #elif defined(_HOST_LINUX_)
-CursorPtr HYCursorLoadFromDefault(HYWindow *wind) {
+CursorPtr HYCursorLoadFromDefault(HYWindow*wnd,HYWindow *wind) {
   if (g_app.Cursor) {
     return g_app.Cursor;
   }
@@ -157,7 +157,7 @@ CursorPtr HYCursorLoadFromImage(HYWindow *wind, ImagePtr image) {
 #error "Unsupported platform"
 #endif
 
-CursorPtr HYCursorLoadFromFile(HYWindow *wind, const HYString &path) {
+CursorPtr HYCursorLoadFromFile(HYWindow*wnd,HYWindow *wind, const HYString &path) {
   auto image = HYImageLoadFromFile(path);
   if (!image) {
     return nullptr;

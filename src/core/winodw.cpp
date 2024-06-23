@@ -87,7 +87,13 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   }
 
   auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), x, y, width, height,
-                                   SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_HIDDEN);
+                                   SDL_WINDOW_OPENGL // opengl
+                                   | SDL_WINDOW_ALLOW_HIGHDPI // 高dpi
+                                   | SDL_WINDOW_HIDDEN // 隐藏
+                                   | SDL_WINDOW_RESIZABLE // 可调整大小
+                                   | SDL_WINDOW_BORDERLESS // 无边框
+  );
+
   if (sdl_wind == nullptr) {
     return nullptr;
   }
@@ -98,7 +104,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     return nullptr;
   }
 
-  // 设置OpenGL属性
+  // 切换到OpenGL上下文
   int success = SDL_GL_MakeCurrent(sdl_wind, glContext);
   if (success != 0) {
     SDL_DestroyWindow(sdl_wind);
@@ -108,7 +114,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   static const int kMsaaSampleCount = 0; //4;
 
   // 获取窗口像素格式
-  uint32_t windowFormat = SDL_GetWindowPixelFormat(sdl_wind);
+  // uint32_t windowFormat = SDL_GetWindowPixelFormat(sdl_wind);
   int contextType;
   SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextType);
   int dw, dh;
@@ -122,7 +128,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   auto skInterface = GrGLMakeNativeInterface();
   if (!skInterface) {
     skInterface = GrGLMakeAssembledInterface(
-        nullptr, glgetpoc);
+      nullptr, glgetpoc);
   }
 
   if (!skInterface) {
@@ -184,7 +190,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
 void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
   //  SDL_SetRenderDrawColor(windowPtr->SDLRenderer, 0, 0, 0, 255);
   //  SDL_RenderClear(windowPtr->SDLRenderer);
-
+  SDL_GL_MakeCurrent(windowPtr->SDLWindow, windowPtr->SDLGl);
   auto canvas = windowPtr->Surface->getCanvas();
   canvas->clear(HYColorRGBToARGBInt(windowPtr->BackGroundColor, 255));
   SkPaint paint;
@@ -200,13 +206,12 @@ void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
   ((GrDirectContext *) windowPtr->GrCtx)->flush(windowPtr->Surface);
 
   // 将绘制的内容显示到窗口
-
   SDL_GL_SwapWindow(windowPtr->SDLWindow);
 };
 
 
 std::map<uint32_t, std::function<void(HYWindow *, SDL_WindowEvent *)> > g_win_event_map = {
-    {HYWindowEvent::HYWindowEvent_Paint, window_paint},
+  {HYWindowEvent::HYWindowEvent_Paint, window_paint},
 };
 
 
@@ -216,13 +221,13 @@ uint32_t HYWindowMessageLoop() {
   Uint32 frameStart;
   Uint32 frameTime;
   auto tic_fps_func = [&]() {
-      // 计算帧时间
-      frameTime = SDL_GetTicks() - frameStart;
+    // 计算帧时间
+    frameTime = SDL_GetTicks() - frameStart;
 
-      // 帧率限制
-      if (frameTime < frameDelay) {
-        SDL_Delay(frameDelay - frameTime);
-      }
+    // 帧率限制
+    if (frameTime < frameDelay) {
+      SDL_Delay(frameDelay - frameTime);
+    }
   };
 
   while (!g_app.WindowsTable.empty()) {
@@ -263,7 +268,6 @@ uint32_t HYWindowMessageLoop() {
     auto hWnd = winfo.info.x11.display;
 #endif
 
-
     auto window = HYWindowGetWindowFromHandle(hWnd);
     if (!window) {
       // 初始化可能需要修正
@@ -286,7 +290,7 @@ uint32_t HYWindowMessageLoop() {
         // 窗口移动
 //        window->X = event.window.data1;
 //        window->Y = event.window.data2;
-        SDL_GetWindowPosition(sdlWindow,&window->X,&window->Y);
+        SDL_GetWindowPosition(sdlWindow, &window->X, &window->Y);
       }
     } else if (event.type == SDL_EventType::SDL_MOUSEBUTTONDOWN) {
       // 鼠标按键按下事件
@@ -321,7 +325,7 @@ uint32_t HYWindowMessageLoop() {
         // 移动窗口不要限制帧率
         continue;
       } else {
-       // PrintDebug("event {},{}", event.button.x, event.button.y);
+        // PrintDebug("event {},{}", event.button.x, event.button.y);
         auto obj = HYObjectObjFromMousePos(window, event.button.x, event.button.y);
         if (obj) {
           // 转换坐标
@@ -351,7 +355,7 @@ void HYWindowUserDataAdd(HYWindowHandel window, intptr_t key, intptr_t data) {
 
 void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
                             const std::function<
-                                bool(HYWindowHandel window, intptr_t key, intptr_t value)
+                              bool(HYWindowHandel window, intptr_t key, intptr_t value)
                             > &callback) {
   if (window->UserData.find(key) != window->UserData.end()) {
     if (!callback ||

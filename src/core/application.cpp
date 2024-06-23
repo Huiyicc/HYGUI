@@ -27,9 +27,8 @@ namespace HYGUI {
 ApplicationInfo g_app;
 
 bool HYInit(VOIDPTR ModuleHandle,
-            HYGlobalFlag DefaultGlobalFlags,
-            CursorPtr DefaultCursor,
-            HYString DefaultClassName) {
+            HYGlobalFlag DefaultGlobalFlags) {
+  HYString DefaultClassName = DEFAULT_CLASS_NAME;
   // 初始化sdl gl
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -73,15 +72,13 @@ bool HYInit(VOIDPTR ModuleHandle,
   }
   g_app.EventWindow = g_app.EventCustomStart + 1;
   g_app.EventObject = g_app.EventCustomStart + 2;
-  if (DefaultCursor != nullptr) {
-    g_app.Cursor = DefaultCursor;
-  } else {
-    // g_app.Cursor = HYCursorLoadFromDefault();
-    g_app.Cursor = nullptr;
-  }
-  if (DefaultClassName.empty()) {
-    DefaultClassName = DEFAULT_CLASS_NAME;
-  }
+//  if (DefaultCursor != nullptr) {
+//    g_app.Cursor = DefaultCursor;
+//  } else {
+//    // g_app.Cursor = HYCursorLoadFromDefault();
+//    g_app.Cursor = nullptr;
+//  }
+  g_app.Cursor = nullptr;
   #ifdef _HOST_WINDOWS_
   HYWindowRegisterClass(DefaultClassName);
   g_app.DefaultClassName = DefaultClassName;
