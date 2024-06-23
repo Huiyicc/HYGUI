@@ -34,7 +34,7 @@ int _obj_paint(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint
 // 组件事件_鼠标移动
 int _obj_mouse_move(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
   auto p = HYPointFromLParam(param2);
-  PrintDebug("obj_mouse_move {} {} {}", obj->Name.toStdStringView(), p.x, p.y);
+  // PrintDebug("obj_mouse_move {} {} {}", obj->Name.toStdStringView(), p.x, p.y);
   return 0;
 }
 

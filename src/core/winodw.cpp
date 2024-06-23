@@ -18,7 +18,6 @@
 #include <include/gpu/gl/GrGLAssembleInterface.h>
 
 namespace HYGUI {
-
 HYWindow::~HYWindow() {
   for (auto obj: Children) {
     delete obj;
@@ -35,7 +34,6 @@ HYWindow::~HYWindow() {
   if (SDLWindow) {
     SDL_DestroyWindow(SDLWindow);
   }
-
 }
 
 bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, const HYString &cursorPath) {
@@ -67,7 +65,7 @@ bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath, 
   }
   WndClass.lpszClassName = className.toStdWStringView().data();
   return RegisterClassExW(&WndClass);
-#elif defined(_HOST_APPLE_)
+#elif defined(_HOST_APPLE_) || defined(_HOST_LINUX_)
   return true;
 #endif
 }
@@ -124,7 +122,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   auto skInterface = GrGLMakeNativeInterface();
   if (!skInterface) {
     skInterface = GrGLMakeAssembledInterface(
-      nullptr, glgetpoc);
+        nullptr, glgetpoc);
   }
 
   if (!skInterface) {
@@ -184,8 +182,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
 
 
 void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
-//  SDL_SetRenderDrawColor(windowPtr->SDLRenderer, 0, 0, 0, 255);
-//  SDL_RenderClear(windowPtr->SDLRenderer);
+  //  SDL_SetRenderDrawColor(windowPtr->SDLRenderer, 0, 0, 0, 255);
+  //  SDL_RenderClear(windowPtr->SDLRenderer);
 
   auto canvas = windowPtr->Surface->getCanvas();
   canvas->clear(HYColorRGBToARGBInt(windowPtr->BackGroundColor, 255));
@@ -204,12 +202,11 @@ void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
   // 将绘制的内容显示到窗口
 
   SDL_GL_SwapWindow(windowPtr->SDLWindow);
-
 };
 
 
-std::map<uint32_t, std::function<void(HYWindow *, SDL_WindowEvent *)>> g_win_event_map = {
-  {HYWindowEvent::HYWindowEvent_Paint, window_paint},
+std::map<uint32_t, std::function<void(HYWindow *, SDL_WindowEvent *)> > g_win_event_map = {
+    {HYWindowEvent::HYWindowEvent_Paint, window_paint},
 };
 
 
@@ -219,13 +216,13 @@ uint32_t HYWindowMessageLoop() {
   Uint32 frameStart;
   Uint32 frameTime;
   auto tic_fps_func = [&]() {
-    // 计算帧时间
-    frameTime = SDL_GetTicks() - frameStart;
+      // 计算帧时间
+      frameTime = SDL_GetTicks() - frameStart;
 
-    // 帧率限制
-    if (frameTime < frameDelay) {
-      SDL_Delay(frameDelay - frameTime);
-    }
+      // 帧率限制
+      if (frameTime < frameDelay) {
+        SDL_Delay(frameDelay - frameTime);
+      }
   };
 
   while (!g_app.WindowsTable.empty()) {
@@ -258,13 +255,13 @@ uint32_t HYWindowMessageLoop() {
     auto sdlWindow = SDL_GetWindowFromID(event.window.windowID);
     SDL_SysWMinfo winfo;
     SDL_GetWindowWMInfo(sdlWindow, &winfo);
-    #ifdef _HOST_WINDOWS_
+#ifdef _HOST_WINDOWS_
     auto hWnd = winfo.info.win.window;
-    #elif defined(_HOST_APPLE_)
+#elif defined(_HOST_APPLE_)
     auto hWnd =winfo.info.cocoa.window;
 #elif defined(_HOST_LINUX_)
-    auto hWnd =winfo.info.x11.display;
-    #endif
+    auto hWnd = winfo.info.x11.display;
+#endif
 
 
     auto window = HYWindowGetWindowFromHandle(hWnd);
@@ -287,15 +284,16 @@ uint32_t HYWindowMessageLoop() {
       // 窗口事件
       if (event.window.event == SDL_WINDOWEVENT_MOVED) {
         // 窗口移动
-        window->X = event.window.data1;
-        window->Y = event.window.data2;
+//        window->X = event.window.data1;
+//        window->Y = event.window.data2;
+        SDL_GetWindowPosition(sdlWindow,&window->X,&window->Y);
       }
-
     } else if (event.type == SDL_EventType::SDL_MOUSEBUTTONDOWN) {
       // 鼠标按键按下事件
       if (event.button.button == SDL_BUTTON_LEFT) {
+        PrintDebug("event {},{}", event.button.x, event.button.y);
         // 左键被按下
-        if (event.button.y < window->TitleBarHeight) {
+        if (event.button.y < window->TitleBarHeight && event.button.y > 0) {
           // 准备移动窗口
           window->Drag = true;
           auto wp = HYMouseGetPosition();
@@ -305,14 +303,12 @@ uint32_t HYWindowMessageLoop() {
           // 通知子组件
           // HYObjectSendEventLIst(window, HYObjectEvent::HYObjectEvent_MouseMove, 0, HYPointGenLParam(event.button.x, event.button.y));
         }
-
       }
     } else if (event.type == SDL_EventType::SDL_MOUSEBUTTONUP) {
       // 鼠标按键抬起事件
       window->Drag = false;
       window->oldWinPoint = {0, 0};
       window->oldMousePoint = {0, 0};
-
     } else if (event.type == SDL_EventType::SDL_MOUSEMOTION) {
       // 鼠标移动事件
       // event.motion.type = SDL_MOUSEMOTION;
@@ -324,8 +320,8 @@ uint32_t HYWindowMessageLoop() {
         SDL_SetWindowPosition(sdlWindow, window->X, window->Y);
         // 移动窗口不要限制帧率
         continue;
-
       } else {
+       // PrintDebug("event {},{}", event.button.x, event.button.y);
         auto obj = HYObjectObjFromMousePos(window, event.button.x, event.button.y);
         if (obj) {
           // 转换坐标
@@ -337,13 +333,11 @@ uint32_t HYWindowMessageLoop() {
 
 
       //HYObjectSendEventLIst
-
     } else if (event.type == g_app.EventWindow) {
       // 自定义窗口事件
       auto iter = g_win_event_map.find(event.window.event);
       if (iter != g_win_event_map.end())
         iter->second(window, &event.window);
-
     }
 
     //tic_fps_func();
@@ -357,9 +351,8 @@ void HYWindowUserDataAdd(HYWindowHandel window, intptr_t key, intptr_t data) {
 
 void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
                             const std::function<
-                              bool(HYWindowHandel window, intptr_t key, intptr_t value)
+                                bool(HYWindowHandel window, intptr_t key, intptr_t value)
                             > &callback) {
-
   if (window->UserData.find(key) != window->UserData.end()) {
     if (!callback ||
         callback(window, key, window->UserData[key])) {
@@ -388,7 +381,4 @@ void HYWindowShow(HYWindow *wind) {
     SDL_ShowWindow(wind->SDLWindow);
   }
 }
-
-
 }
-
