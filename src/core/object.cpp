@@ -1,11 +1,11 @@
 //
 // Created by 19254 on 24-6-4.
 //
-#include <map>
 #include "HYGUI/Object.h"
-#include "HYGUI/Window.h"
 #include "HYGUI/Event.h"
+#include "HYGUI/Window.h"
 #include "PrivateDefinition.h"
+#include <map>
 
 
 namespace HYGUI {
@@ -42,8 +42,7 @@ std::map<int, std::function<int(HYWindow *, HYObject *, int, uint64_t, uint32_t)
   // 鼠标移动
   {HYObjectEvent_MouseMove, _obj_mouse_move},
   // 组件绘制
-  {HYObjectEvent_Paint,     _obj_paint}
-};
+  {HYObjectEvent_Paint, _obj_paint}};
 
 int _obj_event(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
   auto iter = _obj_event_callback_map.find(event);
@@ -57,13 +56,11 @@ int _obj_event(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint
 int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_info) {
   _obj_event(event_info.Window, event_info.Object, event_info.Event, event_info.Param1, event_info.Param2);
   return 0;
-  // return HYWindowSendEvent(event_info.Window, HYObjectEventTag, (uint64_t) ((void *) (&event_info)), HYObjectEventTag);
 }
 
 HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
-                   const HYString &className, const HYString &name, int id) :
-  Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height),
-  ClassName(className), Name(name), ID(id) {
+                   const HYString &className, const HYString &name, int id) : Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height),
+                                                                              ClassName(className), Name(name), ID(id) {
   RawObjRect = {x, y, width, height};
   if (parent) {
     parent->Children.insert(this);
@@ -117,8 +114,8 @@ HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int wi
     if (VisibleRect.height > window->Height) {
       VisibleRect.height = window->Height;
     }
-
   }
+  HYResourceRegister(ResourceType::ResourceType_Object, this, className,nullptr);
 }
 
 HYObject::~HYObject() {
@@ -126,6 +123,7 @@ HYObject::~HYObject() {
     delete child;
   }
   Children.clear();
+  HYResourceRemove(ResourceType::ResourceType_Object, this);
 }
 
 HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
@@ -223,8 +221,7 @@ HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int px, int py) {
 HYPoint HYObjectGetRelativePoint(HYObjectHandle object, int windowX, int windowY) {
   return {
     windowX - object->RawObjRect.x,
-    windowY - object->RawObjRect.y
-  };
+    windowY - object->RawObjRect.y};
 }
 
 HYRect HYObjectGetNestedClippedVisibleArea(HYObjectHandle object) {
@@ -256,4 +253,4 @@ void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint) {
   object->Window->PaintMutex.unlock();
 }
 
-}
+}// namespace HYGUI

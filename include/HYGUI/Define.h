@@ -4,6 +4,11 @@
 
 #ifndef HYGUI_DEFINE_H
 #define HYGUI_DEFINE_H
+#include <cstdint>
+#include <set>
+#include <unordered_map>
+#include "String.h"
+#include <mutex>
 
 #ifdef _HYGUI_MODULE_
 
@@ -12,8 +17,9 @@
 #include "include/core/SkData.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPaint.h"
+#include "include/core/SkTypeface.h"
+#include "include/core/SkFont.h"
 #include <core/SkSurface.h>
-
 
 #else
 
@@ -21,14 +27,10 @@
 #define SkSurface void
 #define SkCanvas void
 #define SkPaint void
+#define SkTypeface void
+#define SkFont void
 
 #endif
-
-#include <cstdint>
-#include <set>
-#include <unordered_map>
-#include "String.h"
-#include <mutex>
 
 namespace HYGUI {
 
@@ -67,8 +69,8 @@ struct ApplicationInfo {
 
 
 }
-
 #include "Draw.h"
+#include "Cursor.h"
 #include "Point.h"
 
 #endif //HYGUI_DEFINE_H

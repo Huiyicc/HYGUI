@@ -80,11 +80,11 @@ bool HYInit(VOIDPTR ModuleHandle,
 //  }
   g_app.Cursor = nullptr;
   #ifdef _HOST_WINDOWS_
-  HYWindowRegisterClass(DefaultClassName);
+  //HYWindowRegisterClass(DefaultClassName);
   g_app.DefaultClassName = DefaultClassName;
 
   // 窗口阴影
-  HYWindowRegisterClass(L"SysShadow");
+  //HYWindowRegisterClass(L"SysShadow");
   #endif
   return true;
 }

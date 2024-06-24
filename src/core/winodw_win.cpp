@@ -9,45 +9,26 @@
 #include "include/core/SkCanvas.h"
 #include "include/gpu/gl/GrGLTypes.h"
 // #include "include/gpu/ganesh/SkSurfaceGanesh.h"
-#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrDirectContext.h"
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkSurface.h"
-#include <SDL2/SDL_syswm.h>
+#include "include/gpu/GrBackendSurface.h"
+#include "include/gpu/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_syswm.h>
 #include <gpu/ganesh/SkSurfaceGanesh.h>
 #include <src/gpu/ganesh/gl/GrGLDefines.h>
 
 namespace HYGUI {
 
-void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity) {
-  wnd->EventQueue.SetProcessCallback(processing_object_event);
-
-  wnd->BackGroundColor = HYColorRGBToInt(backGroundColor);
-  wnd->Diaphaneity = diaphaneity;
-  LONG_PTR style = GetWindowLongPtrW((HWND) wnd->Handle, GWL_STYLE);
-  style &= ~(WS_CAPTION | WS_THICKFRAME | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
-  SetWindowLongPtrW((HWND) wnd->Handle, GWL_STYLE, style);
-  SetWindowPos((HWND) wnd->Handle, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-
-  SDL_SetWindowOpacity(wnd->SDLWindow, (float) (diaphaneity) / 255.0f);
-  window_recreate_surface(wnd);
-  // window_paint(wnd);
-  SDL_Event event;
-  event.type = g_app.EventWindow;
-  event.window.windowID = wnd->ID;
-  event.window.event = HYWindowEvent_Paint;
-  event.window.data1 = 0;
-  event.window.data2 = 0;
-  SDL_PushEvent(&event);
-}
 
 void window_recreate_surface(HYWindow *windowPtr) {
   // 更新HDC/画笔尺寸
   if (windowPtr->Surface) {
-    windowPtr->Surface->unref();
+    HYResourceRemove(ResourceType::ResourceType_Other, windowPtr->Surface);
   }
+
+  SDL_GL_MakeCurrent(windowPtr->SDLWindow, windowPtr->SDLOpenGl);
 
   RECT winrect;
   GetWindowRect((HWND) windowPtr->Handle, &winrect);
@@ -60,11 +41,12 @@ void window_recreate_surface(HYWindow *windowPtr) {
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
   GrGLFramebufferInfo binfo;
   binfo.fFBOID = (GrGLuint) buffer;
-  #if defined(_HOST_ANDROID_)
-  binfo.fFormat =  GL_RGB8_OES;
-  #else
+#if defined(_HOST_ANDROID_)
+  binfo.fFormat = GL_RGB8_OES;
+#else
   binfo.fFormat = GL_RGB8;
-  #endif
+#endif
+  SDL_GL_GetDrawableSize(windowPtr->SDLWindow, &windowPtr->ClientRect.width, &windowPtr->ClientRect.height);
   // GrBackendRenderTarget target(dw, dh, kMsaaSampleCount, kStencilBits, info);
   auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width, windowPtr->ClientRect.height,
                                                  0, g_app.kStencilBits,
@@ -80,13 +62,12 @@ void window_recreate_surface(HYWindow *windowPtr) {
     PrintError("Hardware acceleration failed, fallback to software rendering");
     exit(1);
   }
+  HYResourceRegisterOther(windowPtr->Surface, "skia surface", [](void *ptr) {
+    SkSafeUnref((SkSurface *) ptr);
+  });
   windowPtr->Canvas = windowPtr->Surface->getCanvas();
-  // 高dpi
-//  SDL_DisplayMode dm;
-//  SDL_GetDesktopDisplayMode(0, &dm);
-//  windowPtr->Canvas->scale((float) (windowPtr->ClientRect.width) / (float) dm.w,
-//                           (float) windowPtr->ClientRect.height / (float) dm.h);
 
+  HYWindowSendEventRePaint(windowPtr);
 }
 
 void adjustwindow_by_sdl(uint32_t id, SDL_Window *sdl_window, void *handel) {
@@ -110,27 +91,9 @@ void adjustwindow_by_sdl(uint32_t id, SDL_Window *sdl_window, void *handel) {
   }
 }
 
-void HYWindowDestroy(HYWindowHandel wnd) {
-  if (!wnd->Handle) { return; }
-  if (wnd->GrCtx) {
-    ((GrDirectContext *) wnd->GrCtx)->unref();
-  }
-  SDL_GL_DeleteContext((SDL_GLContext *) wnd->SDLGl);
-  SDL_DestroyWindow(wnd->SDLWindow);
-
-  // 清理资源
-  if (wnd->Surface) {
-    //wnd->Surface->unref();
-    SkSafeUnref(wnd->Surface);
-  }
-  delete wnd;
-  g_app.WindowsTable.erase(wnd);
-
-}
-
-}
+}// namespace HYGUI
 #else
 void _WINDW_WIN() {
-    return;
+  return;
 }
 #endif

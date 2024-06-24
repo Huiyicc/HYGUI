@@ -40,5 +40,6 @@ void adjust_win_tyle(SDL_SysWMinfo* wmInfo);
 }
 
 #include "logs.h"
+#include "ResourceManage.h"
 
 #endif //HYGUI_PRIVATEDEFINITION_H

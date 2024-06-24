@@ -9,7 +9,6 @@
 #include "HYGUI/String.h"
 #include "HYGUI/Color.h"
 #include "HYGUI/Event.h"
-#include "HYGUI/Object.h"
 
 #ifdef _HOST_WINDOWS_
 
@@ -35,7 +34,7 @@ typedef HYWindow* HYWindowHandel;
 struct HYWindow {
   virtual ~HYWindow();
   VOIDPTR GrCtx = nullptr; // 设备上下文
-  VOIDPTR SDLGl = nullptr; // sdl设备上下文
+  VOIDPTR SDLOpenGl = nullptr; // sdl设备上下文
 
   int kStencilBits = 8; // skia需要8位模板缓冲区
 
@@ -62,25 +61,20 @@ struct HYWindow {
   HYObjectEventQueue EventQueue;
 
   bool Drag = false; // 是否拖动
+  int DragType = 0; // 拖动类型
+  int DragType1 = 0; // 拖动类型(标记左右/上下)
   HYPoint oldMousePoint = {0, 0}; // 旧鼠标位置
   HYPoint oldMouseMovePoint = {0, 0}; // 旧鼠标移动位置 (win下有可能无限触发移动事件)
-  HYPoint oldWinPoint = {0, 0}; // 旧窗口位置
+  HYRect oldWinRect = {0, 0,0,0}; // 旧窗口位置
 
   std::mutex PaintMutex; // 绘制锁
   std::condition_variable PaintCV; // 绘制条件变量
   std::mutex MessageMutex; // 消息锁
   std::unordered_map<intptr_t, intptr_t> UserData; // 用户数据
+  std::unordered_map<intptr_t, CursorPtr> CursorMap; // 光标映射
   std::set<HYObject *> Children; // 组件树
 };
 
-/**
- * @brief 注册窗口类
- * @param className 窗口类名
- * @param iconPath 图标路径
- * @param cursorPath 光标路径
- * @return
- */
-bool HYWindowRegisterClass(const HYString &className, const HYString &iconPath = "", const HYString &cursorPath = "");
 
 /**
  * @brief 创建窗口
@@ -169,6 +163,9 @@ void HYWindowUserDataAdd(HYWindowHandel window, intptr_t key, intptr_t data);
 void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
                             const std::function<bool(HYWindowHandel window, intptr_t key,
                                                      intptr_t value)> &callback= nullptr);
+
+void HYWindowSendEventRePaint(HYWindow *wind);
+
 
 }
 

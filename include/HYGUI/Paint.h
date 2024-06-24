@@ -6,7 +6,6 @@
 #define HYGUI_PAINT_H
 
 #include <HYGUI/Define.h>
-#include <HYGUI/Draw.h>
 #include <HYGUI/Color.h>
 
 namespace HYGUI {

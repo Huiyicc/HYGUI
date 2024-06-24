@@ -21,7 +21,6 @@ typedef std::function<int(HYWindow *, HYObject *, int, int, int)> HYObjectEventC
 struct HYObjectBase {
   virtual ~HYObjectBase() = default;
 
-
 };
 
 /**
