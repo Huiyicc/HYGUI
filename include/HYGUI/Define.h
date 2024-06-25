@@ -4,33 +4,12 @@
 
 #ifndef HYGUI_DEFINE_H
 #define HYGUI_DEFINE_H
+#include "String.h"
+#include "TypeDef.h"
 #include <cstdint>
+#include <mutex>
 #include <set>
 #include <unordered_map>
-#include "String.h"
-#include <mutex>
-
-#ifdef _HYGUI_MODULE_
-
-#include "include/core/SkBitmap.h"
-#include "include/core/SkImage.h"
-#include "include/core/SkData.h"
-#include "include/core/SkCanvas.h"
-#include "include/core/SkPaint.h"
-#include "include/core/SkTypeface.h"
-#include "include/core/SkFont.h"
-#include <core/SkSurface.h>
-
-#else
-
-#define SkImage void
-#define SkSurface void
-#define SkCanvas void
-#define SkPaint void
-#define SkTypeface void
-#define SkFont void
-
-#endif
 
 namespace HYGUI {
 
@@ -64,12 +43,13 @@ struct ApplicationInfo {
   uint32_t EventCustomStart;
   uint32_t EventWindow;
   uint32_t EventObject;
+  FontMgrPtr FontMgr;
+  TypefacePtr DefaultTypeface;
+  std::unordered_map<HYString, TypefacePtr> FontTable;
 };
 
-
-
 }
-#include "Draw.h"
+
 #include "Cursor.h"
 #include "Point.h"
 

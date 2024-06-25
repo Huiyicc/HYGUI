@@ -3,20 +3,24 @@
 //
 #define GLFW_INCLUDE_NONE
 
-#include "HYGUI/Define.h"
 #include "HYGUI/Application.h"
+#include "HYGUI/Define.h"
 #include "PrivateDefinition.h"
-#include "HYGUI/Image.h"
+#include "include/core/SkStream.h"
+#include "include/core/SkTypeface.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
+#include "include/ports/SkFontMgr_directory.h"
+#include <filesystem>
+#include <ports/SkTypeface_win.h>
 //#include "include/gpu/gl/GrGLInterface.h"
 
 #ifdef _HOST_WINDOWS_
 
 //#include <gl/GL.h>
 #elif defined(_HOST_APPLE_)
-#include "include/gpu/gl/GrGLInterface.h"
 #include "SDL2/SDL_opengl.h"
+#include "include/gpu/gl/GrGLInterface.h"
 #endif
 
 //#include <GLFW/glfw3.h>
@@ -27,25 +31,26 @@ namespace HYGUI {
 ApplicationInfo g_app;
 
 bool HYInit(VOIDPTR ModuleHandle,
-            HYGlobalFlag DefaultGlobalFlags) {
+            HYGlobalFlag DefaultGlobalFlags,
+            const HYString &DefaultFont) {
   HYString DefaultClassName = DEFAULT_CLASS_NAME;
   // 初始化sdl gl
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-  #if defined(_HOST_APPLE_)
+#if defined(_HOST_APPLE_)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-  #endif
-  #if defined(_HOST_ANDROID_) || defined(_HOST_IOS_)
+#endif
+#if defined(_HOST_ANDROID_) || defined(_HOST_IOS_)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
-                  SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN_DESKTOP |
-                  SDL_WINDOW_ALLOW_HIGHDPI;
-  #else
+  windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
+                SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN_DESKTOP |
+                SDL_WINDOW_ALLOW_HIGHDPI;
+#else
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  #endif
+#endif
   //SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
 
-  g_app.kStencilBits = 8;  // skia需要8位模板缓冲区
+  g_app.kStencilBits = 8;// skia需要8位模板缓冲区
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -72,20 +77,61 @@ bool HYInit(VOIDPTR ModuleHandle,
   }
   g_app.EventWindow = g_app.EventCustomStart + 1;
   g_app.EventObject = g_app.EventCustomStart + 2;
-//  if (DefaultCursor != nullptr) {
-//    g_app.Cursor = DefaultCursor;
-//  } else {
-//    // g_app.Cursor = HYCursorLoadFromDefault();
-//    g_app.Cursor = nullptr;
-//  }
+
+  // 加载字体
+#if defined(_HOST_WINDOWS_)
+  auto mgr = SkFontMgr_New_DirectWrite();
+#elif defined(_HOST_LINUX_)
+  auto mgr = SkFontMgr_New_FontConfig(nullptr);
+#elif defined(_HOST_MACOS_)
+  auto mgr = SkFontMgr_New_CoreText(nullptr);
+#else
+  // SkFontMgr_New_Custom_Empty()
+#error "Unsupported platform"
+#endif
+  g_app.FontMgr = (SkFontMgr *) HYResourceRegisterOther(mgr.release(), "skfontmgr", [](void *ptr) {
+    SkSafeUnref((SkFontMgr *) ptr);
+  });
+  if (!g_app.FontMgr) {
+    PrintError("Failed to create font manager");
+    g_app.LastError = "Failed to create font manager";
+    return false;
+  }
+  bool useDefault = true;
+  // 加载默认字体
+  if (!DefaultFont.empty()) {
+    // 设置默认字体
+    std::filesystem::path fontpath(DefaultFont.toStdStringView());
+    if (std::filesystem::exists(fontpath)) {
+      // 文件存在
+      g_app.DefaultTypeface = (SkTypeface *) HYResourceRegister(ResourceType::ResourceType_Typeface,
+                                                                g_app.FontMgr->makeFromFile(DefaultFont.toStdStringView().data()).release(), "", [](void *ptr) {
+                                                                  SkSafeUnref((SkTypeface *) ptr);
+                                                                });
+      useDefault = (g_app.DefaultTypeface == nullptr);
+    }
+  }
+  if (useDefault) {
+#ifdef _HOST_WINDOWS_
+    // 微软雅黑
+    g_app.DefaultTypeface = (SkTypeface *) HYResourceRegister(ResourceType::ResourceType_Typeface,
+                                                              g_app.FontMgr->legacyMakeTypeface("Microsoft YaHei", SkFontStyle()).release(), "", [](void *ptr) {
+                                                                SkSafeUnref((SkTypeface *) ptr);
+                                                              });
+#else
+#error "Unsupported platform"
+#endif
+  }
+
+
   g_app.Cursor = nullptr;
-  #ifdef _HOST_WINDOWS_
+#ifdef _HOST_WINDOWS_
   //HYWindowRegisterClass(DefaultClassName);
   g_app.DefaultClassName = DefaultClassName;
 
-  // 窗口阴影
-  //HYWindowRegisterClass(L"SysShadow");
-  #endif
+// 窗口阴影
+//HYWindowRegisterClass(L"SysShadow");
+#endif
   return true;
 }
 
@@ -97,4 +143,4 @@ void HYExit() {
 }
 
 
-}
+}// namespace HYGUI

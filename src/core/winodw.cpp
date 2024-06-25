@@ -3,22 +3,22 @@
 //
 
 #include "include/gpu/GrDirectContext.h"
-#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
 #include "include/gpu/gl/GrGLInterface.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_syswm.h>
 #include <gpu/GrBackendSurface.h>
-#include <gpu/ganesh/SkSurfaceGanesh.h>
 #include <include/gpu/gl/GrGLAssembleInterface.h>
 #include <map>
 #include <mutex>
-
+#include "HYGUI/Font.h"
 #include "HYGUI/Mouse.h"
 #include "HYGUI/Object.h"
 #include "HYGUI/Window.h"
 #include "PrivateDefinition.h"
+
+#include "include/core/SkFont.h"
 
 namespace HYGUI {
 HYWindow::~HYWindow() {
@@ -186,8 +186,7 @@ void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
   SDL_GL_MakeCurrent(windowPtr->SDLWindow, windowPtr->SDLOpenGl);
   auto canvas = windowPtr->Surface->getCanvas();
   canvas->clear(HYColorRGBToARGBInt(windowPtr->BackGroundColor, 255));
-  SkPaint paint;
-  paint.setAntiAlias(true);
+
   // 子组件绘制
   canvas->restore();
   canvas->save();
@@ -207,26 +206,25 @@ std::map<uint32_t, std::function<void(HYWindow *, SDL_WindowEvent *)>> g_win_eve
   {HYWindowEvent::HYWindowEvent_Paint, window_paint},
 };
 
-int getMouseCursorType(HYWindow *window, int x, int y) {
-  const int EDGE_WIDTH = 8;
+int getMouseCursorType(HYWindow *window, int x, int y, int edge = 5) {
   int dragType = HY_SYSTEM_CURSOR_ARROW;
-  if (x <= EDGE_WIDTH) {
-    if (y <= EDGE_WIDTH) {
+  if (x <= edge) {
+    if (y <= edge) {
       // 左上角
       dragType = HY_SYSTEM_CURSOR_SIZENWSE;
-    } else if (y >= window->Height - EDGE_WIDTH) {
+    } else if (y >= window->Height - edge) {
       // 左下角
       dragType = HY_SYSTEM_CURSOR_SIZENESW;
     } else {
       // 左边缘
       dragType = HY_SYSTEM_CURSOR_SIZEWE;
     }
-  } else if (x >= window->Width - EDGE_WIDTH) {
-    if (y <= EDGE_WIDTH) {
+  } else if (x >= window->Width - edge) {
+    if (y <= edge) {
       // 右上角
       dragType = HY_SYSTEM_CURSOR_SIZENESW;
       window->DragType1 = 1;
-    } else if (y >= window->Height - EDGE_WIDTH) {
+    } else if (y >= window->Height - edge) {
       // 右下角
       dragType = HY_SYSTEM_CURSOR_SIZENWSE;
       window->DragType1 = 1;
@@ -235,10 +233,10 @@ int getMouseCursorType(HYWindow *window, int x, int y) {
       dragType = HY_SYSTEM_CURSOR_SIZEWE;
       window->DragType1 = 1;
     }
-  } else if (y <= EDGE_WIDTH) {
+  } else if (y <= edge) {
     // 上边缘
     dragType = HY_SYSTEM_CURSOR_SIZENS;
-  } else if (y >= window->Height - EDGE_WIDTH) {
+  } else if (y >= window->Height - edge) {
     // 下边缘
     dragType = HY_SYSTEM_CURSOR_SIZENS;
     window->DragType1 = 1;

@@ -12,6 +12,8 @@ namespace HYGUI {
 
 void HYPaintSetColor(PaintPtr paint, HYARGB color);
 
+void HYPaintSetARGB(PaintPtr paint, uint8_t a, uint8_t r, uint8_t g, uint8_t b);
+
 }
 
 #endif //HYGUI_PAINT_H

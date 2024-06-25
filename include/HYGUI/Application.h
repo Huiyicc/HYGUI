@@ -10,7 +10,8 @@
 namespace HYGUI {
 
 bool HYInit(VOIDPTR ModuleHandle,
-            HYGlobalFlag DefaultGlobalFlags);
+            HYGlobalFlag DefaultGlobalFlags,
+            const HYString&DefaultFont="");
 
 
 void HYExit();

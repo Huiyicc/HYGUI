@@ -5,11 +5,11 @@
 #ifndef HYGUI_OBJECT_H
 #define HYGUI_OBJECT_H
 
-#include <set>
-#include <functional>
 #include "HYGUI/Define.h"
 #include "HYGUI/Event.h"
-#include "HYGUI/Draw.h"
+#include "HYGUI/TypeDef.h"
+#include <functional>
+#include <set>
 
 namespace HYGUI {
 

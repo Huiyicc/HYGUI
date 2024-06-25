@@ -50,6 +50,8 @@ T HYResourceRegisterOther_(T resource, const HYString &additional_message, std::
   return resource;
 }
 
+void HYResourceRemoveClearFunc(ResourceType type, void *resource);
+
 #define HYResourceRegister(type, resource, additional_message, delfunc) HYResourceRegister_(type, resource, additional_message, delfunc, __FILE__, __LINE__)
 #define HYResourceRegisterOther(resource, additional_message, delfunc) HYResourceRegisterOther_(resource, additional_message, delfunc, __FILE__, __LINE__)
 

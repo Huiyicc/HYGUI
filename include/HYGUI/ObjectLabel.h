@@ -19,6 +19,7 @@ struct HYLabel : public HYObject {
 
   HYString Text; // 文本
   HYARGB BackgroundColor; // 背景色
+  FontPtr Font; // 字体
 };
 
 

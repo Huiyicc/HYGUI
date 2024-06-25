@@ -13,6 +13,7 @@ namespace HYGUI {
 std::unordered_map<ResourceType, std::map<void *, ResourceInfo>> resource_map;
 
 void * HYResourceRegister_(ResourceType type, void *resource, const HYString &additional_message, std::function<void(void *)> delfunc, const char *file, int line) {
+  if (resource == nullptr) return nullptr;
   auto &iter = resource_map[type];
   iter[resource] = ResourceInfo{resource, type, additional_message, std::move(delfunc)};
   return resource;
@@ -28,5 +29,12 @@ bool HYResourceRemove(ResourceType type, void *resource) {
   return true;
 };
 
+void HYResourceRemoveClearFunc(ResourceType type, void *resource) {
+  if (resource_map.find(type) == resource_map.end()) return;
+  auto &iter = resource_map[type];
+  auto value = iter.find(resource);
+  if (value == iter.end()) return;
+  value->second.DelFunc = nullptr;
+}
 
 }// namespace HYGUI

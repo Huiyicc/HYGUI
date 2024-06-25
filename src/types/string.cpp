@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "HYGUI/String.h"
+#include "include/core/SkString.h"
 #include "HYGUI/Coding.h"
 
 namespace HYGUI {
@@ -12,184 +13,142 @@ HYString::~HYString() {
 }
 
 HYString::HYString() {
-  m_wstrData = L"";
-  m_strData = "";
+  m_pSkString = new SkString();
 }
 
 HYString::HYString(const char *pData) {
-  auto wstr = C2W_(pData);
-  m_wstrData = wstr;
-  m_strData = pData;
-  delete[] wstr;
+  m_pSkString = new SkString(pData);
 }
 
 HYString::HYString(const wchar_t *pData) {
-  m_wstrData = pData;
-  auto str = W2C_(pData);
-  m_strData = str;
-  delete[] str;
+  m_pSkString = new SkString(W2C_(pData));
 }
 
 HYString::HYString(const HYString &str) {
-  m_wstrData = str.m_wstrData;
-  m_strData = str.m_strData;
+  m_pSkString = new SkString(*str.m_pSkString);
 }
 
 HYString &HYString::operator=(const char *pData) {
-  auto wstr = C2W_(pData);
-  m_wstrData = wstr;
-  m_strData = pData;
-  delete[] wstr;
+  m_pSkString->set(pData);
   return *this;
 }
 
 HYString &HYString::operator=(const std::string& str) {
-  auto wstr = C2W_(str.c_str());
-  m_wstrData = wstr;
-  delete[] wstr;
-  m_strData = str;
+  m_pSkString->set(str.c_str());
   return *this;
 }
 
 HYString &HYString::operator=(const wchar_t *pData) {
-  m_wstrData = pData;
-  auto str = W2C_(pData);
-  m_strData = str;
-  delete[] str;
+  m_pSkString->set(W2C_(pData));
   return *this;
 }
 
 HYString &HYString::operator=(const std::wstring& str) {
-  m_wstrData = str;
-  auto lstr = W2C_(str.c_str());
-  m_strData = lstr;
-  delete[] lstr;
+  m_pSkString->set(W2C_(str.c_str()));
   return *this;
 }
 
 HYString &HYString::operator+=(const HYString &str) {
-  m_wstrData += str.m_wstrData;
-  m_strData += str.m_strData;
+  *m_pSkString += *str.m_pSkString;
   return *this;
 }
 
 HYString &HYString::operator+=(const char *pData) {
-  auto wstr = C2W_(pData);
-  m_wstrData += wstr;
-  m_strData += pData;
-  delete[] wstr;
+  *m_pSkString += pData;
   return *this;
 }
 
 HYString &HYString::operator+=(const wchar_t *pData) {
-  m_wstrData += pData;
-  auto str = W2C_(pData);
-  m_strData += str;
-  delete[] str;
+  *m_pSkString += W2C_(pData);
   return *this;
 }
 
 HYString HYString::operator+(const HYString &str) {
   HYString ret;
-  ret.m_wstrData = m_wstrData + str.m_wstrData;
-  ret.m_strData = m_strData + str.m_strData;
+  ret.m_pSkString = new SkString(*m_pSkString);
+  *ret.m_pSkString += *str.m_pSkString;
   return ret;
 }
 
 HYString HYString::operator+(const char *pData) {
   HYString ret;
-  auto wstr = C2W_(pData);
-  ret.m_wstrData = m_wstrData + wstr;
-  ret.m_strData = m_strData + pData;
-  delete[] wstr;
+  ret.m_pSkString = new SkString(*m_pSkString);
+  *ret.m_pSkString += pData;
   return ret;
 }
 
 HYString HYString::operator+(const wchar_t *pData) {
   HYString ret;
-  ret.m_wstrData = m_wstrData + pData;
-  auto str = W2C_(pData);
-  ret.m_strData = m_strData + str;
-  delete[] str;
+  ret.m_pSkString = new SkString(*m_pSkString);
+  *ret.m_pSkString += W2C_(pData);
   return ret;
 }
 
 bool HYString::operator==(const HYString &str) {
-  return m_wstrData == str.m_wstrData;
+  return m_pSkString->equals(*str.m_pSkString);
 }
 
 bool HYString::operator==(const char *pData) {
-  return (strcmp(m_strData.c_str(), pData) == 0);
+  return m_pSkString->equals(pData);
 }
 
 bool HYString::operator==(const wchar_t *pData) {
-  return m_wstrData == pData;
+  return m_pSkString->equals(W2C_(pData));
 }
 
 bool HYString::operator!=(const HYString &str) {
-  return m_wstrData != str.m_wstrData;
+  return !m_pSkString->equals(*str.m_pSkString);
 }
 
 bool HYString::operator!=(const char *pData) {
-  return (strcmp(m_strData.c_str(), pData) != 0);
+  return !m_pSkString->equals(pData);
 }
 
 bool HYString::operator!=(const wchar_t *pData) {
-  return m_wstrData != pData;
-}
-
-std::wstring_view HYString::toStdWStringView() const {
-  return m_wstrData;
+  return !m_pSkString->equals(W2C_(pData));
 }
 
 std::string_view HYString::toStdStringView() const {
-  return m_strData;
+  return m_pSkString->data();
 }
 
 std::string HYString::toStdString() const {
-  return m_strData;
+  return m_pSkString->c_str();
 }
 
 std::wstring HYString::toStdWString() const {
-  return m_wstrData;
+  return C2W_(m_pSkString->c_str());
 }
 
 HYString &HYString::operator=(const HYString &str) = default;
 
 HYString::operator std::string() {
-  return m_strData;
+  return m_pSkString->c_str();
 }
 
-HYString::operator std::wstring() {
-  return m_wstrData;
-}
 
 bool HYString::empty() const {
-  return m_wstrData.empty();
+  return m_pSkString->isEmpty();
 }
 
 void HYString::clear() {
-  m_wstrData.clear();
-  m_strData.clear();
+  m_pSkString->reset();
+}
+
+size_t HYString::size() const {
+  return m_pSkString->size();
 }
 
 void HYString::append(const char *pData) {
-  auto wstr = C2W_(pData);
-  m_wstrData += wstr;
-  m_strData += pData;
-  delete[] wstr;
+  m_pSkString->append(pData);
 }
 
 void HYString::append(const wchar_t *pData) {
-  m_wstrData += pData;
-  auto str = W2C_(pData);
-  m_strData += str;
-  delete[] str;
+  m_pSkString->append(W2C_(pData));
 }
 
 void HYString::append(const HYString &str) {
-  m_wstrData += str.m_wstrData;
-  m_strData += str.m_strData;
+  m_pSkString->append(*str.m_pSkString);
 }
 
 

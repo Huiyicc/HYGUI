@@ -2,8 +2,8 @@
 // Created by 19254 on 24-6-4.
 //
 
-#ifndef HYGUI_DRAW_H
-#define HYGUI_DRAW_H
+#ifndef HYGUI_TYPEDEF_H
+#define HYGUI_TYPEDEF_H
 
 #ifdef _HYGUI_MODULE_
 
@@ -12,8 +12,7 @@
 #include "include/core/SkData.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPaint.h"
-#include "include/core/SkTypeface.h"
-#include "include/core/SkFont.h"
+#include "include/core/SkFontMgr.h"
 #include <core/SkSurface.h>
 
 #else
@@ -24,6 +23,7 @@
 #define SkPaint void
 #define SkTypeface void
 #define SkFont void
+#define SkFontMgr void
 
 #endif
 
@@ -46,16 +46,20 @@ typedef SkCanvas *CanvasPtr;
  * */
 typedef SkPaint *PaintPtr;
 /**
- * @brief 字体风格指针
+ * @brief 字体族指针
  * */
 typedef SkTypeface *TypefacePtr;
 /**
  * @brief 字体指针
  * */
 typedef SkFont *FontPtr;
+/**
+ * @brief 字体管理器指针
+ * */
+typedef SkFontMgr *FontMgrPtr;
 
 }
 
 
 
-#endif //HYGUI_DRAW_H
+#endif//HYGUI_TYPEDEF_H
