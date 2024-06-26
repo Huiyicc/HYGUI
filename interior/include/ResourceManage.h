@@ -30,6 +30,8 @@ enum ResourceType {
   ResourceType_Paint,
   // 字体
   ResourceType_Typeface,
+  // 文本块
+  ResourceType_TextBlobBuilder,
 };
 
 struct ResourceInfo {

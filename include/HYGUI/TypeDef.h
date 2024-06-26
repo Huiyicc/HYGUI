@@ -8,12 +8,13 @@
 #ifdef _HYGUI_MODULE_
 
 #include "include/core/SkBitmap.h"
-#include "include/core/SkImage.h"
-#include "include/core/SkData.h"
 #include "include/core/SkCanvas.h"
-#include "include/core/SkPaint.h"
+#include "include/core/SkData.h"
 #include "include/core/SkFontMgr.h"
-#include <core/SkSurface.h>
+#include "include/core/SkImage.h"
+#include "include/core/SkPaint.h"
+#include "include/core/SkSurface.h"
+#include "include/core/SkTextBlob.h"
 
 #else
 
@@ -24,6 +25,7 @@
 #define SkTypeface void
 #define SkFont void
 #define SkFontMgr void
+#define SkTextBlobBuilder void
 
 #endif
 
@@ -57,6 +59,10 @@ typedef SkFont *FontPtr;
  * @brief 字体管理器指针
  * */
 typedef SkFontMgr *FontMgrPtr;
+/**
+ * @brief 文本块构建器指针
+ * */
+typedef SkTextBlobBuilder *TextBlobBuilderPtr;
 
 }
 

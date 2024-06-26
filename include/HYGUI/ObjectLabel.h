@@ -5,21 +5,23 @@
 #ifndef HYGUI_OBJECTLABEL_H
 #define HYGUI_OBJECTLABEL_H
 
-#include "String.h"
 #include "Color.h"
 #include "Object.h"
+#include "String.h"
 
 namespace HYGUI {
 
 struct HYLabel : public HYObject {
   constexpr static const wchar_t *ObjectName = L"Label";
 
-  HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height) :
-    HYObject{window, parent, x, y, width, height, ObjectName}, Text{text} {}
+  HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height) : HYObject{window, parent, x, y, width, height, ObjectName}, Text{text} {}
 
-  HYString Text; // 文本
-  HYARGB BackgroundColor; // 背景色
-  FontPtr Font; // 字体
+  ~HYLabel() override;
+
+  HYString Text;                     // 文本
+  HYARGB BackgroundColor;            // 背景色
+  FontPtr Font;                      // 字体
+  TextBlobBuilderPtr TextBlobBuilder;// 文本块构建器
 };
 
 
@@ -37,17 +39,27 @@ typedef HYLabel *HYLabelhandle;
  * @return 返回创建的标签控件的句柄。
  */
 HYLabelhandle
-HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString&text, int x, int y, int width, int height);
+HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height);
 
-/**
- * 设置标签控件的背景颜色。
- * @param label 标签控件的句柄，用于指定要设置背景色的控件。
- * @param color 背景颜色值，用于设置标签控件的背景色。
- * @param refresh 是否立即刷新，用于指定是否立即更新控件的显示。
- */
-void HYLabelSetBackgroundColor(HYLabelhandle label, const HYARGB &color, bool refresh = false);
+void HYLabelSetColorStyle(HYLabelhandle label,
+                     HYGradientMode banckgroundGradientMode,          // 背景色渐变模式
+                     HYGradientDirection banckgroundGradientDirection,// 背景色渐变方向
+                     const HYARGB &banckgroundColor1,                 // 背景颜色1
+                     const HYARGB &banckgroundColor2,                 // 背景颜色2
+                     const HYARGB &textColor,                         // 文本颜色
+                     const HYARGB &borderColor,                       // 边框颜色
+                     int borderWidth                                  // 边框宽度
+);
+
+///**
+// * 设置标签控件的背景颜色。
+// * @param label 标签控件的句柄，用于指定要设置背景色的控件。
+// * @param color 背景颜色值，用于设置标签控件的背景色。
+// * @param refresh 是否立即刷新，用于指定是否立即更新控件的显示。
+// */
+//void HYLabelSetBackgroundColor(HYLabelhandle label, const HYARGB &color, bool refresh = false);
 
 
-}
+}// namespace HYGUI
 
-#endif //HYGUI_OBJECTLABEL_H
+#endif//HYGUI_OBJECTLABEL_H

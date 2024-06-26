@@ -9,6 +9,70 @@
 
 namespace HYGUI {
 
+/**
+ * @brief 渐变模式
+ * */
+enum HYGradientMode {
+  /**
+   * 线性渐变
+   * */
+  HYGradientModeLinear = 0,
+
+  /**
+   * 径向渐变
+   * */
+  HYGradientModeRadial = 1,  // 径向渐变
+
+  /**
+   * 扫描渐变
+   * */
+  HYGradientModeSweep = 2  // 扫描渐变
+};
+
+/**
+ * @brief 渐变方向
+ * */
+enum HYGradientDirection {
+  /**
+   * 从左到右
+   * */
+  HYGradientDirectionLeftToRight = 0,
+
+  /**
+   * 从右到左
+   * */
+  HYGradientDirectionRightToLeft = 1,
+
+  /**
+   * 从上到下
+   * */
+  HYGradientDirectionTopToBottom = 2,
+
+  /**
+   * 从下到上
+   * */
+  HYGradientDirectionBottomToTop = 3,
+
+  /**
+   * 从左上到右下
+   * */
+  HYGradientDirectionTopLeftToBottomRight = 4,
+
+  /**
+   * 从右上到左下
+   * */
+  HYGradientDirectionTopRightToBottomLeft = 5,
+
+  /**
+   * 从左下到右上
+   * */
+  HYGradientDirectionBottomLeftToTopRight = 6,
+
+  /**
+   * 从右下到左上
+   * */
+  HYGradientDirectionBottomRightToTopLeft = 7
+};
 
 /**
  * @brief 定义RGB颜色结构体
