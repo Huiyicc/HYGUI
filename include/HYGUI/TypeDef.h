@@ -15,6 +15,8 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkTextBlob.h"
+#include "include/core/SkRefCnt.h"
+class SkShader;
 
 #else
 
@@ -26,6 +28,8 @@
 #define SkFont void
 #define SkFontMgr void
 #define SkTextBlobBuilder void
+#define SkShader void
+
 
 #endif
 
@@ -63,6 +67,10 @@ typedef SkFontMgr *FontMgrPtr;
  * @brief 文本块构建器指针
  * */
 typedef SkTextBlobBuilder *TextBlobBuilderPtr;
+/**
+ * @brief 着色器指针
+ * */
+typedef SkShader *ShaderPtr;
 
 }
 

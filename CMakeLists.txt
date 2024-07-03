@@ -148,7 +148,7 @@ endif ()
 target_link_libraries(HYGUI PRIVATE skia skshaper skcms sksg skresources skshaper sksg)
 if (OS_IS_WINDOWS)
     target_link_libraries(HYGUI PRIVATE opengl32.lib)
-    target_link_libraries(HYGUI PRIVATE SDL2-static Winmm Setupapi Imm32 Version)
+    target_link_libraries(HYGUI PRIVATE SDL2-static Winmm Setupapi Imm32 Version dwmapi)
 
 elseif (OS_IS_APPLE)
     target_link_libraries(HYGUI PRIVATE  icudata icutu icui18n icuuc SDL2 ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY} OpenGL::GL)
@@ -171,4 +171,7 @@ if (NOT DEFINED NO_EXAMPLES)
     # helloworld
     add_executable(HelloWorld examples/helloworld/helloworld.cpp)
     target_link_libraries(HelloWorld PRIVATE HYGUI)
+    # cloud_music
+    add_executable(CloudMusic examples/CloudMusic/main_window.cpp)
+    target_link_libraries(CloudMusic PRIVATE HYGUI)
 endif ()

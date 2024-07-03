@@ -43,11 +43,11 @@ HYARGB HYColorToARGB(uint32_t color) {
   return argb;
 }
 
-int HYColorRGBToInt(HYRGB rgb) {
+uint32_t HYColorRGBToInt(HYRGB rgb) {
   return (rgb.r << 16) | (rgb.g << 8) | rgb.b;
 }
 
-int HYColorARGBToInt(HYARGB argb) {
+uint32_t HYColorARGBToInt(HYARGB argb) {
   return (argb.a << 24) | (argb.r << 16) | (argb.g << 8) | argb.b;
 }
 
@@ -63,7 +63,7 @@ HYRGB HYColorARGBToRGB(uint32_t argb) {
   return HYColorARGBToRGB(HYColorToARGB(argb));
 }
 
-int HYColorARGBToRGBInt(uint32_t argb) {
+uint32_t HYColorARGBToRGBInt(uint32_t argb) {
   return HYColorRGBToInt(HYColorARGBToRGB(HYColorToARGB(argb)));
 }
 
@@ -81,7 +81,7 @@ HYARGB HYColorRGBToARGB(uint32_t rgb, uint8_t a) {
   return HYColorRGBToARGB(HYColorToRGB(rgb), a);
 }
 
-int HYColorRGBToARGBInt(uint32_t rgb, uint8_t a) {
+uint32_t HYColorRGBToARGBInt(uint32_t rgb, uint8_t a) {
   return HYColorARGBToInt(HYColorRGBToARGB(HYColorToRGB(rgb), a));
 }
 

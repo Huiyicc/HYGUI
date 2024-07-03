@@ -60,7 +60,7 @@ int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_
 
 HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
                    const HYString &className, const HYString &name, int id) : Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height),
-                                                                              ClassName(className), Name(name), ID(id) {
+                                                                              ClassName(std::make_shared<HYString>(className)), Name(std::make_shared<HYString>(name)), ID(id) {
   RawObjRect = {x, y, width, height};
   if (parent) {
     parent->Children.insert(this);
@@ -183,11 +183,12 @@ void HYObjectUserDataRemove(HYObjectHandle object, intptr_t key,
 }
 
 void HYObjectSetClassName(HYObjectHandle object, const HYString &className) {
-  object->ClassName = className;
+  //*object->ClassName = className;
 }
 
-void HYObjectSetName(HYObjectHandle object, const HYString &name) {
-  object->Name = name;
+void HYObjectSetName(HYObjectHandle object, const char *name) {
+  //*object->Name = name;
+  std::string aaa;
 }
 
 void HYObjectSetID(HYObjectHandle object, int id) {
@@ -228,7 +229,7 @@ HYRect HYObjectGetNestedClippedVisibleArea(HYObjectHandle object) {
   return object->VisibleRect;
 }
 
-PaintPtr HYObjectBeginPaint(HYObjectHandle object) {
+PaintPtr HYObjectBeginPaint(HYObjectHandle object,bool clear) {
   object->Window->PaintMutex.lock();
   // 计算实际可视区域
   HYRect lct = HYObjectGetNestedClippedVisibleArea(object);
@@ -241,7 +242,13 @@ PaintPtr HYObjectBeginPaint(HYObjectHandle object) {
   // 创建画笔
   auto repaint = new SkPaint();
   repaint->setAntiAlias(true);
-
+  if (clear) {
+    // 清除背景
+    repaint->setColor(SK_ColorTRANSPARENT);
+    object->Canvas->drawRect(SkRect::MakeLTRB(0, 0, object->Width, object->Height), *repaint);
+    // 重置画笔
+    repaint->setColor(SK_ColorBLACK);
+  }
   return repaint;
 }
 

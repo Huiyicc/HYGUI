@@ -18,9 +18,8 @@ int main() {
 
   auto label = HYLabelCreate(wind, nullptr, "标签绿\n\ncascas", 50, 50, 700, 500);
   HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
-                       HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
-                       HYARGB{255, 0, 255, 0},
-                       HYARGB{255, 0, 0, 255},
+                       HYGradientDirection::HYGradientDirectionTopToBottom,
+                       {HYARGB{255, 0, 255, 0}, HYARGB{255, 0, 0, 255}},
                        HYARGB{255, 255, 255, 255},
                        HYARGB{255, 0, 0, 255}, 2);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label), "标签绿 g");
@@ -28,17 +27,15 @@ int main() {
   auto label1 = HYLabelCreate(wind, label, "标签蓝\n\n2132", 200, 160, 300, 250);
   HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,
                        HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
-                       HYARGB{255, 0, 0, 255},
-                       HYARGB{255, 255, 0, 0},
+                       {HYARGB{255, 0, 0, 255}, HYARGB{255, 255, 0, 0}},
                        HYARGB{255, 255, 255, 255},
                        HYARGB{255, 255, 0, 0}, 2);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label1), "标签蓝 b");
 
   auto label11 = HYLabelCreate(wind, label1, "标签红", -120, -80, 300, 150);
-  HYLabelSetColorStyle(label11, HYGradientMode::HYGradientModeRadial,
+  HYLabelSetColorStyle(label11, HYGradientMode::HYGradientModeLinear,
                        HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
-                       HYARGB{255, 255, 0, 0},
-                       HYARGB{255, 0, 255, 0},
+                       {HYARGB{255, 255, 0, 0}, HYARGB{255, 0, 255, 0}},
                        HYARGB{255, 255, 255, 255},
                        HYARGB{255, 0, 0, 255}, 2);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label11), "标签红 r");

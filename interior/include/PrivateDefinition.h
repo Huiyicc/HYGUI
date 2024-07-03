@@ -34,9 +34,10 @@ constexpr const wchar_t *DEFAULT_CLASS_NAME = L"HYGUI";
 void window_paint(HYWindow *, SDL_WindowEvent *) ;
 void window_recreate_surface(HYWindow *windowPtr);
 int processing_object_event(HYObjectEventQueue*queue, HYObjectEventInfo&event_info);
-void adjustwindow_by_sdl(uint32_t id,SDL_Window *sdl_window,void*hwnd);
+void adjustwindow_by_sdl(HYWindowHandel window , void *newhandel);
 void adjust_win_tyle(SDL_SysWMinfo* wmInfo);
-
+void window_hook_handel(HYWindow *windowPtr);
+bool window_make_window_transparent(HYWindowHandel window, COLORREF colorKey);
 }
 
 #include "logs.h"

@@ -32,7 +32,8 @@ typedef HYObject *HYObjectHandle;
  * 定义HYLabel类，继承自HYObject，用于创建和管理标签控件。
  * 标签控件用于显示文本信息，并可设置背景色。
  */
-struct HYObject : public HYObjectBase {
+class HYObject : public HYObjectBase {
+public:
   HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height, const HYString &className,
            const HYString &name = "", int id = 0);
   ~HYObject() override;
@@ -49,8 +50,8 @@ struct HYObject : public HYObjectBase {
   HYRect VisibleRect = {0};// 相对于窗口的实际可视范围
   HYRect RawObjRect = {0}; // 相对于窗口的实际范围(无裁剪)
 
-  HYString ClassName; // 组件类名
-  HYString Name; // 组件名
+  std::shared_ptr<HYString> ClassName; // 组件类名
+  std::shared_ptr<HYString> Name; // 组件名
   int ID = 0; // 组件ID
 
   CanvasPtr Canvas = nullptr; // 画布,用于绘制,除了绘制事件外不应该直接操作
@@ -121,7 +122,7 @@ void HYObjectSetClassName(HYObjectHandle object, const HYString &className);
  * @param object 待设置名称的对象的句柄。
  * @param name 对象的新名称。
  */
-void HYObjectSetName(HYObjectHandle object, const HYString &name);
+void HYObjectSetName(HYObjectHandle object, const char *name);
 
 /**
  * @brief 设置对象的ID。
@@ -242,8 +243,25 @@ HYPoint HYObjectGetRelativePoint(HYObjectHandle object, int windowX, int windowY
  * */
 HYRect HYObjectGetNestedClippedVisibleArea(HYObjectHandle object);
 
-PaintPtr HYObjectBeginPaint(HYObjectHandle object);
+/**
+ * @brief 开始绘制对象。
+ *
+ * 该函数用于开始绘制指定对象。返回一个绘制对象的指针，用于绘制对象。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param clear 是否清除背景,清除会将背景清除为透明。
+ * @return PaintPtr 绘制对象的指针。
+ * */
+PaintPtr HYObjectBeginPaint(HYObjectHandle object,bool clear = true);
 
+/**
+ * @brief 结束绘制对象。
+ *
+ * 该函数用于结束绘制指定对象。释放绘制对象的资源。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param repaint 绘制对象的指针。
+ * */
 void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint);
 
 

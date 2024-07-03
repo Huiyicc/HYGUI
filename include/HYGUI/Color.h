@@ -13,6 +13,7 @@ namespace HYGUI {
  * @brief 渐变模式
  * */
 enum HYGradientMode {
+  HYGradientModeNone = 0,
   /**
    * 线性渐变
    * */
@@ -21,12 +22,12 @@ enum HYGradientMode {
   /**
    * 径向渐变
    * */
-  HYGradientModeRadial = 1,  // 径向渐变
+  HYGradientModeRadial,  // 径向渐变
 
   /**
    * 扫描渐变
    * */
-  HYGradientModeSweep = 2  // 扫描渐变
+  HYGradientModeSweep  // 扫描渐变
 };
 
 /**
@@ -117,17 +118,17 @@ HYARGB HYColorToARGB(uint32_t color);
  * @brief 将RGB颜色值转换为整型。
  *
  * @param rgb 输入的RGB颜色值。
- * @return int 转换后的整型颜色值。
+ * @return uint32_t 转换后的整型颜色值。
  */
-int HYColorRGBToInt(HYRGB rgb);
+uint32_t HYColorRGBToInt(HYRGB rgb);
 
 /**
  * @brief 将ARGB颜色值转换为整型。
  *
  * @param argb 输入的ARGB颜色值。
- * @return int 转换后的整型颜色值。
+ * @return uint32_t 转换后的整型颜色值。
  */
-int HYColorARGBToInt(HYARGB argb);
+uint32_t HYColorARGBToInt(HYARGB argb);
 
 /**
  * @brief 将ARGB颜色值转换为RGB颜色值。
@@ -169,7 +170,7 @@ HYARGB HYColorRGBToARGB(uint32_t rgb,uint8_t a);
  * @param a 输入的Alpha透明度值，范围为0-255。
  * @return 返回转换后的ARGB颜色值，格式为AARRGGBB。
  */
-int HYColorRGBToARGBInt(uint32_t rgb,uint8_t a);
+uint32_t HYColorRGBToARGBInt(uint32_t rgb,uint8_t a);
 
 /**
  * 将ARGB颜色值转换为RGB颜色值。
@@ -177,7 +178,7 @@ int HYColorRGBToARGBInt(uint32_t rgb,uint8_t a);
  * @param argb 输入的ARGB颜色值，格式为AARRGGBB。
  * @return 返回转换后的RGB颜色值，格式为RRGGBB。
  */
-int HYColorARGBToRGBInt(uint32_t argb);
+uint32_t HYColorARGBToRGBInt(uint32_t argb);
 
 }
 

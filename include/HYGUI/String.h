@@ -5,8 +5,9 @@
 #ifndef HYGUI_STRING_H
 #define HYGUI_STRING_H
 
-class SkString;
+// class SkString;
 #include <string>
+#include <memory>
 
 namespace HYGUI {
 
@@ -60,7 +61,7 @@ public:
 private:
 //  std::wstring m_wstrData;
 //  std::string m_strData;
-  SkString* m_pSkString;
+  std::shared_ptr<std::string> m_pSkString;
 };
 
 }

@@ -11,17 +11,21 @@
 
 namespace HYGUI {
 
-struct HYLabel : public HYObject {
-  constexpr static const wchar_t *ObjectName = L"Label";
+class HYLabel : public HYObject {
+public:
+  constexpr static const char *ObjectName = "Label";
 
   HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height) : HYObject{window, parent, x, y, width, height, ObjectName}, Text{text} {}
 
   ~HYLabel() override;
 
-  HYString Text;                     // 文本
-  HYARGB BackgroundColor;            // 背景色
-  FontPtr Font;                      // 字体
-  TextBlobBuilderPtr TextBlobBuilder;// 文本块构建器
+  HYString Text;                                   // 文本
+  HYARGB TextColor;                                // 文本颜色
+  std::vector<HYARGB> BackgroundColors;            // 背景色
+  HYGradientMode BanckgroundGradientMode;          // 背景色渐变模式
+  HYGradientDirection BanckgroundGradientDirection;// 背景色渐变方向
+  FontPtr Font;                                    // 字体
+  TextBlobBuilderPtr TextBlobBuilder;              // 文本块构建器
 };
 
 
@@ -42,13 +46,12 @@ HYLabelhandle
 HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height);
 
 void HYLabelSetColorStyle(HYLabelhandle label,
-                     HYGradientMode banckgroundGradientMode,          // 背景色渐变模式
-                     HYGradientDirection banckgroundGradientDirection,// 背景色渐变方向
-                     const HYARGB &banckgroundColor1,                 // 背景颜色1
-                     const HYARGB &banckgroundColor2,                 // 背景颜色2
-                     const HYARGB &textColor,                         // 文本颜色
-                     const HYARGB &borderColor,                       // 边框颜色
-                     int borderWidth                                  // 边框宽度
+                          HYGradientMode banckgroundGradientMode,          // 背景色渐变模式
+                          HYGradientDirection banckgroundGradientDirection,// 背景色渐变方向
+                          const std::vector<HYARGB> &banckgroundColors,    // 背景颜色组
+                          const HYARGB &textColor,                         // 文本颜色
+                          const HYARGB &borderColor,                       // 边框颜色
+                          int borderWidth                                  // 边框宽度
 );
 
 ///**
