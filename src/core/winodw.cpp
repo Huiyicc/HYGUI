@@ -71,7 +71,9 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   if (y == WINDOWCREATEPOINT_USEDEFAULT) {
     y = (dsinfo.h - height) / 2;
   }
-
+  if (SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)!=0) {
+    PrintDebug("{}",SDL_GetError());
+  }
   auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), x, y, width, height,
                                    SDL_WINDOW_OPENGL           // opengl
                                      | SDL_WINDOW_ALLOW_HIGHDPI// 高dpi
@@ -82,6 +84,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   if (sdl_wind == nullptr) {
     return nullptr;
   }
+
   SDL_HideWindow(sdl_wind);
   HYResourceRegister(ResourceType::ResourceType_Window, sdl_wind, "sdl window", [](void *resource) {
     SDL_DestroyWindow((SDL_Window *) resource);
@@ -165,9 +168,13 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
 #error "Not support"
 #endif
   if (hWnd == nullptr) {
+    g_app.LastError = "Create window fail";
+    HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
+    HYResourceRemove(ResourceType::ResourceType_Other, glContext);
+    HYResourceRemove(ResourceType::ResourceType_Other, window->GrCtx);
+    delete window;
     return nullptr;
   }
-
   window->Handle = hWnd;
   SDL_GetWindowPosition(sdl_wind, &window->X, &window->Y);
   SDL_GetWindowSize(sdl_wind, &window->Width, &window->Height);
@@ -187,28 +194,31 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
 
 
 void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
+  window_make_window_transparent(windowPtr, RGB(255, 0, 255));
   // 切换到OpenGL上下文
   SDL_GL_MakeCurrent(windowPtr->SDLWindow, windowPtr->SDLOpenGl);
 
-
-  // 透明背景
-  //  if (!windowPtr->isTransparent) {
-  //    glClearColor(1, 0, 1, 1);
-  //    glClear(GL_COLOR_BUFFER_BIT);
-  //    window_make_window_transparent(windowPtr, RGB(255, 0, 255));
-  //    windowPtr->isTransparent = true;
-  //  }
-  glClearColor(1, 0, 1, 1);
-  glClear(GL_COLOR_BUFFER_BIT);
-  window_make_window_transparent(windowPtr, RGB(255, 0, 255));
+//  // 透明背景
+//  glClearColor(1, 0, 1, 1);
+//  glClear(GL_COLOR_BUFFER_BIT);
 
   auto canvas = windowPtr->Surface->getCanvas();
   // 透明背景
-  SkRRect roundRect;
-  roundRect.setRectXY(SkRect::MakeXYWH(0, 0, windowPtr->Width, windowPtr->Height),
-                      windowPtr->round, windowPtr->round);
-  canvas->clipRRect(roundRect);
-  canvas->clear(HYColorRGBToARGBInt(windowPtr->BackGroundColor, 255));
+  // SkRRect roundRect;
+
+  // roundRect.setRectXY(SkRect::MakeXYWH(0, 0, windowPtr->Width, windowPtr->Height),
+  //                      windowPtr->round, windowPtr->round);
+  // canvas->clipRRect(roundRect);
+//   canvas->clear(HYColorARGBToInt(HYColorRGBToARGB(RGB(255, 0, 255),255)));
+
+  SkPaint bgpaint;
+  bgpaint.setColor(HYColorRGBToARGBInt(windowPtr->BackGroundColor, 255));
+  // 白色
+
+  canvas->drawRect(SkRect::MakeLTRB(0,0,windowPtr->ClientRect.width,windowPtr->ClientRect.height),
+                     bgpaint);
+//  auto cinfo = canvas->imageInfo();
+//  PrintDebug("{}x{}", cinfo.width(), cinfo.height());
 
   // 子组件绘制
   canvas->save();
@@ -216,8 +226,10 @@ void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
     // 子组件绘制
     HYObjectSendEvent(windowPtr, obj, HYObjectEvent::HYObjectEvent_Paint, 0, 1);
   }
+
+  canvas->restore();
   canvas->resetMatrix();
-  canvas->restoreToCount(0);
+
   ((GrDirectContext *) windowPtr->GrCtx)->flush(windowPtr->Surface);
 
   // 将绘制的内容显示到窗口
@@ -345,6 +357,7 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
         SDL_SetWindowPosition(window->SDLWindow, window->X, window->Y);
         SDL_SetWindowSize(window->SDLWindow, window->Width, window->Height);
       }
+
     } else if (window->DragType == HY_SYSTEM_CURSOR_SIZEWE) {
       // 处于左右边缘调整窗口尺寸
       auto wp = HYMouseGetPosition();
@@ -486,43 +499,7 @@ uint32_t HYWindowMessageLoop() {
     if (!window) {
       continue;
     }
-//    auto sdlWindow = SDL_GetWindowFromID(event.window.windowID);
-//    SDL_SysWMinfo winfo;
-//    SDL_GetWindowWMInfo(sdlWindow, &winfo);
-//#ifdef _HOST_WINDOWS_
-//    auto hWnd = winfo.info.win.window;
-//#elif defined(_HOST_APPLE_)
-//    auto hWnd = winfo.info.cocoa.window;
-//#elif defined(_HOST_LINUX_)
-//    auto hWnd = winfo.info.x11.window;
-//#endif
-//    HYWindowHandel window = nullptr;
-//    if (!g_app.WindowsTable.empty()) {
-//      for (auto &iter: g_app.WindowsTable) {
-//        if ((HWND) iter->Handle == hWnd && event.window.windowID == iter->ID) {
-//          window = iter;
-//        }
-//      }
-//    }
-//    if (!window) {
-//      window = HYWindowGetWindowFromID(event.window.windowID);
-//      if (!window) {
-//        continue;
-//      }
-//      adjustwindow_by_sdl(window, hWnd);
-//      window_recreate_surface(window);
-//    }
 
-    //    auto window = HYWindowGetWindowFromHandle(hWnd);
-    //    if (!window) {
-    //      // 初始化可能需要修正
-    //      adjustwindow_by_sdl(event.window.windowID, sdlWindow, hWnd);
-    //      window = HYWindowGetWindowFromHandle(hWnd);
-    //      if (!window) {
-    //        continue;
-    //      }
-    //      window_recreate_surface(window);
-    //    }
     if (!window->IsInit) {
       window->IsInit = true;
       if (window->Show) {
@@ -530,14 +507,21 @@ uint32_t HYWindowMessageLoop() {
       }
     }
     if (event.type == SDL_EventType::SDL_WINDOWEVENT) {
+//      SDL_SysWMinfo winfo;
+//      auto w = SDL_GetWindowFromID(event.window.windowID);
+//     if(! SDL_GetWindowWMInfo(w , &winfo)) {
+//        PrintError("Get window info fail,{}", SDL_GetError());
+//        PrintError("flag,{}", SDL_GetWindowFlags(w));
+//        continue;
+//     }
+
       // 窗口事件
       if (event.window.event == SDL_WINDOWEVENT_MOVED) {
         // 窗口移动
-        //        window->X = event.window.data1;
-        //        window->Y = event.window.data2;
         SDL_GetWindowPosition(window->SDLWindow, &window->X, &window->Y);
       } else if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
         // 窗口大小改变
+        SDL_GetWindowSize(window->SDLWindow, &window->Width, &window->Height);
         window_recreate_surface(window);
       }
     } else if (event.type == SDL_EventType::SDL_MOUSEBUTTONDOWN) {
@@ -596,6 +580,7 @@ HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {
 
   return nullptr;
 }
+
 HYWindow *HYWindowGetWindowFromID(int id) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   auto &debug_app = g_app;
@@ -609,6 +594,7 @@ HYWindow *HYWindowGetWindowFromID(int id) {
 
   return nullptr;
 }
+
 
 void HYWindowShow(HYWindow *wind) {
   wind->Show = true;

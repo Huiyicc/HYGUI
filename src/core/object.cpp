@@ -236,6 +236,9 @@ PaintPtr HYObjectBeginPaint(HYObjectHandle object,bool clear) {
   // 创建画布
   object->Canvas = object->Window->Canvas;
   object->Canvas->save();
+//  if (object->Window->GlobalClipPath) {
+//    object->Canvas->clipPath(*object->Window->GlobalClipPath);
+//  }
   object->Canvas->clipRect(SkRect::MakeLTRB(lct.x,lct.y,lct.x+lct.width, lct.y+lct.height));
   object->Canvas->translate(object->RawObjRect.x, object->RawObjRect.y);
   // PrintDebug("HYObjectBeginPaint {} {} {} {} {}", object->Name.toStdStringView(), lct.x, lct.y, lct.width, lct.height);

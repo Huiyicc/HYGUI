@@ -25,13 +25,20 @@ namespace HYGUI {
 
 void window_hook_handel(HYWindow *windowPtr) {
   if (!windowPtr->Handle) return;
-  //window_make_window_transparent(windowPtr, RGB(255, 0, 255));
+  //圆角窗口
+//  HRGN hRgn;
+//  RECT rect;
+//  auto hwnd=(HWND) windowPtr->Handle;
+//  GetWindowRect(hwnd, &rect);
+//  hRgn = CreateRoundRectRgn(0, 0, rect.right - rect.left, rect.bottom - rect.top, windowPtr->round, windowPtr->round);
+//  SetWindowRgn(hwnd, hRgn, TRUE);
+//  DeleteObject(hRgn);
 }
 
 bool window_make_window_transparent(HYWindowHandel window, COLORREF colorKey) {
+//  return true;
   auto hWnd = (HWND) window->Handle;
   SetWindowLongPtrA(hWnd, GWL_EXSTYLE, GetWindowLongPtrA(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-  // Set transparency color
   return SetLayeredWindowAttributes(hWnd, colorKey, 0, LWA_COLORKEY);
 }
 
@@ -47,9 +54,15 @@ void window_recreate_surface(HYWindowHandel windowPtr) {
   GetWindowRect((HWND) windowPtr->Handle, &winrect);
 
   SDL_SysWMinfo winfo;
-  SDL_GetWindowWMInfo(windowPtr->SDLWindow, &winfo);
+  SDL_VERSION(&winfo.version);
+  if (!SDL_GetWindowWMInfo(windowPtr->SDLWindow, &winfo)) {
+    PrintError("Get window info failed");
+    return;
+  }
 
   // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
+  SDL_GL_GetDrawableSize(windowPtr->SDLWindow, &windowPtr->ClientRect.width, &windowPtr->ClientRect.height);
+  glViewport(0, 0, windowPtr->ClientRect.width, windowPtr->ClientRect.height);
   GrGLint buffer;
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
   GrGLFramebufferInfo binfo;
@@ -59,14 +72,13 @@ void window_recreate_surface(HYWindowHandel windowPtr) {
 #else
   binfo.fFormat = GL_RGBA8;
 #endif
-  SDL_GL_GetDrawableSize(windowPtr->SDLWindow, &windowPtr->ClientRect.width, &windowPtr->ClientRect.height);
-  // GrBackendRenderTarget target(dw, dh, kMsaaSampleCount, kStencilBits, info);
-  auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width, windowPtr->ClientRect.height,
+  auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width,
+                                                 windowPtr->ClientRect.height,
                                                  0, 8,
                                                  binfo);
 
   SkSurfaceProps props = {0, kUnknown_SkPixelGeometry};
-  ;
+
   sk_sp<SkSurface> surface(SkSurfaces::WrapBackendRenderTarget(((GrDirectContext *) windowPtr->GrCtx), grtarget,
                                                                kBottomLeft_GrSurfaceOrigin,
                                                                kRGBA_8888_SkColorType, nullptr, &props));

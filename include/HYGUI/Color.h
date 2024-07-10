@@ -33,7 +33,8 @@ enum HYGradientMode {
 /**
  * @brief 渐变方向
  * */
-enum HYGradientDirection {
+enum HYGradientDirection: uint8_t {
+  HYGradientDirectionNone = 0,
   /**
    * 从左到右
    * */

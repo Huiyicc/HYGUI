@@ -33,6 +33,11 @@ ApplicationInfo g_app;
 bool HYInit(VOIDPTR ModuleHandle,
             HYGlobalFlag DefaultGlobalFlags,
             const HYString &DefaultFont) {
+  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    g_app.LastError = SDL_GetError();
+    PrintError(g_app.LastError);
+    return false;
+  };
   HYString DefaultClassName = DEFAULT_CLASS_NAME;
   // 初始化sdl gl
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -59,15 +64,13 @@ bool HYInit(VOIDPTR ModuleHandle,
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-
 //  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 //  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-    g_app.LastError = SDL_GetError();
-    PrintError(g_app.LastError);
-    return false;
-  };
+
+  int aa = 0;
+  SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &aa);
+  PrintDebug("{}",aa);
   g_app.Instance = ModuleHandle;
   g_app.GlobalFlags = DefaultGlobalFlags;
 

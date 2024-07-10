@@ -17,6 +17,7 @@
 #endif
 
 struct SDL_Window;
+struct SkPath;
 struct SDL_Renderer;
 
 namespace HYGUI {
@@ -58,9 +59,10 @@ public:
   float round = 0;                    // 窗口圆角度
   float ry = 0;                    // y轴圆角半径
   HYRect ClientRect = {0, 0, 0, 0};// 客户区域
+  SkPath* GlobalClipPath = nullptr;
 
   int TitleBarHeight = 30;// 标题栏高度
-  int BackGroundColor = 0;// 背景颜色
+  int BackGroundColor = {0};// 背景颜色
   int Diaphaneity = 255;  // 透明度
   HYObjectEventQueue EventQueue;
 
