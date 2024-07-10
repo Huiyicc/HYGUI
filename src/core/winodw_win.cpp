@@ -6,7 +6,7 @@
 
 #include "HYGUI/Window.h"
 #include "PrivateDefinition.h"
-#include "SDL2/SDL.h"
+#include "SDL3/SDL.h"
 #include "include/core/SkCanvas.h"
 #include "include/gpu/gl/GrGLTypes.h"
 // #include "include/gpu/ganesh/SkSurfaceGanesh.h"
@@ -15,8 +15,8 @@
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
-#include <SDL2/SDL_opengl.h>
-#include <SDL2/SDL_syswm.h>
+#include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_system.h>
 #include <dwmapi.h>
 #include <gpu/ganesh/SkSurfaceGanesh.h>
 #include <src/gpu/ganesh/gl/GrGLDefines.h>
@@ -48,20 +48,15 @@ void window_recreate_surface(HYWindowHandel windowPtr) {
     HYResourceRemove(ResourceType::ResourceType_Other, windowPtr->Surface);
   }
 
-  SDL_GL_MakeCurrent(windowPtr->SDLWindow, windowPtr->SDLOpenGl);
+  SDL_GL_MakeCurrent(windowPtr->SDLWindow, (SDL_GLContext)windowPtr->SDLOpenGl);
 
   RECT winrect;
   GetWindowRect((HWND) windowPtr->Handle, &winrect);
 
-  SDL_SysWMinfo winfo;
-  SDL_VERSION(&winfo.version);
-  if (!SDL_GetWindowWMInfo(windowPtr->SDLWindow, &winfo)) {
-    PrintError("Get window info failed");
-    return;
-  }
 
   // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
-  SDL_GL_GetDrawableSize(windowPtr->SDLWindow, &windowPtr->ClientRect.width, &windowPtr->ClientRect.height);
+  SDL_GetWindowSizeInPixels(windowPtr->SDLWindow, &windowPtr->ClientRect.width, &windowPtr->ClientRect.height);
+
   glViewport(0, 0, windowPtr->ClientRect.width, windowPtr->ClientRect.height);
   GrGLint buffer;
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
@@ -99,8 +94,8 @@ void window_recreate_surface(HYWindowHandel windowPtr) {
 void adjustwindow_by_sdl(HYWindowHandel window, void *newhandel) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   HWND hWnd = (HWND) newhandel;
-  SDL_SysWMinfo winfo;
-  SDL_GetWindowWMInfo(window->SDLWindow, &winfo);
+//  SDL_SysWMinfo winfo;
+//  SDL_GetWindowWMInfo(window->SDLWindow, &winfo);
   window->Handle = hWnd;
   SDL_GetWindowPosition(window->SDLWindow, &window->X, &window->Y);
   SDL_GetWindowSize(window->SDLWindow, &window->Width, &window->Height);

@@ -21,7 +21,7 @@
 #include <HYGUI/Application.h>
 #include <HYGUI/Window.h>
 #include "Defer.h"
-#include "SDL2/SDL.h"
+#include "SDL3/SDL.h"
 
 struct SDL_SysWMinfo;
 
@@ -31,7 +31,7 @@ extern ApplicationInfo g_app;
 
 constexpr const wchar_t *DEFAULT_CLASS_NAME = L"HYGUI";
 
-void window_paint(HYWindow *, SDL_WindowEvent *) ;
+void window_paint(HYWindow *, void *) ;
 void window_recreate_surface(HYWindow *windowPtr);
 int processing_object_event(HYObjectEventQueue*queue, HYObjectEventInfo&event_info);
 void adjustwindow_by_sdl(HYWindowHandel window , void *newhandel);

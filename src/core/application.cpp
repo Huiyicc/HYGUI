@@ -24,7 +24,7 @@
 #endif
 
 //#include <GLFW/glfw3.h>
-#include "SDL2/SDL.h"
+#include "SDL3/SDL.h"
 
 namespace HYGUI {
 
@@ -33,7 +33,7 @@ ApplicationInfo g_app;
 bool HYInit(VOIDPTR ModuleHandle,
             HYGlobalFlag DefaultGlobalFlags,
             const HYString &DefaultFont) {
-  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     g_app.LastError = SDL_GetError();
     PrintError(g_app.LastError);
     return false;

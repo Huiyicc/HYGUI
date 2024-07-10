@@ -11,8 +11,8 @@ uint32_t HYPointGenLParam(uint16_t x, uint16_t y) {
 
 HYPoint HYPointFromLParam(uint32_t lParam) {
   return {
-    (int16_t)(lParam & 0xFFFF),
-    (int16_t)((lParam >> 16) & 0xFFFF)
+    (int32_t)(int(lParam) & 0xFFFF),
+    (int32_t)((int(lParam) >> 16) & 0xFFFF)
   };
 }
 

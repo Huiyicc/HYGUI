@@ -2,7 +2,7 @@
 // Created by 19254 on 24-5-31.
 //
 
-#include <SDL2/SDL_syswm.h>
+#include <SDL3/SDL_system.h>
 
 #include "HYGUI/Image.h"
 #include "PrivateDefinition.h"

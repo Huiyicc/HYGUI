@@ -13,9 +13,9 @@
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
 #include "include/gpu/gl/GrGLInterface.h"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
-#include <SDL2/SDL_syswm.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_system.h>
 #include <gpu/GrBackendSurface.h>
 #include <include/gpu/gl/GrGLAssembleInterface.h>
 #include <map>
@@ -28,7 +28,7 @@ HYWindow::~HYWindow() {
   }
   if (CursorMap.empty()) {
     for (auto &[key, value]: CursorMap) {
-      SDL_FreeCursor((SDL_Cursor *) value);
+      SDL_DestroyCursor((SDL_Cursor *) value);
     }
   }
   if (GrCtx) {
@@ -63,24 +63,23 @@ GrGLFuncPtr glgetpoc(void *ctx, const char name[]) {
 HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int x, int y, int width, int height) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
 
-  SDL_DisplayMode dsinfo;
-  SDL_GetDesktopDisplayMode(0, &dsinfo);
+  auto dsinfo = SDL_GetDesktopDisplayMode(1);
   if (x == WINDOWCREATEPOINT_USEDEFAULT) {
-    x = (dsinfo.w - width) / 2;
+    x = (dsinfo->w - width) / 2;
   }
   if (y == WINDOWCREATEPOINT_USEDEFAULT) {
-    y = (dsinfo.h - height) / 2;
+    y = (dsinfo->h - height) / 2;
   }
-  if (SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8)!=0) {
-    PrintDebug("{}",SDL_GetError());
+  if (SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8) != 0) {
+    PrintDebug("{}", SDL_GetError());
   }
-  auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), x, y, width, height,
-                                   SDL_WINDOW_OPENGL           // opengl
-                                     | SDL_WINDOW_ALLOW_HIGHDPI// 高dpi
-                                                               //                                     | SDL_WINDOW_HIDDEN       // 隐藏
-                                     | SDL_WINDOW_RESIZABLE    // 可调整大小
-                                     | SDL_WINDOW_BORDERLESS   // 无边框
-  );
+  auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), width, height,
+                                   SDL_WINDOW_OPENGL                // opengl
+                                     | SDL_WINDOW_HIGH_PIXEL_DENSITY// 高dpi
+                                                                    //                                     | SDL_WINDOW_HIDDEN       // 隐藏
+                                     | SDL_WINDOW_RESIZABLE         // 可调整大小
+                                     | SDL_WINDOW_BORDERLESS        // 无边框
+                                     | SDL_WINDOW_TRANSPARENT);
   if (sdl_wind == nullptr) {
     return nullptr;
   }
@@ -106,18 +105,19 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     HYResourceRemove(ResourceType::ResourceType_Other, glContext);
     return nullptr;
   }
+  auto opengl_buffer = SDL_GetProperty(SDL_GetWindowProperties(sdl_wind),SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, nullptr);
   // glEnable(GL_MULTISAMPLE);
   static const int kMsaaSampleCount = 0;//4;
 
   int contextType;
   SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextType);
-  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 1);
+//  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 1);
   int dw, dh;
-  SDL_GL_GetDrawableSize(sdl_wind, &dw, &dh);
+  SDL_GetWindowSizeInPixels(sdl_wind, &dw, &dh);
   glViewport(0, 0, dw, dh);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   // 准备GrContext
@@ -148,25 +148,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   window->ID = SDL_GetWindowID(sdl_wind);
   window->SDLWindow = sdl_wind;
   window->ClientRect = {0, 0, dw, dh};
-  SDL_SysWMinfo info;
-  SDL_VERSION(&info.version);
-  if (!SDL_GetWindowWMInfo(sdl_wind, &info)) {
-    g_app.LastError = SDL_GetError();
-    HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
-    HYResourceRemove(ResourceType::ResourceType_Other, glContext);
-    HYResourceRemove(ResourceType::ResourceType_Other, window->GrCtx);
-    delete window;
-    return nullptr;
-  };
-#ifdef _HOST_WINDOWS_
-  auto hWnd = info.info.win.window;
-#elif defined(_HOST_APPLE_)
-  auto hWnd = info.info.cocoa.window;
-#elif defined(_HOST_LINUX_)
-  auto hWnd = info.info.x11.window;
-#else
-#error "Not support"
-#endif
+
+  auto hWnd = HYWindowGetHandel(window);
   if (hWnd == nullptr) {
     g_app.LastError = "Create window fail";
     HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
@@ -193,32 +176,29 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
 }
 
 
-void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
+void window_paint(HYWindow *windowPtr, void *evevt) {
   window_make_window_transparent(windowPtr, RGB(255, 0, 255));
   // 切换到OpenGL上下文
-  SDL_GL_MakeCurrent(windowPtr->SDLWindow, windowPtr->SDLOpenGl);
+  SDL_GL_MakeCurrent(windowPtr->SDLWindow, (SDL_GLContext)windowPtr->SDLOpenGl);
 
-//  // 透明背景
-//  glClearColor(1, 0, 1, 1);
-//  glClear(GL_COLOR_BUFFER_BIT);
+  //  // 透明背景
+  //  glClearColor(1, 0, 1, 1);
+  //  glClear(GL_COLOR_BUFFER_BIT);
 
   auto canvas = windowPtr->Surface->getCanvas();
   // 透明背景
-  // SkRRect roundRect;
+   SkRRect roundRect;
 
-  // roundRect.setRectXY(SkRect::MakeXYWH(0, 0, windowPtr->Width, windowPtr->Height),
-  //                      windowPtr->round, windowPtr->round);
-  // canvas->clipRRect(roundRect);
-//   canvas->clear(HYColorARGBToInt(HYColorRGBToARGB(RGB(255, 0, 255),255)));
+   roundRect.setRectXY(SkRect::MakeXYWH(0, 0, windowPtr->Width, windowPtr->Height),
+                        windowPtr->round, windowPtr->round);
+   canvas->clipRRect(roundRect);
 
   SkPaint bgpaint;
   bgpaint.setColor(HYColorRGBToARGBInt(windowPtr->BackGroundColor, 255));
   // 白色
 
-  canvas->drawRect(SkRect::MakeLTRB(0,0,windowPtr->ClientRect.width,windowPtr->ClientRect.height),
-                     bgpaint);
-//  auto cinfo = canvas->imageInfo();
-//  PrintDebug("{}x{}", cinfo.width(), cinfo.height());
+  canvas->drawRect(SkRect::MakeLTRB(0, 0, windowPtr->ClientRect.width, windowPtr->ClientRect.height),
+                   bgpaint);
 
   // 子组件绘制
   canvas->save();
@@ -237,7 +217,7 @@ void window_paint(HYWindow *windowPtr, SDL_WindowEvent *evevt) {
 };
 
 
-std::map<uint32_t, std::function<void(HYWindow *, SDL_WindowEvent *)>> g_win_event_map = {
+std::map<uint32_t, std::function<void(HYWindow *, void *)>> g_win_event_map = {
   {HYWindowEvent::HYWindowEvent_Paint, window_paint},
 };
 
@@ -293,7 +273,7 @@ int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
       window->Drag = true;
       window->DragType = dragType == HY_SYSTEM_CURSOR_ARROW ? 0 : dragType;
       auto wp = HYMouseGetPosition();
-      window->oldMousePoint = {wp.x, wp.y};
+      window->oldMousePoint = {int(wp.x),int(wp.y)};
       window->oldWinRect = {window->X, window->Y, window->Width, window->Height};
     } else {
       // 通知子组件
@@ -445,7 +425,7 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, dou
     wnd->CursorMap[cursor] = HYResourceRegister(ResourceType::ResourceType_Cursor,
                                                 SDL_CreateSystemCursor((SDL_SystemCursor) cursor),
                                                 "sdl cursor", [](void *resource) {
-                                                  SDL_FreeCursor((SDL_Cursor *) resource);
+                                                  SDL_DestroyCursor((SDL_Cursor *) resource);
                                                 });
   }
   window_hook_handel(wnd);
@@ -487,7 +467,7 @@ uint32_t HYWindowMessageLoop() {
     frameStart = SDL_GetTicks();
     SDL_Event event;
     SDL_PollEvent(&event);
-    if (event.type == SDL_QUIT) {
+    if (event.type == SDL_EVENT_QUIT) {
       // 退出事件
       break;
     }
@@ -506,43 +486,33 @@ uint32_t HYWindowMessageLoop() {
         SDL_ShowWindow(window->SDLWindow);
       }
     }
-    if (event.type == SDL_EventType::SDL_WINDOWEVENT) {
-//      SDL_SysWMinfo winfo;
-//      auto w = SDL_GetWindowFromID(event.window.windowID);
-//     if(! SDL_GetWindowWMInfo(w , &winfo)) {
-//        PrintError("Get window info fail,{}", SDL_GetError());
-//        PrintError("flag,{}", SDL_GetWindowFlags(w));
-//        continue;
-//     }
+    if (event.type == SDL_EventType::SDL_EVENT_WINDOW_MOVED) {
 
-      // 窗口事件
-      if (event.window.event == SDL_WINDOWEVENT_MOVED) {
-        // 窗口移动
-        SDL_GetWindowPosition(window->SDLWindow, &window->X, &window->Y);
-      } else if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-        // 窗口大小改变
-        SDL_GetWindowSize(window->SDLWindow, &window->Width, &window->Height);
-        window_recreate_surface(window);
-      }
-    } else if (event.type == SDL_EventType::SDL_MOUSEBUTTONDOWN) {
+      // 窗口移动
+      SDL_GetWindowPosition(window->SDLWindow, &window->X, &window->Y);
+    }else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
+      // 窗口大小/位置改变
+      SDL_GetWindowSize(window->SDLWindow, &window->Width, &window->Height);
+      window_recreate_surface(window);
+    } else if (event.type == SDL_EventType::SDL_EVENT_MOUSE_BUTTON_DOWN) {
       // 鼠标按键按下事件
       if (handleMouseButtonDown(&event, window) != 0) {
         continue;
       }
-    } else if (event.type == SDL_EventType::SDL_MOUSEBUTTONUP) {
+    } else if (event.type == SDL_EventType::SDL_EVENT_MOUSE_BUTTON_UP) {
       // 鼠标按键抬起事件
       if (handleMouseButtonUp(&event, window) != 0) {
         continue;
       }
 
-    } else if (event.type == SDL_EventType::SDL_MOUSEMOTION) {
+    } else if (event.type == SDL_EventType::SDL_EVENT_MOUSE_MOTION) {
       // 鼠标移动事件
       if (handleMouseMotion(&event, window) != 0) {
         continue;
       }
     } else if (event.type == g_app.EventWindow) {
       // 自定义窗口事件
-      auto iter = g_win_event_map.find(event.window.event);
+      auto iter = g_win_event_map.find(event.window.reserved);
       if (iter != g_win_event_map.end())
         iter->second(window, &event.window);
     }
@@ -567,6 +537,43 @@ void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
   }
 }
 
+void* HYWindowGetHandel(HYWindowHandel wnd) {
+#if defined(_HOST_WINDOWS_)
+  // HWND
+  return SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+#elif defined(_HOST_MACOS_)
+  NSWindow *nswindow = (__bridge NSWindow *)SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL);
+  if (nswindow) {
+    ...
+  }
+#elif defined(_HOST_LINUX_)
+  if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "x11") == 0) {
+    Display *xdisplay = (Display *)SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
+    Window xwindow = (Window)SDL_GetNumberProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+    if (xdisplay && xwindow) {
+      ...
+    }
+  } else if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0) {
+    struct wl_display *display = (struct wl_display *)SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
+    struct wl_surface *surface = (struct wl_surface *)SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
+    if (display && surface) {
+      ...
+    }
+  }
+#elif defined(SDL_PLATFORM_IOS)
+  SDL_PropertiesID props = SDL_GetWindowProperties(window);
+  UIWindow *uiwindow = (__bridge UIWindow *)SDL_GetProperty(props, SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, NULL);
+  if (uiwindow) {
+    GLuint framebuffer = (GLuint)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, 0);
+    GLuint colorbuffer = (GLuint)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RENDERBUFFER_NUMBER, 0);
+    GLuint resolveFramebuffer = (GLuint)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RESOLVE_FRAMEBUFFER_NUMBER, 0);
+
+  }
+#else
+#error "Not support"
+#endif
+}
+
 HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   auto &debug_app = g_app;
@@ -577,7 +584,6 @@ HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {
       }
     }
   }
-
   return nullptr;
 }
 
@@ -607,7 +613,7 @@ void HYWindowSendEventRePaint(HYWindow *wind) {
   SDL_Event event;
   event.type = g_app.EventWindow;
   event.window.windowID = wind->ID;
-  event.window.event = HYWindowEvent_Paint;
+  event.window.reserved = HYWindowEvent_Paint;
   event.window.data1 = 0;
   event.window.data2 = 0;
   SDL_PushEvent(&event);

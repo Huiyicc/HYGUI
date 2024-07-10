@@ -104,6 +104,9 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title,
  */
 void HYWindowDestroy(HYWindowHandel wnd);
 
+
+void* HYWindowGetHandel(HYWindowHandel wnd);
+
 /**
  * @brief 显示窗口
  * @param wnd 窗口指针

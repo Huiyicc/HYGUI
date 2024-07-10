@@ -9,7 +9,7 @@
 
 namespace HYGUI {
 
-HYPoint HYMouseGetPosition();
+HYPointf HYMouseGetPosition();
 
 }
 

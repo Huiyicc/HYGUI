@@ -28,6 +28,22 @@ struct HYPoint {
   }
 };
 
+struct HYPointf {
+  float x = 0;
+  float y = 0;
+
+  explicit operator HYPoint() const {
+    return {static_cast<int>(x), static_cast<int>(y)};
+  }
+
+  HYPointf operator+(const HYPointf &point) const {
+    return {x + point.x, y + point.y};
+  }
+  bool operator==(const HYPointf &point) const {
+    return x == point.x && y == point.y;
+  }
+};
+
 /**
  * 生成基于二维坐标(x, y)的长整型参数(lParam)。
  *
