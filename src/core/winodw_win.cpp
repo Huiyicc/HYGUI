@@ -35,13 +35,6 @@ void window_hook_handel(HYWindow *windowPtr) {
 //  DeleteObject(hRgn);
 }
 
-bool window_make_window_transparent(HYWindowHandel window, COLORREF colorKey) {
-//  return true;
-  auto hWnd = (HWND) window->Handle;
-  SetWindowLongPtrA(hWnd, GWL_EXSTYLE, GetWindowLongPtrA(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-  return SetLayeredWindowAttributes(hWnd, colorKey, 0, LWA_COLORKEY);
-}
-
 void window_recreate_surface(HYWindowHandel windowPtr) {
   // 更新HDC/画笔尺寸
   if (windowPtr->Surface) {

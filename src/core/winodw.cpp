@@ -105,13 +105,13 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     HYResourceRemove(ResourceType::ResourceType_Other, glContext);
     return nullptr;
   }
-  auto opengl_buffer = SDL_GetProperty(SDL_GetWindowProperties(sdl_wind),SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, nullptr);
+  auto opengl_buffer = SDL_GetProperty(SDL_GetWindowProperties(sdl_wind), SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, nullptr);
   // glEnable(GL_MULTISAMPLE);
   static const int kMsaaSampleCount = 0;//4;
 
   int contextType;
   SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextType);
-//  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 1);
+  //  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 1);
   int dw, dh;
   SDL_GetWindowSizeInPixels(sdl_wind, &dw, &dh);
   glViewport(0, 0, dw, dh);
@@ -177,26 +177,20 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
 
 
 void window_paint(HYWindow *windowPtr, void *evevt) {
-  window_make_window_transparent(windowPtr, RGB(255, 0, 255));
   // 切换到OpenGL上下文
-  SDL_GL_MakeCurrent(windowPtr->SDLWindow, (SDL_GLContext)windowPtr->SDLOpenGl);
-
-  //  // 透明背景
-  //  glClearColor(1, 0, 1, 1);
-  //  glClear(GL_COLOR_BUFFER_BIT);
+  SDL_GL_MakeCurrent(windowPtr->SDLWindow, (SDL_GLContext) windowPtr->SDLOpenGl);
 
   auto canvas = windowPtr->Surface->getCanvas();
   // 透明背景
-   SkRRect roundRect;
-
-   roundRect.setRectXY(SkRect::MakeXYWH(0, 0, windowPtr->Width, windowPtr->Height),
-                        windowPtr->round, windowPtr->round);
-   canvas->clipRRect(roundRect);
+  SkRRect roundRect;
+  roundRect.setRectXY(SkRect::MakeXYWH(0, 0, windowPtr->Width, windowPtr->Height),
+                      windowPtr->round, windowPtr->round);
+  canvas->clipRRect(roundRect);
 
   SkPaint bgpaint;
   bgpaint.setColor(HYColorRGBToARGBInt(windowPtr->BackGroundColor, 255));
   // 白色
-
+  bgpaint.setAntiAlias(true);
   canvas->drawRect(SkRect::MakeLTRB(0, 0, windowPtr->ClientRect.width, windowPtr->ClientRect.height),
                    bgpaint);
 
@@ -273,7 +267,7 @@ int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
       window->Drag = true;
       window->DragType = dragType == HY_SYSTEM_CURSOR_ARROW ? 0 : dragType;
       auto wp = HYMouseGetPosition();
-      window->oldMousePoint = {int(wp.x),int(wp.y)};
+      window->oldMousePoint = {int(wp.x), int(wp.y)};
       window->oldWinRect = {window->X, window->Y, window->Width, window->Height};
     } else {
       // 通知子组件
@@ -490,7 +484,7 @@ uint32_t HYWindowMessageLoop() {
 
       // 窗口移动
       SDL_GetWindowPosition(window->SDLWindow, &window->X, &window->Y);
-    }else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
+    } else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
       // 窗口大小/位置改变
       SDL_GetWindowSize(window->SDLWindow, &window->Width, &window->Height);
       window_recreate_surface(window);
@@ -537,37 +531,36 @@ void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
   }
 }
 
-void* HYWindowGetHandel(HYWindowHandel wnd) {
+void *HYWindowGetHandel(HYWindowHandel wnd) {
 #if defined(_HOST_WINDOWS_)
   // HWND
   return SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
 #elif defined(_HOST_MACOS_)
-  NSWindow *nswindow = (__bridge NSWindow *)SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL);
+  NSWindow *nswindow = (__bridge NSWindow *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL);
   if (nswindow) {
     ...
   }
 #elif defined(_HOST_LINUX_)
   if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "x11") == 0) {
-    Display *xdisplay = (Display *)SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
-    Window xwindow = (Window)SDL_GetNumberProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+    Display *xdisplay = (Display *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
+    Window xwindow = (Window) SDL_GetNumberProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
     if (xdisplay && xwindow) {
       ...
     }
   } else if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0) {
-    struct wl_display *display = (struct wl_display *)SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
-    struct wl_surface *surface = (struct wl_surface *)SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
+    struct wl_display *display = (struct wl_display *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
+    struct wl_surface *surface = (struct wl_surface *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
     if (display && surface) {
       ...
     }
   }
 #elif defined(SDL_PLATFORM_IOS)
   SDL_PropertiesID props = SDL_GetWindowProperties(window);
-  UIWindow *uiwindow = (__bridge UIWindow *)SDL_GetProperty(props, SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, NULL);
+  UIWindow *uiwindow = (__bridge UIWindow *) SDL_GetProperty(props, SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, NULL);
   if (uiwindow) {
-    GLuint framebuffer = (GLuint)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, 0);
-    GLuint colorbuffer = (GLuint)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RENDERBUFFER_NUMBER, 0);
-    GLuint resolveFramebuffer = (GLuint)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RESOLVE_FRAMEBUFFER_NUMBER, 0);
-
+    GLuint framebuffer = (GLuint) SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, 0);
+    GLuint colorbuffer = (GLuint) SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RENDERBUFFER_NUMBER, 0);
+    GLuint resolveFramebuffer = (GLuint) SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RESOLVE_FRAMEBUFFER_NUMBER, 0);
   }
 #else
 #error "Not support"

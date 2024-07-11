@@ -37,7 +37,6 @@ int processing_object_event(HYObjectEventQueue*queue, HYObjectEventInfo&event_in
 void adjustwindow_by_sdl(HYWindowHandel window , void *newhandel);
 void adjust_win_tyle(SDL_SysWMinfo* wmInfo);
 void window_hook_handel(HYWindow *windowPtr);
-bool window_make_window_transparent(HYWindowHandel window, COLORREF colorKey);
 }
 
 #include "logs.h"

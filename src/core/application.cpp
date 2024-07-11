@@ -64,13 +64,7 @@ bool HYInit(VOIDPTR ModuleHandle,
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-//  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-//  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-
-  int aa = 0;
-  SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &aa);
-  PrintDebug("{}",aa);
   g_app.Instance = ModuleHandle;
   g_app.GlobalFlags = DefaultGlobalFlags;
 

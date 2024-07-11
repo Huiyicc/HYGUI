@@ -133,17 +133,15 @@ int label_event_paint(HYWindow *window, HYObject *object, HYObjectEvent event, i
 
   // 绘制字体
   auto text = label->Text.toStdStringView().data();
-  //  label->Font->setEdging(SkFont::Edging::kAlias);
-  //  label->Font->setSize(20);
-  //
-  //  SkRect bounds;
-  //  label->Font->measureText(text, label->Text.size(), SkTextEncoding::kUTF8, &bounds);
-  //  SkScalar offsetY = bounds.height();
-  //
-  //  auto blb = SkTextBlob::MakeFromString(text, *label->Font);
-  //
-  //  HYPaintSetColor(paint, HYColorGenARGB(120, 120,  210, 255));
-  //  object->Canvas->drawString(label->Text.toStdStringView().data(), 0, offsetY, *label->Font, *paint);
+
+    SkRect bounds;
+    label->Font->measureText(text, label->Text.size(), SkTextEncoding::kUTF8, &bounds);
+    SkScalar offsetY = bounds.height();
+
+    auto blb = SkTextBlob::MakeFromString(text, *label->Font);
+
+    HYPaintSetColor(paint, label->TextColor);
+    object->Canvas->drawString(label->Text.toStdStringView().data(), 0, offsetY, *label->Font, *paint);
 
   HYObjectEndPaint(object, paint);
   return 0;
@@ -162,6 +160,8 @@ HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int
   auto label = new HYLabel{window, parent, text, x, y, width, height};
   HYObjectAddEventCallback(reinterpret_cast<HYObjectHandle>(label), label_event);
   label->Font = HYFontCreateFromTypeface(HYTypefaceCreateFromDefault());
+  label->Font->setEdging(SkFont::Edging::kAlias);
+  label->Font->setSize(12);
   label->TextBlobBuilder = HYTextBlobBuilderCreate();
   return label;
 }
