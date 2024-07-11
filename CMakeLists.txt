@@ -5,9 +5,13 @@ set(CMAKE_CXX_STANDARD 17)
 
 # =================
 
-if (NOT DEFINED SKIA_PATH)
-    message(FATAL_ERROR "SKIA_PATH is not defined")
-endif ()
+#if (NOT DEFINED SKIA_PATH)
+#    message(FATAL_ERROR "SKIA_PATH is not defined")
+#endif ()
+
+set(MODULES_DIR ./modules)
+set(SKIA_PATH ${MODULES_DIR}/projects/skia)
+
 
 # =================
 
@@ -69,9 +73,19 @@ elseif(CMAKE_HOST_WIN32)
 #        link_directories($ENV{MODULES_DIR}/glfw/lib)
 
     else()
-        # boost
-        include_directories(${MODULES_DIR}/boost/include)
-        link_directories(${MODULES_DIR}/boost/lib)
+#        # boost
+#        include_directories(${MODULES_DIR}/boost/include)
+#        link_directories(${MODULES_DIR}/boost/lib)
+
+        set(Boost_USE_STATIC_LIBS ON)
+        set(Boost_USE_STATIC_RUNTIME ON)
+
+        find_package(Boost 1.85 COMPONENTS thread system filesystem program_options random atomic chrono)
+        if (NOT Boost_FOUND)
+            add_subdirectory(${MODULES_DIR}/projects/boost)
+            include_directories(${MODULES_DIR}/projects/boost)
+        endif()
+
 
         # SDL2
         include_directories($ENV{MODULES_DIR}/SDL/include)
@@ -145,7 +159,7 @@ else()
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
 
 endif ()
-target_link_libraries(HYGUI PRIVATE skia skshaper skcms sksg skresources skshaper sksg)
+target_link_libraries(HYGUI PRIVATE skia skshaper skcms sksg skresources skshaper sksg ${BOOST_LIBRARIES})
 if (OS_IS_WINDOWS)
     if (CMAKE_BUILD_TYPE MATCHES "Debug")
         target_link_libraries(HYGUI PRIVATE SDL3d)
