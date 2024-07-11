@@ -1,0 +1,11 @@
+[submodule "modules/projects/SDL"]
+	path = modules/projects/SDL
+	url = https://github.com/libsdl-org/SDL
+	branch = fdc04708f1950ad76eff16fd47ffe67dcdc5ba04
+[submodule "modules/projects/skia"]
+	path = modules/projects/skia
+	url = https://github.com/google/skia
+	branch = chrome/m127
+[submodule "modules/projects/depot_tools"]
+	path = modules/projects/depot_tools
+	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git
