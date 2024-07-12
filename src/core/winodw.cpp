@@ -96,7 +96,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     return nullptr;
   }
   HYResourceRegisterOther(glContext, "SDL_GLContext", [](void *resource) {
-    SDL_GL_DeleteContext((SDL_GLContext) resource);
+      SDL_GL_DestroyContext((SDL_GLContext) resource);
   });
   // 切换到OpenGL上下文
   int success = SDL_GL_MakeCurrent(sdl_wind, glContext);

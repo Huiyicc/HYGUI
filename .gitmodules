@@ -9,6 +9,7 @@
 [submodule "modules/projects/depot_tools"]
 	path = modules/projects/depot_tools
 	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git
+
 [submodule "modules/projects/boost"]
 	path = modules/projects/boost
 	url = https://github.com/OpenHYGUI/boost-cmake

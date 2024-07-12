@@ -12,11 +12,23 @@ set(CMAKE_CXX_STANDARD 17)
 set(MODULES_DIR ./modules)
 set(SKIA_PATH ${MODULES_DIR}/projects/skia)
 
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 # =================
 
 # 添加环境宏
 add_definitions(-DPRIOJECT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/")
+
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_RUNTIME ON)
+
+# boost
+find_package(Boost 1.85 COMPONENTS thread system filesystem program_options random atomic chrono)
+if (NOT Boost_FOUND)
+    add_subdirectory(${MODULES_DIR}/projects/boost)
+    include_directories(${MODULES_DIR}/projects/boost)
+endif()
 
 # 检查操作系统
 if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
@@ -25,11 +37,6 @@ if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
     add_definitions(-D_HOST_APPLE_)
 
     enable_language(OBJCXX)
-
-    # 寻找boost
-    find_package(Boost REQUIRED)
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIRS})
 
     # 寻找icu
     set (C_INCLUDE_PATH C_INCLUDE_PATH:${ICU_PATH}/include)
@@ -59,43 +66,12 @@ elseif(CMAKE_HOST_WIN32)
     add_definitions(-D_HOST_WINDOWS_)
 
     # windows该干的事
-    if (NOT MODULES_DIR)
-        # boost
-        include_directories($ENV{MODULES_DIR}/boost/include)
-        link_directories($ENV{MODULES_DIR}/boost/lib)
 
-        # SDL2
-        include_directories($ENV{MODULES_DIR}/SDL/include)
-        link_directories($ENV{MODULES_DIR}/SDL/lib)
-
-#        # glfw
-#        include_directories($ENV{MODULES_DIR}/glfw/include)
-#        link_directories($ENV{MODULES_DIR}/glfw/lib)
-
-    else()
-#        # boost
-#        include_directories(${MODULES_DIR}/boost/include)
-#        link_directories(${MODULES_DIR}/boost/lib)
-
-        set(Boost_USE_STATIC_LIBS ON)
-        set(Boost_USE_STATIC_RUNTIME ON)
-
-        find_package(Boost 1.85 COMPONENTS thread system filesystem program_options random atomic chrono)
-        if (NOT Boost_FOUND)
-            add_subdirectory(${MODULES_DIR}/projects/boost)
-            include_directories(${MODULES_DIR}/projects/boost)
-        endif()
-
-
-        # SDL2
-        include_directories($ENV{MODULES_DIR}/SDL/include)
-        link_directories($ENV{MODULES_DIR}/SDL/lib)
-
-#        # glfw
-#        include_directories(${MODULES_DIR}/glfw/include)
-#        link_directories(${MODULES_DIR}/glfw/lib)
-
-    endif()
+    # SDL2
+    include_directories(${MODULES_DIR}/include)
+    link_directories(${MODULES_DIR}/lib)
+#    add_subdirectory(${MODULES_DIR}/projects/SDL)
+#    include_directories(${MODULES_DIR}/projects/SDL/include)
 
 elseif(CMAKE_HOST_UNIX)
     # Linux
@@ -105,10 +81,6 @@ elseif(CMAKE_HOST_UNIX)
     # SDL2
     include_directories(${MODULES_DIR}/SDL/include)
     link_directories(${MODULES_DIR}/SDL/lib)
-
-    # boost
-    include_directories(${MODULES_DIR}/boost/include)
-    link_directories(${MODULES_DIR}/boost/lib)
 
     # icu
     include_directories(${MODULES_DIR}/icu/include)
@@ -125,7 +97,6 @@ else()
 endif()
 
 # =================
-# skia
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 file(GLOB_RECURSE LIB_SRC src/*.cpp src/*.cc)
 if (OS_IS_APPLE)
@@ -136,6 +107,7 @@ include_directories(${SKIA_PATH})
 include_directories(${SKIA_PATH}/third_party/externals/freetype/include)
 include_directories(include)
 add_library(HYGUI STATIC ${LIB_SRC})
+# set_property(TARGET HYGUI PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_compile_definitions(HYGUI PRIVATE _HYGUI_MODULE_)
 target_compile_definitions(HYGUI PRIVATE NOMINMAX)
 target_include_directories(HYGUI PRIVATE interior/include)

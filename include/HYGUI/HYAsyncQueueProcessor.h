@@ -10,6 +10,7 @@
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <functional>
 
 namespace HYGUI {
 
