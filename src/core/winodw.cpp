@@ -8,7 +8,6 @@
 #include "HYGUI/Paint.h"
 #include "HYGUI/Window.h"
 #include "PrivateDefinition.h"
-#include "include/core/SkFont.h"
 #include "include/core/SkRRect.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"

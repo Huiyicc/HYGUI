@@ -35,7 +35,8 @@ bool HYInit(VOIDPTR ModuleHandle,
             const HYString &DefaultFont) {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     g_app.LastError = SDL_GetError();
-    PrintError(g_app.LastError);
+    PrintError("{}",g_app.LastError.c_str());
+
     return false;
   };
   HYString DefaultClassName = DEFAULT_CLASS_NAME;
@@ -72,7 +73,7 @@ bool HYInit(VOIDPTR ModuleHandle,
   g_app.EventCustomStart = SDL_RegisterEvents(2);
   if (g_app.EventCustomStart == (Uint32) -1) {
     g_app.LastError = SDL_GetError();
-    PrintError(g_app.LastError);
+    PrintError("{}",g_app.LastError.c_str());
     return false;
   }
   g_app.EventWindow = g_app.EventCustomStart + 1;

@@ -19,12 +19,12 @@ namespace HYGUI {
 ImagePtr HYImageLoadFromFile(const HYString &path) {
   sk_sp<SkData> data = SkData::MakeFromFileName(path.toStdStringView().data());
   if (!data) {
-    g_app.LastError = fmt::format("加载图片失败: MakeFromFileName(\"{}\")", path.toStdStringView());
+    g_app.LastError = std::format("加载图片失败: MakeFromFileName(\"{}\")", path.toStdStringView());
     return nullptr;
   }
   auto image = SkImages::DeferredFromEncodedData(data);
   if (!image) {
-    g_app.LastError = fmt::format("加载图片失败: DeferredFromEncodedData(\"{}\")", path.toStdStringView());
+    g_app.LastError = std::format("加载图片失败: DeferredFromEncodedData(\"{}\")", path.toStdStringView());
     return nullptr;
   }
   return image.release();

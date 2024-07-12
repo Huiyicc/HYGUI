@@ -5,9 +5,9 @@
 #ifndef HYGUI_LOGS_H
 #define HYGUI_LOGS_H
 
-#include "fmt/format.h"
-#include <iostream>
+#include "format"
 #include <chrono>
+#include <iostream>
 
 namespace HYGUI {
 
@@ -27,37 +27,39 @@ namespace HYGUI {
 
 #endif
 
-#define PrintInfo(fstr, ...)                                                           \
-  do {                                                                                 \
-    char time_str[32];                                                                 \
-    LOCALTIME(time_str);                                                               \
-    std::string lstr = "<{}> [{}:{}] ";                                            \
-    std::string_view fPath = __FILE__;                                                 \
-    fPath = fPath.substr(strlen(PRIOJECT_PATH), fPath.size() - strlen(PRIOJECT_PATH)); \
-    std::cout << fmt::format(lstr + std::string(fstr), time_str, fPath, __LINE__, ##__VA_ARGS__)<< std::endl;  \
+#define PrintInfo(fstr, ...)                                                                                      \
+  do {                                                                                                            \
+    char time_str[32];                                                                                            \
+    LOCALTIME(time_str);                                                                                          \
+    std::string_view __TMP__fPath__ = __FILE__;                                                                   \
+    __TMP__fPath__ = __TMP__fPath__.substr(strlen(PRIOJECT_PATH), __TMP__fPath__.size() - strlen(PRIOJECT_PATH)); \
+    auto __TMP__lstr__ = std::format("{}", "<info> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
+    auto __TMP__ustr__ = std::format(fstr, ##__VA_ARGS__);                                                        \
+    std::cout << std::format("{}{}", __TMP__lstr__, __TMP__ustr__) << std::endl;                                  \
   } while (0)
 
-#define PrintDebug(fstr, ...)                                                          \
-  do {                                                                                 \
-    char time_str[32];                                                                 \
-    LOCALTIME(time_str);                                                               \
-    std::string lstr = "<{}> [{}:{}] ";                                            \
-    std::string_view fPath = __FILE__;                                                 \
-    fPath = fPath.substr(strlen(PRIOJECT_PATH), fPath.size() - strlen(PRIOJECT_PATH)); \
-    std::cout << fmt::format(lstr + std::string(fstr), time_str, fPath, __LINE__, ##__VA_ARGS__)<< std::endl; \
+#define PrintDebug(fstr, ...)                                                                                     \
+  do {                                                                                                            \
+    char time_str[32];                                                                                            \
+    LOCALTIME(time_str);                                                                                          \
+    std::string_view __TMP__fPath__ = __FILE__;                                                                   \
+    __TMP__fPath__ = __TMP__fPath__.substr(strlen(PRIOJECT_PATH), __TMP__fPath__.size() - strlen(PRIOJECT_PATH)); \
+    auto __TMP__lstr__ = std::format("{}", "<debug> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
+    auto __TMP__ustr__ = std::format(fstr, ##__VA_ARGS__);                                                        \
+    std::cout << std::format("{}{}", __TMP__lstr__, __TMP__ustr__) << std::endl;                                  \
   } while (0)
 
-#define PrintError(fstr, ...)                                                          \
-  do {                                                                                 \
-    char time_str[32];                                                                 \
-    LOCALTIME(time_str);                                                               \
-    std::string lstr = "<{}> [{}:{}] ";                                            \
-    std::string_view fPath = __FILE__;                                                 \
-    fPath = fPath.substr(strlen(PRIOJECT_PATH), fPath.size() - strlen(PRIOJECT_PATH)); \
-    std::cerr << fmt::format(lstr + std::string(fstr), time_str, fPath, __LINE__, ##__VA_ARGS__)<< std::endl; \
+#define PrintError(fstr, ...)                                                                                              \
+  do {                                                                                                            \
+    char time_str[32];                                                                                            \
+    LOCALTIME(time_str);                                                                                          \
+    std::string_view __TMP__fPath__ = __FILE__;                                                                   \
+    __TMP__fPath__ = __TMP__fPath__.substr(strlen(PRIOJECT_PATH), __TMP__fPath__.size() - strlen(PRIOJECT_PATH)); \
+    auto __TMP__lstr__ = std::format("{}", "<error> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
+    auto __TMP__ustr__ = std::format(fstr, ##__VA_ARGS__);                                                        \
+    std::cerr << std::format("{}{}", __TMP__lstr__, __TMP__ustr__) << std::endl;                                  \
   } while (0)
 
 
-
-}
-#endif //HYGUI_LOGS_H
+}// namespace HYGUI
+#endif//HYGUI_LOGS_H

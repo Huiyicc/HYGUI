@@ -10,7 +10,7 @@
 #  define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "fmt/os.h"
+#include "fmt_u/os.h"
 
 #include <climits>
 

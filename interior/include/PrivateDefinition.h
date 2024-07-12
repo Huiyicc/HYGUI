@@ -29,7 +29,7 @@ namespace HYGUI {
 
 extern ApplicationInfo g_app;
 
-constexpr const wchar_t *DEFAULT_CLASS_NAME = L"HYGUI";
+constexpr const char *const DEFAULT_CLASS_NAME = "HYGUI";
 
 void window_paint(HYWindow *, void *) ;
 void window_recreate_surface(HYWindow *windowPtr);

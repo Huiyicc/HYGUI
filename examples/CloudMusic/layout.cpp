@@ -22,6 +22,7 @@ void layout_left(HYGUI::HYWindowHandel window) {
     "私人漫游",
     "社区",
   };
+
   for (int i = 0; i < infos.size(); i++) {
     auto t_label = HYGUI::HYLabelCreate(window, f_label, infos[i].c_str(), 24, 90+(i*(36+5)), 156, 36);
     HYLabelSetColorStyle(t_label,
