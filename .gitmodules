@@ -1,7 +1,7 @@
 [submodule "modules/projects/SDL"]
 	path = modules/projects/SDL
 	url = https://github.com/libsdl-org/SDL
-	branch = fdc04708f1950ad76eff16fd47ffe67dcdc5ba04
+	branch = 180b4d7e746e2a853f9b8fa834f800e11a197a8f
 [submodule "modules/projects/skia"]
 	path = modules/projects/skia
 	url = https://github.com/google/skia

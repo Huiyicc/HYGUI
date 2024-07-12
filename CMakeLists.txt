@@ -10,6 +10,8 @@ set(CMAKE_CXX_STANDARD 17)
 #endif ()
 
 set(MODULES_DIR ./modules)
+set(GLOBAL_INCLUDE_DIR ./modules/include)
+set(GLOBAL_LIB_DIR ./modules/lib)
 set(SKIA_PATH ${MODULES_DIR}/projects/skia)
 
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
@@ -30,6 +32,13 @@ if (NOT Boost_FOUND)
     include_directories(${MODULES_DIR}/projects/boost)
 endif()
 
+include_directories(${GLOBAL_INCLUDE_DIR})
+link_directories(${GLOBAL_LIB_DIR})
+
+# sdl2
+include(scripts/sdl.cmake)
+
+
 # 检查操作系统
 if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
     # macOS
@@ -46,9 +55,9 @@ if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
     include_directories(${ICU_PATH}/include)
     link_directories(${ICU_PATH}/lib)
 
-    # SDL2
-    include_directories(${SDL_PATH}/include)
-    link_directories(${SDL_PATH}/lib)
+#    # SDL2
+#    include_directories(${SDL_PATH}/include)
+#    link_directories(${SDL_PATH}/lib)
 
     find_library(COCOA_LIBRARY Cocoa)
     find_library(APPKIT_LIBRARY AppKit)
@@ -67,9 +76,9 @@ elseif(CMAKE_HOST_WIN32)
 
     # windows该干的事
 
-    # SDL2
-    include_directories(${MODULES_DIR}/include)
-    link_directories(${MODULES_DIR}/lib)
+#    # SDL2
+#    include_directories(${MODULES_DIR}/include)
+#    link_directories(${MODULES_DIR}/lib)
 #    add_subdirectory(${MODULES_DIR}/projects/SDL)
 #    include_directories(${MODULES_DIR}/projects/SDL/include)
 
@@ -78,9 +87,9 @@ elseif(CMAKE_HOST_UNIX)
     set(OS_IS_LINUX TRUE)
     add_definitions(-D_HOST_LINUX_)
 
-    # SDL2
-    include_directories(${MODULES_DIR}/SDL/include)
-    link_directories(${MODULES_DIR}/SDL/lib)
+#    # SDL2
+#    include_directories(${MODULES_DIR}/SDL/include)
+#    link_directories(${MODULES_DIR}/SDL/lib)
 
     # icu
     include_directories(${MODULES_DIR}/icu/include)
@@ -107,6 +116,7 @@ include_directories(${SKIA_PATH})
 include_directories(${SKIA_PATH}/third_party/externals/freetype/include)
 include_directories(include)
 add_library(HYGUI STATIC ${LIB_SRC})
+#add_dependencies(HYGUI SDL_SUBMODEL_BUILD)
 # set_property(TARGET HYGUI PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_compile_definitions(HYGUI PRIVATE _HYGUI_MODULE_)
 target_compile_definitions(HYGUI PRIVATE NOMINMAX)
