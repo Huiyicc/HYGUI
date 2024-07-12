@@ -26,16 +26,13 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 
 # boost
-find_package(Boost 1.85 COMPONENTS thread system filesystem program_options random atomic chrono)
-if (NOT Boost_FOUND)
-    add_subdirectory(${MODULES_DIR}/projects/boost)
-    include_directories(${MODULES_DIR}/projects/boost)
-endif()
+add_subdirectory(${MODULES_DIR}/projects/boost)
+include_directories(${MODULES_DIR}/projects/boost)
 
 include_directories(${GLOBAL_INCLUDE_DIR})
 link_directories(${GLOBAL_LIB_DIR})
 
-# sdl2
+# sdl
 include(scripts/sdl.cmake)
 
 
@@ -125,6 +122,7 @@ target_include_directories(HYGUI PRIVATE src/utils)
 
 if(MSVC)
     target_link_options(${PROJECT_NAME} PRIVATE "/NODEFAULTLIB:libcmt.lib")
+    target_link_options(${PROJECT_NAME} PRIVATE "/NODEFAULTLIB:libucrtd.lib")
 endif()
 
 # 检查是否为debug
@@ -143,14 +141,10 @@ else()
 endif ()
 target_link_libraries(HYGUI PRIVATE skia skshaper skcms sksg skresources skshaper sksg ${BOOST_LIBRARIES})
 if (OS_IS_WINDOWS)
-    if (CMAKE_BUILD_TYPE MATCHES "Debug")
-        target_link_libraries(HYGUI PRIVATE SDL3d)
-    else()
-        target_link_libraries(HYGUI PRIVATE SDL3)
-    endif ()
+    target_link_libraries(HYGUI PRIVATE SDL3::SDL3-static)
 
-    target_link_libraries(HYGUI PRIVATE opengl32.lib)
-    target_link_libraries(HYGUI PRIVATE  Winmm Setupapi Imm32 Version dwmapi)
+    target_link_libraries(HYGUI PRIVATE opengl32.lib legacy_stdio_definitions)
+    target_link_libraries(HYGUI PRIVATE  Winmm Setupapi Imm32 Version dwmapi FontSub)
 
 elseif (OS_IS_APPLE)
     target_link_libraries(HYGUI PRIVATE  icudata icutu icui18n icuuc SDL2 ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY} OpenGL::GL)
