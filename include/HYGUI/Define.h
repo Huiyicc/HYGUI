@@ -20,7 +20,7 @@ enum class HYGlobalFlag : uint32_t {
   HYGlobalFlagGraphicDefault = HYGlobalFlagGraphicNone,
 };
 
-struct HYWindow;
+class HYWindow;
 
 typedef void *VOIDPTR;
 typedef intptr_t VOIDPTRT;

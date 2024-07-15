@@ -47,6 +47,7 @@ std::map<int, std::function<int(HYWindow *, HYObject *, int, uint64_t, uint32_t)
 int _obj_event(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
   auto iter = _obj_event_callback_map.find(event);
   if (iter != _obj_event_callback_map.end()) {
+
     return iter->second(window, obj, event, param1, param2);
   }
   return 0;
@@ -115,7 +116,13 @@ HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int wi
       VisibleRect.height = window->Height;
     }
   }
-  HYResourceRegister(ResourceType::ResourceType_Object, this, className,nullptr);
+  HYResourceRegister(ResourceType::ResourceType_Object, this, className, nullptr);
+  // 创建事件
+  for (auto &callback: EventCreateCallbacks) {
+    if (callback.second) {
+      callback.second(window, this);
+    }
+  }
 }
 
 HYObject::~HYObject() {
@@ -229,17 +236,17 @@ HYRect HYObjectGetNestedClippedVisibleArea(HYObjectHandle object) {
   return object->VisibleRect;
 }
 
-PaintPtr HYObjectBeginPaint(HYObjectHandle object,bool clear) {
+PaintPtr HYObjectBeginPaint(HYObjectHandle object, bool clear) {
   object->Window->PaintMutex.lock();
   // 计算实际可视区域
   HYRect lct = HYObjectGetNestedClippedVisibleArea(object);
   // 创建画布
   object->Canvas = object->Window->Canvas;
   object->Canvas->save();
-//  if (object->Window->GlobalClipPath) {
-//    object->Canvas->clipPath(*object->Window->GlobalClipPath);
-//  }
-  object->Canvas->clipRect(SkRect::MakeLTRB(lct.x,lct.y,lct.x+lct.width, lct.y+lct.height));
+  //  if (object->Window->GlobalClipPath) {
+  //    object->Canvas->clipPath(*object->Window->GlobalClipPath);
+  //  }
+  object->Canvas->clipRect(SkRect::MakeLTRB(lct.x, lct.y, lct.x + lct.width, lct.y + lct.height));
   object->Canvas->translate(object->RawObjRect.x, object->RawObjRect.y);
   // PrintDebug("HYObjectBeginPaint {} {} {} {} {}", object->Name.toStdStringView(), lct.x, lct.y, lct.width, lct.height);
   // 创建画笔

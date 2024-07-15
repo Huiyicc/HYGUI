@@ -13,14 +13,14 @@
 
 namespace HYGUI {
 
-struct HYWindow;
-struct HYObject;
+class HYWindow;
+class HYObject;
 
 typedef std::function<int(HYWindow *, HYObject *, int, int, int)> HYObjectEventCallback;
 
-struct HYObjectBase {
-  virtual ~HYObjectBase() = default;
-
+class HYObjectBase : public HYEventBase {
+public:
+  ~HYObjectBase() override = default;
 };
 
 /**
@@ -38,27 +38,27 @@ public:
            const HYString &name = "", int id = 0);
   ~HYObject() override;
 
-  HYWindow *Window = nullptr; // 归属窗口
-  HYObject *Parent = nullptr; // 父对象,为nullptr时表示为一级对象
+  HYWindow *Window = nullptr;// 归属窗口
+  HYObject *Parent = nullptr;// 父对象,为nullptr时表示为一级对象
 
-  int X = 0; // 左上角x坐标
-  int Y = 0; // 左上角y坐标
+  int X = 0;     // 左上角x坐标
+  int Y = 0;     // 左上角y坐标
   int Width = 0; // 宽度
-  int Height = 0; // 高度
+  int Height = 0;// 高度
 
 
   HYRect VisibleRect = {0};// 相对于窗口的实际可视范围
   HYRect RawObjRect = {0}; // 相对于窗口的实际范围(无裁剪)
 
-  std::shared_ptr<HYString> ClassName; // 组件类名
-  std::shared_ptr<HYString> Name; // 组件名
-  int ID = 0; // 组件ID
+  std::shared_ptr<HYString> ClassName;// 组件类名
+  std::shared_ptr<HYString> Name;     // 组件名
+  int ID = 0;                         // 组件ID
 
-  CanvasPtr Canvas = nullptr; // 画布,用于绘制,除了绘制事件外不应该直接操作
-//  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
-  std::set<HYObject *> Children; // 子对象
-  std::vector<HYObjectEventCallback> EventCallbacks; // 事件回调
-  std::unordered_map<intptr_t, intptr_t> UserData; // 用户数据
+  CanvasPtr Canvas = nullptr;                       // 画布,用于绘制,除了绘制事件外不应该直接操作
+                                                    //  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
+  std::set<HYObject *> Children;                    // 子对象
+  std::vector<HYObjectEventCallback> EventCallbacks;// 事件回调
+  std::unordered_map<intptr_t, intptr_t> UserData;  // 用户数据
 
   // 判断给定坐标是否在当前对象范围内
   bool contains(int px, int py) const;
@@ -252,7 +252,7 @@ HYRect HYObjectGetNestedClippedVisibleArea(HYObjectHandle object);
  * @param clear 是否清除背景,清除会将背景清除为透明。
  * @return PaintPtr 绘制对象的指针。
  * */
-PaintPtr HYObjectBeginPaint(HYObjectHandle object,bool clear = true);
+PaintPtr HYObjectBeginPaint(HYObjectHandle object, bool clear = true);
 
 /**
  * @brief 结束绘制对象。
@@ -265,6 +265,6 @@ PaintPtr HYObjectBeginPaint(HYObjectHandle object,bool clear = true);
 void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint);
 
 
-}
+}// namespace HYGUI
 
-#endif //HYGUI_OBJECT_H
+#endif//HYGUI_OBJECT_H

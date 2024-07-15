@@ -29,7 +29,7 @@ constexpr int WINDOWCREATEPOINT_USEDEFAULT = CW_USEDEFAULT;
 constexpr int WINDOWCREATEPOINT_USEDEFAULT = std::numeric_limits<int>::max();
 #endif
 
-struct HYWindow;
+class HYWindow;
 typedef HYWindow *HYWindowHandel;
 
 class HYWindow {
@@ -64,6 +64,7 @@ public:
   int TitleBarHeight = 30;// 标题栏高度
   int BackGroundColor = {0};// 背景颜色
   int Diaphaneity = 255;  // 透明度
+  HYString Title;        // 窗口标题
   HYObjectEventQueue EventQueue;
 
   bool Drag = false;                 // 是否拖动
