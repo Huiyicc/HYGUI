@@ -33,7 +33,7 @@ namespace HYGUI {
     LOCALTIME(time_str);                                                                                          \
     std::string_view __TMP__fPath__ = __FILE__;                                                                   \
     __TMP__fPath__ = __TMP__fPath__.substr(strlen(PRIOJECT_PATH), __TMP__fPath__.size() - strlen(PRIOJECT_PATH)); \
-    auto __TMP__lstr__ = std::format("{}", "<info> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
+    auto __TMP__lstr__ = std::format("<info> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
     auto __TMP__ustr__ = std::format(fstr, ##__VA_ARGS__);                                                        \
     std::cout << std::format("{}{}", __TMP__lstr__, __TMP__ustr__) << std::endl;                                  \
   } while (0)
@@ -44,7 +44,7 @@ namespace HYGUI {
     LOCALTIME(time_str);                                                                                          \
     std::string_view __TMP__fPath__ = __FILE__;                                                                   \
     __TMP__fPath__ = __TMP__fPath__.substr(strlen(PRIOJECT_PATH), __TMP__fPath__.size() - strlen(PRIOJECT_PATH)); \
-    auto __TMP__lstr__ = std::format("{}", "<debug> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
+    auto __TMP__lstr__ = std::format("<debug> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
     auto __TMP__ustr__ = std::format(fstr, ##__VA_ARGS__);                                                        \
     std::cout << std::format("{}{}", __TMP__lstr__, __TMP__ustr__) << std::endl;                                  \
   } while (0)
@@ -55,7 +55,7 @@ namespace HYGUI {
     LOCALTIME(time_str);                                                                                          \
     std::string_view __TMP__fPath__ = __FILE__;                                                                   \
     __TMP__fPath__ = __TMP__fPath__.substr(strlen(PRIOJECT_PATH), __TMP__fPath__.size() - strlen(PRIOJECT_PATH)); \
-    auto __TMP__lstr__ = std::format("{}", "<error> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
+    auto __TMP__lstr__ = std::format("<error> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
     auto __TMP__ustr__ = std::format(fstr, ##__VA_ARGS__);                                                        \
     std::cerr << std::format("{}{}", __TMP__lstr__, __TMP__ustr__) << std::endl;                                  \
   } while (0)

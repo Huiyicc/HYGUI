@@ -57,7 +57,6 @@ public:
   CanvasPtr Canvas = nullptr;                       // 画布,用于绘制,除了绘制事件外不应该直接操作
                                                     //  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
   std::set<HYObject *> Children;                    // 子对象
-  std::vector<HYObjectEventCallback> EventCallbacks;// 事件回调
   std::unordered_map<intptr_t, intptr_t> UserData;  // 用户数据
 
   // 判断给定坐标是否在当前对象范围内
@@ -161,17 +160,6 @@ void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, uint6
 void HYObjectSendEventLIst(HYWindow *window, int event, uint64_t param1, uint32_t param2);
 
 /**
- * @brief 为对象添加事件回调函数。
- *
- * 该函数用于为指定的对象注册一个事件回调函数。当对象接收到特定事件时，
- * 将调用这个回调函数。
- *
- * @param object 对象的句柄，将为该对象添加事件回调。
- * @param callback 回调函数的引用，当对象接收到事件时将被调用。
- */
-void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback &callback);
-
-/**
  * @brief 为对象设置用户数据。
  *
  * 该函数用于为指定的对象关联一组用户数据。这些数据可以是任何类型，
@@ -208,7 +196,7 @@ void HYObjectUserDataRemove(HYObjectHandle object, intptr_t key,
  * @param y 鼠标的y坐标。
  * @return HYObjectHandle 鼠标位置的对象的句柄。
  */
-HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int x, int y);
+HYObjectHandle HYObjectGetFromMousePos(HYWindow *window, int x, int y);
 
 /**
  * @brief 获取对象内某个坐标的绝对坐标。

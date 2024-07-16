@@ -15,7 +15,7 @@ class HYLabel : public HYObject {
 public:
   constexpr static const char *ObjectName = "Label";
 
-  HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height) : HYObject{window, parent, x, y, width, height, ObjectName}, Text{text} {}
+  HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height);
 
   ~HYLabel() override;
 

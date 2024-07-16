@@ -9,7 +9,7 @@
 
 namespace HYGUI {
 
-enum ResourceType {
+enum ResourceType:uint32_t {
   // 其它资源
   ResourceType_Other,
   // 窗口
@@ -35,6 +35,8 @@ enum ResourceType {
   // 着色器
   ResourceType_Shader,
 };
+
+extern std::unordered_map<uint32_t,std::string_view> g_resource_type_annotation;
 
 struct ResourceInfo {
   void *Resource;
@@ -62,6 +64,7 @@ void HYResourceRemoveClearFunc(ResourceType type, void *resource);
 
 #define HYResourceRegister(type, resource, additional_message, delfunc) _HYResourceRegister_(type, resource, additional_message, delfunc, __FILE__, __LINE__)
 #define HYResourceRegisterOther(resource, additional_message, delfunc) HYResourceRegisterOther_(resource, additional_message, delfunc, __FILE__, __LINE__)
+void HYResourceDumpDebug();
 
 }// namespace HYGUI
 

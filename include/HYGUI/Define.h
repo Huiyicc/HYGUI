@@ -31,7 +31,6 @@ typedef VOIDPTR CursorPtr;
 struct ApplicationInfo {
   HYString LastError;
   VOIDPTR Instance = nullptr;
-  VOIDPTR GrContext = nullptr;
   HYGlobalFlag GlobalFlags = HYGlobalFlag::HYGlobalFlagGraphicDefault;
   HYString DefaultClassName;
   CursorPtr Cursor = nullptr;

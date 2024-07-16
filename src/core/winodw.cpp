@@ -23,19 +23,20 @@
 namespace HYGUI {
 HYWindow::~HYWindow() {
   for (auto obj: Children) {
-    delete obj;
+    HYResourceRemove(ResourceType::ResourceType_Object, obj);
   }
-  if (CursorMap.empty()) {
+  Children.clear();
+  if (!CursorMap.empty()) {
     for (auto &[key, value]: CursorMap) {
-      SDL_DestroyCursor((SDL_Cursor *) value);
+      HYResourceRemove(ResourceType::ResourceType_Cursor, value);
     }
-  }
-  if (GrCtx) {
-    HYResourceRemove(ResourceType::ResourceType_Other, GrCtx);
-    GrCtx = nullptr;
   }
   if (Surface) {
     HYResourceRemove(ResourceType::ResourceType_Other, Surface);
+    GrCtx = nullptr;
+  }
+  if (GrCtx) {
+    HYResourceRemove(ResourceType::ResourceType_Other, GrCtx);
     GrCtx = nullptr;
   }
   if (SDLOpenGl) {
@@ -43,16 +44,17 @@ HYWindow::~HYWindow() {
     SDLOpenGl = nullptr;
   }
   if (SDLWindow) {
+    SDL_DestroyWindow(SDLWindow);
     HYResourceRemove(ResourceType::ResourceType_Window, SDLWindow);
     SDLWindow = nullptr;
   }
-  HYResourceRemove(ResourceType::ResourceType_Window, this);
 }
 
 void HYWindowDestroy(HYWindowHandel wnd) {
   if (!wnd->Handle) { return; }
+  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   g_app.WindowsTable.erase(wnd);
-  delete wnd;
+  HYResourceRemove(ResourceType::ResourceType_Window, wnd);
 }
 
 GrGLFuncPtr glgetpoc(void *ctx, const char name[]) {
@@ -95,7 +97,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     return nullptr;
   }
   HYResourceRegisterOther(glContext, "SDL_GLContext", [](void *resource) {
-      SDL_GL_DestroyContext((SDL_GLContext) resource);
+    SDL_GL_DestroyContext((SDL_GLContext) resource);
   });
   // 切换到OpenGL上下文
   int success = SDL_GL_MakeCurrent(sdl_wind, glContext);
@@ -171,6 +173,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   HYResourceRegister(ResourceType::ResourceType_Window, window, "hywindow", [](void *resource) {
     delete (HYWindow *) resource;
   });
+  HYResourceRemoveClearFunc(ResourceType::ResourceType_Window,sdl_wind);
   return window;
 }
 
@@ -272,6 +275,12 @@ int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
       // 通知子组件
       window->Drag = false;
       window->DragType = 0;
+      auto act_obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
+      if (act_obj) {
+        // 转换坐标
+        auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
+        HYObjectSendEvent(window, act_obj, HYObjectEvent::HYObjectEvent_LeftDown, 0, HYPointGenLParam(x1, y1));
+      }
     }
   }
   return 0;
@@ -378,7 +387,7 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
     SDL_SetCursor((SDL_Cursor *) window->CursorMap[dragType]);
     window->DragType = dragType;
 
-    auto obj = HYObjectObjFromMousePos(window, event->button.x, event->button.y);
+    auto obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
     if (obj) {
       // 转换坐标
       auto [x1, y1] = HYObjectGetRelativePoint(obj, event->button.x, event->button.y);
@@ -394,7 +403,7 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, dou
   wnd->BackGroundColor = HYColorRGBToInt(backGroundColor);
   wnd->Diaphaneity = diaphaneity;
 
-  if (wnd->CursorMap.empty()) {
+  if (!wnd->CursorMap.empty()) {
     for (auto &[key, value]: wnd->CursorMap) {
       HYResourceRemove(ResourceType::ResourceType_Cursor, value);
     }
@@ -442,21 +451,22 @@ uint32_t HYWindowMessageLoop() {
   };
 
   while (!g_app.WindowsTable.empty()) {
-    DEFER({
-      // 清理无效窗口
-      std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
-      // 倒序从map删除值为nullptr的元素
-      if (!g_app.WindowsTable.empty()) {
-        auto it = g_app.WindowsTable.begin();
-        while (it != g_app.WindowsTable.end()) {
-          if (*it == nullptr) {
-            it = g_app.WindowsTable.erase(it);
-          } else {
-            ++it;
-          }
-        }
-      }
-    });
+    //    DEFER({
+    //      // 清理无效窗口
+    //      std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
+    //      // 倒序从map删除值为nullptr的元素
+    //      if (!g_app.WindowsTable.empty()) {
+    //        auto it = g_app.WindowsTable.begin();
+    //        while (it != g_app.WindowsTable.end()) {
+    //          if (*it == nullptr) {
+    //            it = g_app.WindowsTable.erase(it);
+    //          } else {
+    //            ++it;
+    //          }
+    //        }
+    //      }
+    //    });
+
     frameStart = SDL_GetTicks();
     SDL_Event event;
     SDL_PollEvent(&event);
@@ -468,6 +478,7 @@ uint32_t HYWindowMessageLoop() {
       //tic_fps_func();
       continue;
     }
+    std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
     auto window = HYWindowGetWindowFromID(event.window.windowID);
     if (!window) {
       continue;
@@ -479,10 +490,16 @@ uint32_t HYWindowMessageLoop() {
         SDL_ShowWindow(window->SDLWindow);
       }
     }
+    // ---------------------窗口事件---------------------------------
     if (event.type == SDL_EventType::SDL_EVENT_WINDOW_MOVED) {
-
       // 窗口移动
       SDL_GetWindowPosition(window->SDLWindow, &window->X, &window->Y);
+    } else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_MOUSE_LEAVE) {
+      // 窗口失去焦点
+
+    } else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_MOUSE_ENTER) {
+      // 窗口获得焦点
+
     } else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
       // 窗口大小/位置改变
       SDL_GetWindowSize(window->SDLWindow, &window->Width, &window->Height);
@@ -509,7 +526,7 @@ uint32_t HYWindowMessageLoop() {
       if (iter != g_win_event_map.end())
         iter->second(window, &event.window);
     }
-
+    // ---------------------窗口事件---------------------------------
     //tic_fps_func();
   }
   return 0;
@@ -580,7 +597,7 @@ HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {
 }
 
 HYWindow *HYWindowGetWindowFromID(int id) {
-  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
+//  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   auto &debug_app = g_app;
   if (!g_app.WindowsTable.empty()) {
     for (auto &iter: g_app.WindowsTable) {

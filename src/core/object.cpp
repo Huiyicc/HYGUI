@@ -3,10 +3,10 @@
 //
 #include "HYGUI/Object.h"
 #include "HYGUI/Event.h"
+#include "HYGUI/KeyCode.h"
 #include "HYGUI/Window.h"
 #include "PrivateDefinition.h"
 #include <map>
-
 
 namespace HYGUI {
 
@@ -14,15 +14,31 @@ namespace HYGUI {
 // 组件绘制消息
 int _obj_paint(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
   int r = 0;
-  for (auto &callback: obj->EventCallbacks) {
-    r = callback(obj->Window, obj, event, param1, param2);
-    if (r != 0) {
-      break;
+  for (auto &callback: obj->EventPaintCallbacks) {
+    if (callback.second) {
+      r = callback.second(window, obj);
+      if (r != 0) {
+        break;
+      }
     }
   }
-  if (!obj->Children.empty()) {
-    for (auto &child: obj->Children) {
-      r = _obj_paint(window, child, event, param1, param2);
+  if (r == 0) {
+    if (!obj->Children.empty()) {
+      for (auto &child: obj->Children) {
+        HYObjectSendEvent(window, child, event, param1, param2);
+      }
+    }
+  }
+  return r;
+}
+
+int _obj_left_down(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
+  int r = 0;
+  auto mode = SDL_GetModState();
+  auto [x, y] = HYPointFromLParam(param2);
+  for (auto &callback: obj->EventLeftDownCallbacks) {
+    if (callback.second) {
+      r = callback.second(window, obj, x, y, mode);
       if (r != 0) {
         break;
       }
@@ -42,7 +58,11 @@ std::map<int, std::function<int(HYWindow *, HYObject *, int, uint64_t, uint32_t)
   // 鼠标移动
   {HYObjectEvent_MouseMove, _obj_mouse_move},
   // 组件绘制
-  {HYObjectEvent_Paint, _obj_paint}};
+  {HYObjectEvent_Paint, _obj_paint},
+  // 鼠标左键被按下
+  {HYObjectEvent_LeftDown, _obj_left_down},
+
+};
 
 int _obj_event(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
   auto iter = _obj_event_callback_map.find(event);
@@ -127,10 +147,9 @@ HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int wi
 
 HYObject::~HYObject() {
   for (auto &child: Children) {
-    delete child;
+    HYResourceRemove(ResourceType::ResourceType_Object, child);
   }
   Children.clear();
-  HYResourceRemove(ResourceType::ResourceType_Object, this);
 }
 
 HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
@@ -165,16 +184,13 @@ void HYObjectDestroy(HYObjectHandle object) {
   if (object->Parent) {
     object->Parent->Children.erase(object);
   }
-  delete object;
+  HYResourceRemove(ResourceType::ResourceType_Object, object);
 }
 
 bool HYObject::contains(int px, int py) const {
   return px >= X && px < (X + Width) && py >= Y && py < (Y + Height);
 }
 
-void HYObjectAddEventCallback(HYObjectHandle object, const HYObjectEventCallback &callback) {
-  object->EventCallbacks.push_back(callback);
-}
 
 void HYObjectUserDataAdd(HYObjectHandle object, intptr_t key, intptr_t data) {
   object->UserData[key] = data;
@@ -190,12 +206,11 @@ void HYObjectUserDataRemove(HYObjectHandle object, intptr_t key,
 }
 
 void HYObjectSetClassName(HYObjectHandle object, const HYString &className) {
-  //*object->ClassName = className;
+  *object->ClassName = className;
 }
 
 void HYObjectSetName(HYObjectHandle object, const char *name) {
-  //*object->Name = name;
-  std::string aaa;
+  *object->Name = name;
 }
 
 void HYObjectSetID(HYObjectHandle object, int id) {
@@ -203,10 +218,10 @@ void HYObjectSetID(HYObjectHandle object, int id) {
 }
 
 
-HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py) {
+HYObjectHandle HYObjectGetFromMousePos(HYObjectHandle obj, int px, int py) {
   HYObjectHandle topObject = nullptr;
   for (auto it = obj->Children.rbegin(); it != obj->Children.rend(); ++it) {
-    topObject = HYObjectObjFromMousePos(*it, px, py);
+    topObject = HYObjectGetFromMousePos(*it, px, py);
     if (topObject) {
       return topObject;
     }
@@ -215,10 +230,10 @@ HYObjectHandle HYObjectObjFromMousePos(HYObjectHandle obj, int px, int py) {
   return HYPointIsInsideRectangle({px, py}, obj->VisibleRect) ? obj : nullptr;
 }
 
-HYObjectHandle HYObjectObjFromMousePos(HYWindow *window, int px, int py) {
+HYObjectHandle HYObjectGetFromMousePos(HYWindow *window, int px, int py) {
   HYObjectHandle topObject = nullptr;
   for (auto it = window->Children.rbegin(); it != window->Children.rend(); ++it) {
-    topObject = HYObjectObjFromMousePos(*it, px, py);
+    topObject = HYObjectGetFromMousePos(*it, px, py);
     if (topObject) {
       break;
     }

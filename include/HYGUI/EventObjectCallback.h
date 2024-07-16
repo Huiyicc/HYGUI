@@ -58,9 +58,10 @@ typedef std::function<void(HYWindow *, HYObject *)> HYObjectEventHideHandel;
  * @param HYObject*: 组件句柄
  * @param int: 鼠标x坐标
  * @param int: 鼠标y坐标
- * @param int: 功能键状态
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
+ * @result 0: 放行, 1: 拦截
  * */
-typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEventLeftDownHandel;
+typedef std::function<int(HYWindow *, HYObject *, int, int, int)> HYObjectEventLeftDownHandel;
 
 /**
  * @brief 组件事件_鼠标左键放开
@@ -68,9 +69,19 @@ typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEvent
  * @param HYObject*: 组件句柄
  * @param int: 鼠标x坐标
  * @param int: 鼠标y坐标
- * @param int: 功能键状态
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
  * */
 typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEventLeftUpHandel;
+
+/**
+ * @brief 组件事件_鼠标右键放开
+ * @param HYWindow*: 窗口句柄
+ * @param HYObject*: 组件句柄
+ * @param int: 鼠标x坐标
+ * @param int: 鼠标y坐标
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
+ * */
+typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEventRightUpHandel;
 
 /**
  * @brief 组件事件_鼠标右键按下
@@ -78,7 +89,7 @@ typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEvent
  * @param HYObject*: 组件句柄
  * @param int: 鼠标x坐标
  * @param int: 鼠标y坐标
- * @param int: 功能键状态
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
  * */
 typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEventRightDownHandel;
 
@@ -88,7 +99,7 @@ typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEvent
  * @param HYObject*: 组件句柄
  * @param int: 鼠标x坐标
  * @param int: 鼠标y坐标
- * @param int: 功能键状态
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
  * */
 typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEventMouseMoveHandel;
 
@@ -98,7 +109,7 @@ typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEvent
  * @param HYObject*: 组件句柄
  * @param int: 鼠标x坐标
  * @param int: 鼠标y坐标
- * @param int: 功能键状态
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
  * */
 typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEventDoubleClickHandel;
 
@@ -107,7 +118,7 @@ typedef std::function<void(HYWindow *, HYObject *, int, int, int)> HYObjectEvent
  * @param HYWindow*: 窗口句柄
  * @param HYObject*: 组件句柄
  * @param int: 键盘键值
- * @param int: 功能键状态
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
  * */
 typedef std::function<void(HYWindow *, HYObject *, int, int)> HYObjectEventKeyDownHandel;
 
@@ -116,7 +127,7 @@ typedef std::function<void(HYWindow *, HYObject *, int, int)> HYObjectEventKeyDo
  * @param HYWindow*: 窗口句柄
  * @param HYObject*: 组件句柄
  * @param int: 键盘键值
- * @param int: 功能键状态
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
  * */
 typedef std::function<void(HYWindow *, HYObject *, int, int)> HYObjectEventKeyUpHandel;
 
@@ -125,7 +136,7 @@ typedef std::function<void(HYWindow *, HYObject *, int, int)> HYObjectEventKeyUp
  * @param HYWindow*: 窗口句柄
  * @param HYObject*: 组件句柄
  * @param int: 滚动距离
- * @param int: 功能键状态
+ * @param int: 功能键状态,参见常量定义 HY_KMOD_
  * */
 typedef std::function<void(HYWindow *, HYObject *, int, int)> HYObjectEventMouseWheelHandel;
 
@@ -136,7 +147,7 @@ typedef std::function<void(HYWindow *, HYObject *, int, int)> HYObjectEventMouse
  * @param int: 字符码
  * @param int: 保留参数
  * */
-typedef std::function<void(HYWindow *, HYObject *, int, int)> HYObjectEventCharHandel;
+typedef std::function<void(HYWindow *, HYObject *, int, int)> HYObjectEventCharInputHandel;
 
 
 }// namespace HYGUI

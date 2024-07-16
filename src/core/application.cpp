@@ -138,9 +138,10 @@ bool HYInit(VOIDPTR ModuleHandle,
 
 void HYExit() {
   SDL_Quit();
-  if (g_app.GrContext) {
-    SkSafeUnref((GrDirectContext *) g_app.GrContext);
-  }
+
+  // debug
+  HYResourceDumpDebug();
+
 }
 
 

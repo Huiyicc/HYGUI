@@ -22,6 +22,11 @@ HYLabel::~HYLabel() {
   HYTextBlobBuilderDestroy(TextBlobBuilder);
 }
 
+int label_event_left_down(HYWindow *window, HYObject *obj, int x, int y, int function_key) {
+
+  return 0;
+}
+
 void label_paint_draw_banckground(HYLabel *label, PaintPtr paint) {
   // 渐变模式
   ShaderPtr shader = nullptr;
@@ -124,7 +129,8 @@ void label_paint_draw_banckground(HYLabel *label, PaintPtr paint) {
   HYPaintSetShader(paint, nullptr);
 }
 
-int label_event_paint(HYWindow *window, HYObject *object, HYObjectEvent event, int param1, int param2) {
+
+int label_event_paint(HYWindow *window, HYObject *object) {
   auto paint = HYObjectBeginPaint(object);
   auto label = reinterpret_cast<HYLabel *>(object);
 
@@ -134,36 +140,37 @@ int label_event_paint(HYWindow *window, HYObject *object, HYObjectEvent event, i
   // 绘制字体
   auto text = label->Text.toStdStringView().data();
 
-    SkRect bounds;
-    label->Font->measureText(text, label->Text.size(), SkTextEncoding::kUTF8, &bounds);
-    SkScalar offsetY = bounds.height();
+  SkRect bounds;
+  label->Font->measureText(text, label->Text.size(), SkTextEncoding::kUTF8, &bounds);
+  SkScalar offsetY = bounds.height();
 
-    auto blb = SkTextBlob::MakeFromString(text, *label->Font);
+  auto blb = SkTextBlob::MakeFromString(text, *label->Font);
 
-    HYPaintSetColor(paint, label->TextColor);
-    object->Canvas->drawString(label->Text.toStdStringView().data(), 0, offsetY, *label->Font, *paint);
+  HYPaintSetColor(paint, label->TextColor);
+  object->Canvas->drawString(label->Text.toStdStringView().data(), 0, offsetY, *label->Font, *paint);
 
   HYObjectEndPaint(object, paint);
   return 0;
 }
 
-int label_event(HYWindow *window, HYObject *obj, int event, int param1, int param2) {
-  if (event == HYObjectEvent_Paint) {
-    // 绘制
-    label_event_paint(window, obj, (HYObjectEvent) event, param1, param2);
-  }
-  return 0;
+HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height)
+    : HYObject{window, parent, x, y, width, height, ObjectName}, Text{text} {
+  RegisterEventPaintCallback(label_event_paint);
+  RegisterEventLeftDownCallback(label_event_left_down);
+  Font = HYFontCreateFromTypeface(HYTypefaceCreateFromDefault());
+  Font->setEdging(SkFont::Edging::kAlias);
+  Font->setSize(12);
+  TextBlobBuilder = HYTextBlobBuilderCreate();
+  BanckgroundGradientMode = HYGradientMode::HYGradientModeNone;
+  BanckgroundGradientDirection = HYGradientDirection::HYGradientDirectionNone;
 }
 
 HYLabelhandle
 HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height) {
   auto label = new HYLabel{window, parent, text, x, y, width, height};
-  HYObjectAddEventCallback(reinterpret_cast<HYObjectHandle>(label), label_event);
-  label->Font = HYFontCreateFromTypeface(HYTypefaceCreateFromDefault());
-  label->Font->setEdging(SkFont::Edging::kAlias);
-  label->Font->setSize(12);
-  label->TextBlobBuilder = HYTextBlobBuilderCreate();
-  return label;
+  return HYResourceRegister(ResourceType::ResourceType_Object, label, "Label", [](void* ptr){
+    delete reinterpret_cast<HYLabel*>(ptr);
+  });
 }
 
 
