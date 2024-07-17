@@ -42,11 +42,11 @@ namespace HYGUI {
   do {                                                                                                            \
     char time_str[32];                                                                                            \
     LOCALTIME(time_str);                                                                                          \
-    std::string_view __TMP__fPath__ = __FILE__;                                                                   \
-    __TMP__fPath__ = __TMP__fPath__.substr(strlen(PRIOJECT_PATH), __TMP__fPath__.size() - strlen(PRIOJECT_PATH)); \
-    auto __TMP__lstr__ = std::format("<debug> <{}> [{}:{}] ", time_str, __TMP__fPath__, __LINE__);                  \
-    auto __TMP__ustr__ = std::format(fstr, ##__VA_ARGS__);                                                        \
-    std::cout << std::format("{}{}", __TMP__lstr__, __TMP__ustr__) << std::endl;                                  \
+    std::string_view TMP_fPath = __FILE__;                                                                   \
+    TMP_fPath = TMP_fPath.substr(strlen(PRIOJECT_PATH), TMP_fPath.size() - strlen(PRIOJECT_PATH)); \
+    auto TMP_lstr = std::format("<debug> <{}> [{}:{}] ", time_str, TMP_fPath, __LINE__);                  \
+    auto TMP_ustr = std::format(fstr, ##__VA_ARGS__);                                                        \
+    std::cout << std::format("{}{}", TMP_lstr, TMP_ustr) << std::endl;                                  \
   } while (0)
 
 #define PrintError(fstr, ...)                                                                                              \

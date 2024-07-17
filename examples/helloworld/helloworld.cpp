@@ -41,13 +41,7 @@ int main() {
   //  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label11), "标签红 r");
 
   HYWindowShow(wind);
-  std::thread([&]() {
-    std::this_thread::sleep_for(std::chrono::seconds(3));
-    std::cout << 1 << std::endl;
-    HYWindowDestroy(wind);
-  }).detach();
   HYWindowMessageLoop();
-  HYExit();
-
+  std::this_thread::sleep_for(std::chrono::seconds(3));
   return 0;
 }

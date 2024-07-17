@@ -137,9 +137,14 @@ bool HYInit(VOIDPTR ModuleHandle,
 }
 
 void HYExit() {
+
+  std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
+
+  g_app.isRuning = false;
   SDL_Quit();
 
   // debug
+
   HYResourceDumpDebug();
 
 }

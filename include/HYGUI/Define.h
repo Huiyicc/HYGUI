@@ -31,6 +31,8 @@ typedef VOIDPTR CursorPtr;
 struct ApplicationInfo {
   HYString LastError;
   VOIDPTR Instance = nullptr;
+  std::mutex LookupLock;
+  bool isRuning = false;
   HYGlobalFlag GlobalFlags = HYGlobalFlag::HYGlobalFlagGraphicDefault;
   HYString DefaultClassName;
   CursorPtr Cursor = nullptr;
@@ -46,9 +48,9 @@ struct ApplicationInfo {
   std::unordered_map<HYString, TypefacePtr> FontTable;
 };
 
-}
+}// namespace HYGUI
 
 #include "Cursor.h"
 #include "Point.h"
 
-#endif //HYGUI_DEFINE_H
+#endif//HYGUI_DEFINE_H

@@ -67,7 +67,6 @@ std::map<int, std::function<int(HYWindow *, HYObject *, int, uint64_t, uint32_t)
 int _obj_event(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
   auto iter = _obj_event_callback_map.find(event);
   if (iter != _obj_event_callback_map.end()) {
-
     return iter->second(window, obj, event, param1, param2);
   }
   return 0;

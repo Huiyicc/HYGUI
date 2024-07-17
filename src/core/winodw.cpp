@@ -22,6 +22,7 @@
 
 namespace HYGUI {
 HYWindow::~HYWindow() {
+  EventQueue.Stop();
   for (auto obj: Children) {
     HYResourceRemove(ResourceType::ResourceType_Object, obj);
   }
@@ -31,30 +32,34 @@ HYWindow::~HYWindow() {
       HYResourceRemove(ResourceType::ResourceType_Cursor, value);
     }
   }
-  if (Surface) {
-    HYResourceRemove(ResourceType::ResourceType_Other, Surface);
-    GrCtx = nullptr;
-  }
-  if (GrCtx) {
-    HYResourceRemove(ResourceType::ResourceType_Other, GrCtx);
-    GrCtx = nullptr;
-  }
   if (SDLOpenGl) {
     HYResourceRemove(ResourceType::ResourceType_Other, SDLOpenGl);
     SDLOpenGl = nullptr;
   }
   if (SDLWindow) {
-    SDL_DestroyWindow(SDLWindow);
     HYResourceRemove(ResourceType::ResourceType_Window, SDLWindow);
     SDLWindow = nullptr;
   }
+  if (Surface) {
+    HYResourceRemove(ResourceType::ResourceType_Other, Surface);
+    Surface = nullptr;
+  }
+  if (GrCtx) {
+    HYResourceRemove(ResourceType::ResourceType_Other, GrCtx);
+    GrCtx = nullptr;
+  }
+
+
 }
 
 void HYWindowDestroy(HYWindowHandel wnd) {
   if (!wnd->Handle) { return; }
-  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
+  std::lock_guard<std::mutex> lock_lookup(g_app.LookupLock);
+  std::lock_guard<std::mutex> lock_table(g_app.WindowsTableMutex);
+
   g_app.WindowsTable.erase(wnd);
   HYResourceRemove(ResourceType::ResourceType_Window, wnd);
+  SDL_DestroyWindow(wnd->SDLWindow);
 }
 
 GrGLFuncPtr glgetpoc(void *ctx, const char name[]) {
@@ -87,6 +92,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
 
   SDL_HideWindow(sdl_wind);
   HYResourceRegister(ResourceType::ResourceType_Window, sdl_wind, "sdl window", [](void *resource) {
+    std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
     SDL_DestroyWindow((SDL_Window *) resource);
   });
 
@@ -106,7 +112,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     HYResourceRemove(ResourceType::ResourceType_Other, glContext);
     return nullptr;
   }
-  auto opengl_buffer = SDL_GetProperty(SDL_GetWindowProperties(sdl_wind), SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, nullptr);
+  // auto opengl_buffer = SDL_GetProperty(SDL_GetWindowProperties(sdl_wind), SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, nullptr);
   // glEnable(GL_MULTISAMPLE);
   static const int kMsaaSampleCount = 0;//4;
 
@@ -142,9 +148,13 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   }
 
   auto window = new HYWindow;
-  window->GrCtx = HYResourceRegisterOther(grContext.release(), "GrDirectContext", [](void *resource) {
-    SkSafeUnref((GrDirectContext *) resource);
+  auto grctx = grContext.release();
+  window->GrCtx = HYResourceRegisterOther(grctx, "GrDirectContext", [](void *resource) {
+    auto ctx = (GrDirectContext *) resource;
+    ctx->abandonContext();
+    SkSafeUnref(ctx);
   });
+  //window->GrCtx = HYResourceRegisterOther(grctx, "GrDirectContext", nullptr);
   window->SDLOpenGl = glContext;
   window->ID = SDL_GetWindowID(sdl_wind);
   window->SDLWindow = sdl_wind;
@@ -173,7 +183,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   HYResourceRegister(ResourceType::ResourceType_Window, window, "hywindow", [](void *resource) {
     delete (HYWindow *) resource;
   });
-  HYResourceRemoveClearFunc(ResourceType::ResourceType_Window,sdl_wind);
+  HYResourceRemoveClearFunc(ResourceType::ResourceType_Window, sdl_wind);
   return window;
 }
 
@@ -436,6 +446,7 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, dou
 }
 
 uint32_t HYWindowMessageLoop() {
+  g_app.isRuning = true;
   const int frameDelay = 1000 / 60;
 
   Uint32 frameStart;
@@ -451,22 +462,11 @@ uint32_t HYWindowMessageLoop() {
   };
 
   while (!g_app.WindowsTable.empty()) {
-    //    DEFER({
-    //      // 清理无效窗口
-    //      std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
-    //      // 倒序从map删除值为nullptr的元素
-    //      if (!g_app.WindowsTable.empty()) {
-    //        auto it = g_app.WindowsTable.begin();
-    //        while (it != g_app.WindowsTable.end()) {
-    //          if (*it == nullptr) {
-    //            it = g_app.WindowsTable.erase(it);
-    //          } else {
-    //            ++it;
-    //          }
-    //        }
-    //      }
-    //    });
-
+    // std::lock_guard<std::mutex> lock_win_table(g_app.WindowsTableMutex);
+    std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
+    if (!g_app.isRuning) {
+      break;
+    }
     frameStart = SDL_GetTicks();
     SDL_Event event;
     SDL_PollEvent(&event);
@@ -478,7 +478,7 @@ uint32_t HYWindowMessageLoop() {
       //tic_fps_func();
       continue;
     }
-    std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
+    // std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
     auto window = HYWindowGetWindowFromID(event.window.windowID);
     if (!window) {
       continue;
@@ -597,7 +597,7 @@ HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {
 }
 
 HYWindow *HYWindowGetWindowFromID(int id) {
-//  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
+  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   auto &debug_app = g_app;
   if (!g_app.WindowsTable.empty()) {
     for (auto &iter: g_app.WindowsTable) {
