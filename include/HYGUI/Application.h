@@ -11,15 +11,11 @@ namespace HYGUI {
 
 bool HYInit(VOIDPTR ModuleHandle,
             HYGlobalFlag DefaultGlobalFlags,
-            CursorPtr DefaultCursor=nullptr,
-            HYString DefaultClassName="");
+            const HYString&DefaultFont="");
 
-VOIDPTR HYGetModuleHandle(
-#ifdef _HOST_WINDOWS_
-  VOIDPTR lpModuleName = nullptr
-#else
-#endif
-);
+
+void HYExit();
+
 
 }
 #endif //HYGUI_APP_H

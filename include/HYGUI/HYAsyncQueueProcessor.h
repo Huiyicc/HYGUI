@@ -6,9 +6,13 @@
 #define AUDIO_CLIENT_ASYNCQUEUEPROCESSOR_H
 
 #include <boost/lockfree/queue.hpp>
+#include <condition_variable>
+#include <functional>
+#include <iostream>
 #include <memory>
-#include <thread>
 #include <mutex>
+#include <thread>
+#include <coroutine>
 
 namespace HYGUI {
 
@@ -22,7 +26,7 @@ public:
 
 private:
   std::shared_ptr<boost::lockfree::queue<TYPE, boost::lockfree::fixed_sized<false>>> m_queue = nullptr;
-  std::thread m_thread;
+  std::jthread m_thread;
   std::mutex m_queue_mutex;
   std::condition_variable m_data_available_cv;
   AsyncQueueProcessCallback m_process;
@@ -51,7 +55,7 @@ public:
    * @param processCallback 处理回调
    */
   explicit HYAsyncQueueProcessor(size_t size, const AsyncQueueProcessCallback &processCallback)
-  : m_process(processCallback) {
+      : m_process(processCallback) {
     m_queue = std::make_shared<boost::lockfree::queue<TYPE, boost::lockfree::fixed_sized<false>>>(size);
   };
 
@@ -75,9 +79,10 @@ public:
    */
   void Start(const AsyncQueueProcessCallback &processCallback) {
     m_running = true;
-    m_process = processCallback;
-    m_thread = std::thread([this]() {
-
+    if (processCallback != nullptr) {
+      m_process = processCallback;
+    }
+    m_thread = std::jthread([this]() {
       while (m_running) {
         std::unique_lock<std::mutex> lock(m_queue_mutex);
         m_data_available_cv.wait(lock, [&] {
@@ -91,9 +96,7 @@ public:
             m_process(this, data);
           }
         }
-
       }
-
     });
   };
 
@@ -101,9 +104,12 @@ public:
    * @brief 停止队列
    */
   void Stop() {
+    std::lock_guard<std::mutex> lock(m_queue_mutex);
     m_running = false;
     m_data_available_cv.notify_all();
-    m_thread.join();
+//    if (m_thread.joinable()) {
+//      m_thread.join();
+//    }
   };
 
   /**
@@ -113,29 +119,45 @@ public:
   void Push(const TYPE &data) {
     {
       std::lock_guard<std::mutex> lock(m_queue_mutex);
-      m_queue->push(data);
+      if (m_running) {
+        m_queue->push(data);
+      }
     }
-    m_data_available_cv.notify_one();
+    if (m_running) {
+      m_data_available_cv.notify_one();
+    }
+  };
+  void Push(const TYPE &&data) {
+    {
+
+      std::lock_guard<std::mutex> lock(m_queue_mutex);
+      if (m_running) {
+        m_queue->push(data);
+      }
+    }
+    if (m_running) {
+      m_data_available_cv.notify_one();
+    }
   };
 
   /**
    * @brief 是否为空
    */
-  bool Empty(){
+  bool Empty() {
     return m_queue->empty();
   };
 
   /**
    * @brief 获取队列大小
    */
-  size_t Size(){
+  size_t Size() {
     return m_queue->size();
   };
 
   /**
    * @brief 清空队列
    */
-  void Clear(){
+  void Clear() {
     TYPE data;
     while (m_queue->pop(data)) {
     }
@@ -145,7 +167,7 @@ public:
    * @brief 设置处理回调
    * @param processCallback 处理回调
    */
-  void SetProcessCallback(const AsyncQueueProcessCallback &processCallback){
+  void SetProcessCallback(const AsyncQueueProcessCallback &processCallback) {
     m_process = processCallback;
   };
 
@@ -153,7 +175,7 @@ public:
    * @brief 设置处理回调
    * @param processCallback 处理回调
    */
-  void SetProcessCallback(const AsyncQueueProcessCallback &&processCallback){
+  void SetProcessCallback(const AsyncQueueProcessCallback &&processCallback) {
     m_process = std::move(processCallback);
   };
 
@@ -163,9 +185,8 @@ public:
   bool IsRunning() {
     return m_running;
   };
-
 };
 
-} // AC::Algorithm
+}// namespace HYGUI
 
-#endif //AUDIO_CLIENT_ASYNCQUEUEPROCESSOR_H
+#endif//AUDIO_CLIENT_ASYNCQUEUEPROCESSOR_H

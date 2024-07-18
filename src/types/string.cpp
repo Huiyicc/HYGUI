@@ -1,194 +1,169 @@
 //
 // Created by 19254 on 24-5-31.
 //
+#include <cstring>
+
 #include "HYGUI/String.h"
+//#include "include/core/SkString.h"
 #include "HYGUI/Coding.h"
 
 namespace HYGUI {
-
+using StringBase = std::u8string;
 HYString::~HYString() {
 }
 
 HYString::HYString() {
-  m_wstrData = L"";
-  m_strData = "";
+  m_pSkString = std::make_shared<StringBase>();
 }
 
 HYString::HYString(const char *pData) {
-  auto wstr = C2W_(pData);
-  m_wstrData = wstr;
-  m_strData = pData;
-  delete[] wstr;
+  m_pSkString = std::make_shared<StringBase>((char8_t *)pData);
+}
+HYString::HYString(const char8_t *pData) {
+  m_pSkString = std::make_shared<StringBase>(pData);
 }
 
-HYString::HYString(const wchar_t *pData) {
-  m_wstrData = pData;
-  auto str = W2C_(pData);
-  m_strData = str;
-  delete[] str;
-}
 
 HYString::HYString(const HYString &str) {
-  m_wstrData = str.m_wstrData;
-  m_strData = str.m_strData;
+  m_pSkString = std::make_shared<StringBase>(*str.m_pSkString);
 }
 
 HYString &HYString::operator=(const char *pData) {
-  auto wstr = C2W_(pData);
-  m_wstrData = wstr;
-  m_strData = pData;
-  delete[] wstr;
+  *m_pSkString = (char8_t *)pData;
   return *this;
 }
 
-HYString &HYString::operator=(const std::string& str) {
-  auto wstr = C2W_(str.c_str());
-  m_wstrData = wstr;
-  delete[] wstr;
-  m_strData = str;
+HYString &HYString::operator=(const char8_t *pData) {
+  *m_pSkString = pData;
   return *this;
 }
 
-HYString &HYString::operator=(const wchar_t *pData) {
-  m_wstrData = pData;
-  auto str = W2C_(pData);
-  m_strData = str;
-  delete[] str;
+HYString &HYString::operator=(const std::string &str) {
+  *m_pSkString = (char8_t *)str.c_str();
   return *this;
 }
 
-HYString &HYString::operator=(const std::wstring& str) {
-  m_wstrData = str;
-  auto lstr = W2C_(str.c_str());
-  m_strData = lstr;
-  delete[] lstr;
-  return *this;
-}
 
 HYString &HYString::operator+=(const HYString &str) {
-  m_wstrData += str.m_wstrData;
-  m_strData += str.m_strData;
+  *m_pSkString += *str.m_pSkString;
   return *this;
 }
 
 HYString &HYString::operator+=(const char *pData) {
-  auto wstr = C2W_(pData);
-  m_wstrData += wstr;
-  m_strData += pData;
-  delete[] wstr;
+  *m_pSkString += (char8_t *)pData;
   return *this;
 }
 
-HYString &HYString::operator+=(const wchar_t *pData) {
-  m_wstrData += pData;
-  auto str = W2C_(pData);
-  m_strData += str;
-  delete[] str;
+HYString &HYString::operator+=(const char8_t *pData) {
+  *m_pSkString += pData;
   return *this;
 }
+
 
 HYString HYString::operator+(const HYString &str) {
   HYString ret;
-  ret.m_wstrData = m_wstrData + str.m_wstrData;
-  ret.m_strData = m_strData + str.m_strData;
+  ret.m_pSkString = std::make_shared<StringBase>(*m_pSkString);
+  *ret.m_pSkString += *str.m_pSkString;
   return ret;
 }
 
 HYString HYString::operator+(const char *pData) {
   HYString ret;
-  auto wstr = C2W_(pData);
-  ret.m_wstrData = m_wstrData + wstr;
-  ret.m_strData = m_strData + pData;
-  delete[] wstr;
+  ret.m_pSkString = std::make_shared<StringBase>(*m_pSkString);
+  *ret.m_pSkString += (char8_t *)pData;
   return ret;
 }
 
-HYString HYString::operator+(const wchar_t *pData) {
+HYString HYString::operator+(const char8_t *pData) {
   HYString ret;
-  ret.m_wstrData = m_wstrData + pData;
-  auto str = W2C_(pData);
-  ret.m_strData = m_strData + str;
-  delete[] str;
+  ret.m_pSkString = std::make_shared<StringBase>(*m_pSkString);
+  *ret.m_pSkString += pData;
   return ret;
 }
 
 bool HYString::operator==(const HYString &str) {
-  return m_wstrData == str.m_wstrData;
+  return *m_pSkString == (*str.m_pSkString);
 }
 
 bool HYString::operator==(const char *pData) {
-  return (strcmp(m_strData.c_str(), pData) == 0);
+  return *m_pSkString == (char8_t *)(pData);
+}
+bool HYString::operator==(const char8_t *pData) {
+  return *m_pSkString == (pData);
 }
 
-bool HYString::operator==(const wchar_t *pData) {
-  return m_wstrData == pData;
-}
 
 bool HYString::operator!=(const HYString &str) {
-  return m_wstrData != str.m_wstrData;
+  return !(*m_pSkString == (*str.m_pSkString));
 }
 
 bool HYString::operator!=(const char *pData) {
-  return (strcmp(m_strData.c_str(), pData) != 0);
+  return !(*m_pSkString == (char8_t *)(pData));
+}
+bool HYString::operator!=(const char8_t *pData) {
+  return !(*m_pSkString == (pData));
 }
 
-bool HYString::operator!=(const wchar_t *pData) {
-  return m_wstrData != pData;
+
+HYString::operator const char *() const {
+  return (char *)m_pSkString->c_str();
 }
 
-std::wstring_view HYString::toWStringView() const {
-  return m_wstrData;
+std::string_view HYString::toStdStringView() const {
+  return (char *)m_pSkString->data();
 }
 
-std::string_view HYString::toStringView() const {
-  return m_strData;
+std::u8string_view HYString::toStdU8StringView() const{
+  return *m_pSkString;
 }
 
 std::string HYString::toStdString() const {
-  return m_strData;
+  return (char *)m_pSkString->c_str();
 }
 
-std::wstring HYString::toWString() const {
-  return m_wstrData;
+std::u8string HYString::toStdU8String() const {
+  return m_pSkString->c_str();
 }
+
 
 HYString &HYString::operator=(const HYString &str) = default;
 
 HYString::operator std::string() {
-  return m_strData;
+  return (char *)m_pSkString->c_str();
 }
 
-HYString::operator std::wstring() {
-  return m_wstrData;
+HYString::operator std::u8string() {
+  return m_pSkString->c_str();
 }
+
 
 bool HYString::empty() const {
-  return m_wstrData.empty();
+  return m_pSkString->empty();
 }
 
 void HYString::clear() {
-  m_wstrData.clear();
-  m_strData.clear();
+  m_pSkString->clear();
+}
+
+size_t HYString::size() const {
+  return m_pSkString->size();
 }
 
 void HYString::append(const char *pData) {
-  auto wstr = C2W_(pData);
-  m_wstrData += wstr;
-  m_strData += pData;
-  delete[] wstr;
+  m_pSkString->append((char8_t *)pData);
 }
 
-void HYString::append(const wchar_t *pData) {
-  m_wstrData += pData;
-  auto str = W2C_(pData);
-  m_strData += str;
-  delete[] str;
-}
 
 void HYString::append(const HYString &str) {
-  m_wstrData += str.m_wstrData;
-  m_strData += str.m_strData;
+  m_pSkString->append(*str.m_pSkString);
 }
 
-
+void HYString::append(const char8_t *str) {
+  m_pSkString->append(str);
 }
+
+const char *HYString::c_str()const {
+  return (char *)m_pSkString->c_str();
+}
+
+}// namespace HYGUI

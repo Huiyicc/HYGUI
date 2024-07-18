@@ -1,68 +1,54 @@
 # HYGUI
 
 > **警告：**  
-> 库开发中,仅供技术预览.
+> 库开发中,当前仅供技术预览.
   
 
-跨平台的GUI库，基于Skia绘图后端。
+跨平台的GUI库，基于SDL3窗口管理,Skia绘图后端。
 
 # 构建方法
 
-- 建立一个model文件夹，用于存放依赖库(后续会简化流程,但不是现在)
+- `git submodule init`
+- `git submodule update`
+- 构建skia(modules/projects/skia)
   > 可以参考我的博客文章  
   > [windows编译SKIA](https://blog.hyiy.top/archives/30/)
-- 在model内构建skia/boost
-    - model结构
-    ```
-    model
-    ├── boost
-    │   ├── include
-    │   └── lib
-    ├── skia
-    │   ├── include
-    │   └── out
-    │       ├── debug_x64_static
-    │       └── release_x64_static
-    ```
 - 使用cmake构建
   ```cmd
     mkdir build
     cd build
-    cmake ..-DCMAKE_BUILD_TYPE=Debug -DMODULES_DIR="你的model文件夹路径" -DSKIA_PATH="你的skia文件夹路径"
+    cmake ..
     cmake --build .
-    :: 运行Debug下的HelloWorld.exe试试吧
   ```
+  > 运行Debug下的HelloWorld试试吧
 
 # 说明
 
-以Skia为绘图后端的跨平台GUI库，使用C接口导出，支持各种语言(C/C++/GO/Python/Rust等)调用。
+以Skia为绘图后端,SDL3抽象窗口管理的跨平台GUI库，使用C接口导出，支持各种语言(C/C++/GO/Python/Rust等)调用。
 
 # 计划
 
 - [ ] 支持窗口主题
-- [ ] 窗口事件
-    - [ ] windows
-        - [x] 进行中
-    - [ ] linux
-    - [ ] macos
-    - [ ] android
-    - [ ] ios
+- [x] 窗口事件
+    - [ ] windows/linux/macos
+      - [x] 进行中
+    - [ ] android(待定)
+    - [ ] ios(待定)
     - [ ] web/webassembly(待定)
 - [ ] 完善窗口绘制
+  - [x] 进行中
 - [ ] 完善子组件绘制
     - [ ] 组件消息
         - [x] 进行中
-    - [ ] 组件绘制
-    - [ ] 组件嵌套绘制
-        - [x] 进行中
+    - [x] 组件绘制
+    - [x] 组件嵌套绘制
 - [ ] 局部重绘
 - [ ] 跨平台支持
-    - [ ] windows
-        - [x] 开发中
-    - [ ] linux
-    - [ ] macos
+    - [x] windows
+    - [x] linux
+    - [x] macos
     - [ ] android
-    - [ ] ios
+    - [ ] ios(待定)
     - [ ] web/webassembly(待定)
 - [ ] 抽象/封装skia相关api
     - [ ] 绘图
@@ -88,8 +74,8 @@
 - [ ] 主题包
 - [ ] 内嵌资源
 - [ ] 多语言绑定/包装
-    - [ ] C
-    - [ ] C++
+    - [x] C
+    - [x] C++
     - [ ] GO
     - [ ] Python
     - [ ] Rust

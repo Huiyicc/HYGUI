@@ -4,30 +4,12 @@
 
 #ifndef HYGUI_DEFINE_H
 #define HYGUI_DEFINE_H
-
-#ifdef _HYGUI_MODULE_
-
-#include "include/core/SkBitmap.h"
-#include "include/core/SkImage.h"
-#include "include/core/SkData.h"
-#include "include/core/SkCanvas.h"
-#include "include/core/SkPaint.h"
-#include <core/SkSurface.h>
-
-
-#else
-
-#define SkImage void
-#define SkSurface void
-#define SkCanvas void
-#define SkPaint void
-
-#endif
-
+#include "String.h"
+#include "TypeDef.h"
 #include <cstdint>
+#include <mutex>
 #include <set>
 #include <unordered_map>
-#include "String.h"
 
 namespace HYGUI {
 
@@ -38,38 +20,36 @@ enum class HYGlobalFlag : uint32_t {
   HYGlobalFlagGraphicDefault = HYGlobalFlagGraphicNone,
 };
 
-struct HYWindow;
+class HYWindow;
 
 typedef void *VOIDPTR;
 typedef intptr_t VOIDPTRT;
-typedef VOIDPTR WINDOWHANDEL;
-typedef SkImage *ImagePtr;
-typedef SkSurface *SurfacePtr;
-typedef SkCanvas *CanvasPtr;
-typedef SkPaint *PaintPtr;
 typedef VOIDPTR CursorPtr;
 
 
 struct ApplicationInfo {
   HYString LastError;
   VOIDPTR Instance = nullptr;
-  VOIDPTR GrContext = nullptr;
+  std::mutex LookupLock;
+  bool isRuning = false;
   HYGlobalFlag GlobalFlags = HYGlobalFlag::HYGlobalFlagGraphicDefault;
   HYString DefaultClassName;
   CursorPtr Cursor = nullptr;
   VOIDPTR Icon = nullptr;
   VOIDPTR IconSm = nullptr;
   std::set<HYWindow *> WindowsTable;
+  std::mutex WindowsTableMutex;
+  uint32_t EventCustomStart;
+  uint32_t EventWindow;
+  uint32_t EventObject;
+  FontMgrPtr FontMgr;
+  TypefacePtr DefaultTypeface;
+  std::unordered_map<HYString, TypefacePtr> FontTable;
 };
 
-struct HYRect {
-  int x = 0;
-  int y = 0;
-  int width = 0;
-  int height = 0;
-};
+}// namespace HYGUI
 
-}
+#include "Cursor.h"
+#include "Point.h"
 
-
-#endif //HYGUI_DEFINE_H
+#endif//HYGUI_DEFINE_H

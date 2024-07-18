@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="hd"
+                 name="HYGUI Doc"
+                 start-page="starter.md">
+
+    <toc-element topic="starter.md"/>
+    <toc-element topic="API参考.md">
+        <toc-element topic="Application.md">
+            <toc-element topic="HYInit.md"/>
+            <toc-element topic="HYExit.md"/>
+        </toc-element>
+        <toc-element topic="Window-h.md">
+            <toc-element topic="HYWindowCreate.md"/>
+            <toc-element topic="HYWindowDestroy.md"/>
+            <toc-element topic="HYWindowShow.md"/>
+            <toc-element topic="HYWindowMessageLoop.md"/>
+            <toc-element topic="HYWindowGetWindowFromHandle.md"/>
+            <toc-element topic="HYWindowSkinHook.md"/>
+            <toc-element topic="HYWindowSendEvent.md"/>
+            <toc-element topic="HYWindowUserDataAdd.md"/>
+            <toc-element topic="HYWindowUserDataRemove.md"/>
+        </toc-element>
+    </toc-element>
+    <toc-element topic="Object-h.md"/>
+</instance-profile>
