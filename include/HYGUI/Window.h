@@ -39,7 +39,7 @@ struct WindowHandelInfo {
   * 当isWayland为true时为struct wl_display *display
   * 当isWayland为false时为Display * xdisplay (x11)
   */
-  void *handle = nullptr;
+  VOIDPTR handle = nullptr;
   /**
    * 保留字段
    * 当isWayland为true时为struct wl_surface * surface
@@ -47,6 +47,10 @@ struct WindowHandelInfo {
    */
   uintptr_t reserve = 0;
 #elif defined(_HOST_WINDOWS_)
+  /**
+  * 窗口句柄
+  */
+  HWND handle = nullptr;
 #elif defined(_HOST_APPLE_)
 #endif
 };
@@ -67,7 +71,7 @@ public:
   bool Show = false;
   bool isTransparent = false;
 
-  WindowHandelInfo Handle = {false};
+  WindowHandelInfo Handle = {};
   SurfacePtr Surface = nullptr;
   CanvasPtr Canvas = nullptr;
 

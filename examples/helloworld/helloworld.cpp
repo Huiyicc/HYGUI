@@ -43,5 +43,6 @@ int main() {
   HYWindowShow(wind);
   HYWindowMessageLoop();
   std::this_thread::sleep_for(std::chrono::seconds(3));
+  HYExit();
   return 0;
 }

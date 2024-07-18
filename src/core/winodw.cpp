@@ -95,21 +95,21 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     PrintDebug("{}", SDL_GetError());
   }
   auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), width, height,
-                                   SDL_WINDOW_OPENGL // opengl
-                                   | SDL_WINDOW_HIGH_PIXEL_DENSITY // 高dpi
-                                   //                                     | SDL_WINDOW_HIDDEN       // 隐藏
-                                   | SDL_WINDOW_RESIZABLE // 可调整大小
-                                   | SDL_WINDOW_BORDERLESS // 无边框
-                                   | SDL_WINDOW_TRANSPARENT);
+                                   SDL_WINDOW_OPENGL                // opengl
+                                     | SDL_WINDOW_HIGH_PIXEL_DENSITY// 高dpi
+                                     //                                     | SDL_WINDOW_HIDDEN       // 隐藏
+                                     | SDL_WINDOW_RESIZABLE // 可调整大小
+                                     | SDL_WINDOW_BORDERLESS// 无边框
+                                     | SDL_WINDOW_TRANSPARENT);
   if (sdl_wind == nullptr) {
     return nullptr;
   }
 
   SDL_HideWindow(sdl_wind);
   HYResourceRegister(ResourceType::ResourceType_Window, sdl_wind, "sdl window", [](void *resource) {
-                     std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
-                     SDL_DestroyWindow((SDL_Window *) resource);
-                     });
+    std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
+    SDL_DestroyWindow((SDL_Window *) resource);
+  });
 
   // 创建OpenGL上下文
   SDL_GLContext glContext = SDL_GL_CreateContext(sdl_wind);
@@ -118,8 +118,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     return nullptr;
   }
   HYResourceRegisterOther(glContext, "SDL_GLContext", [](void *resource) {
-                          SDL_GL_DestroyContext((SDL_GLContext) resource);
-                          });
+    SDL_GL_DestroyContext((SDL_GLContext) resource);
+  });
   // 切换到OpenGL上下文
   int success = SDL_GL_MakeCurrent(sdl_wind, glContext);
   if (success != 0) {
@@ -129,7 +129,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   }
   // auto opengl_buffer = SDL_GetProperty(SDL_GetWindowProperties(sdl_wind), SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, nullptr);
   // glEnable(GL_MULTISAMPLE);
-  static const int kMsaaSampleCount = 0; //4;
+  static const int kMsaaSampleCount = 0;//4;
 
   int contextType;
   SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextType);
@@ -165,10 +165,10 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   auto window = new HYWindow;
   auto grctx = grContext.release();
   window->GrCtx = HYResourceRegisterOther(grctx, "GrDirectContext", [](void *resource) {
-                                          auto ctx = (GrDirectContext *) resource;
-                                          ctx->abandonContext();
-                                          SkSafeUnref(ctx);
-                                          });
+    auto ctx = (GrDirectContext *) resource;
+    ctx->abandonContext();
+    SkSafeUnref(ctx);
+  });
   //window->GrCtx = HYResourceRegisterOther(grctx, "GrDirectContext", nullptr);
   window->SDLOpenGl = glContext;
   window->ID = SDL_GetWindowID(sdl_wind);
@@ -196,8 +196,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   }
   g_app.WindowsTable.insert(window);
   HYResourceRegister(ResourceType::ResourceType_Window, window, "hywindow", [](void *resource) {
-                     delete (HYWindow *) resource;
-                     });
+    delete (HYWindow *) resource;
+  });
   HYResourceRemoveClearFunc(ResourceType::ResourceType_Window, sdl_wind);
   return window;
 }
@@ -238,7 +238,7 @@ void window_paint(HYWindow *windowPtr, void *evevt) {
 };
 
 
-std::map<uint32_t, std::function<void(HYWindow *, void *)> > g_win_event_map = {
+std::map<uint32_t, std::function<void(HYWindow *, void *)>> g_win_event_map = {
   {HYWindowEvent::HYWindowEvent_Paint, window_paint},
 };
 
@@ -424,7 +424,7 @@ void window_recreate_surface(HYWindow *windowPtr) {
     HYResourceRemove(ResourceType::ResourceType_Other, windowPtr->Surface);
   }
 
-  SDL_GL_MakeCurrent(windowPtr->SDLWindow, (SDL_GLContext)windowPtr->SDLOpenGl);
+  SDL_GL_MakeCurrent(windowPtr->SDLWindow, (SDL_GLContext) windowPtr->SDLOpenGl);
 
   // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
   SDL_GetWindowSizeInPixels(windowPtr->SDLWindow, &windowPtr->ClientRect.width, &windowPtr->ClientRect.height);
@@ -493,7 +493,7 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, dou
     wnd->CursorMap[cursor] = HYResourceRegister(ResourceType::ResourceType_Cursor,
                                                 SDL_CreateSystemCursor((SDL_SystemCursor) cursor),
                                                 "sdl cursor", [](void *resource) {
-                                                SDL_DestroyCursor((SDL_Cursor *) resource);
+                                                  SDL_DestroyCursor((SDL_Cursor *) resource);
                                                 });
   }
   window_hook_handel(wnd);
@@ -603,7 +603,8 @@ void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
 WindowHandelInfo HYWindowGetHandel(HYWindowHandel wnd) {
 #if defined(_HOST_WINDOWS_)
   // HWND
-  return SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+  return {
+    .handle = (HWND) SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr)};
 #elif defined(_HOST_MACOS_)
   NSWindow *nswindow = (__bridge NSWindow *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL);
   if (nswindow) {
@@ -631,13 +632,13 @@ WindowHandelInfo HYWindowGetHandel(HYWindowHandel wnd) {
     GLuint colorbuffer = (GLuint) SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RENDERBUFFER_NUMBER, 0);
     GLuint resolveFramebuffer = (GLuint) SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RESOLVE_FRAMEBUFFER_NUMBER, 0);
   }
-  return ;
+  return;
 #else
 #error "Not support"
 #endif
 }
 
-HYWindow *HYWindowGetWindowFromHandle(const WindowHandelInfo& handle) {
+HYWindow *HYWindowGetWindowFromHandle(const WindowHandelInfo &handle) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   auto &debug_app = g_app;
   if (!g_app.WindowsTable.empty()) {
@@ -681,4 +682,4 @@ void HYWindowSendEventRePaint(HYWindow *wind) {
   event.window.data2 = 0;
   SDL_PushEvent(&event);
 }
-} // namespace HYGUI
+}// namespace HYGUI

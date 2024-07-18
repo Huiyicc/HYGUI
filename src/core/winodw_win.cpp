@@ -11,7 +11,7 @@
 namespace HYGUI {
 
 void window_hook_handel(HYWindow *windowPtr) {
-  if (!windowPtr->Handle) return;
+  if (!windowPtr->Handle.handle) return;
   //圆角窗口
 //  HRGN hRgn;
 //  RECT rect;
@@ -25,7 +25,7 @@ void window_hook_handel(HYWindow *windowPtr) {
 void adjustwindow_by_sdl(HYWindowHandel window, void *newhandel) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   HWND hWnd = (HWND) newhandel;
-  window->Handle = hWnd;
+  window->Handle.handle = hWnd;
   SDL_GetWindowPosition(window->SDLWindow, &window->X, &window->Y);
   SDL_GetWindowSize(window->SDLWindow, &window->Width, &window->Height);
   window->ClientRect = {0, 0, window->Width, window->Height};
