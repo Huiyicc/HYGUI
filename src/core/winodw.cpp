@@ -604,9 +604,9 @@ WindowHandelInfo HYWindowGetHandel(HYWindowHandel wnd) {
 #if defined(_HOST_WINDOWS_)
   // HWND
   return {
-    .handle = (HWND) SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr)};
+    .handle = (HWND) SDL_GetPropertyType(SDL_GetWindowProperties(wnd->SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER)};
 #elif defined(_HOST_MACOS_)
-  NSWindow *nswindow = (__bridge NSWindow *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL);
+  NSWindow *nswindow = (__bridge NSWindow *) SDL_GetPropertyType(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER);
   if (nswindow) {
     ...
   }
