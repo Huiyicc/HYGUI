@@ -21,6 +21,9 @@
 #elif defined(_HOST_APPLE_)
 #include "SDL2/SDL_opengl.h"
 #include "include/gpu/gl/GrGLInterface.h"
+#elif defined(_HOST_LINUX_)
+#include "include/ports/SkFontConfigInterface.h"
+#include "include/ports/SkFontMgr_FontConfigInterface.h"
 #endif
 
 //#include <GLFW/glfw3.h>
@@ -83,7 +86,8 @@ bool HYInit(VOIDPTR ModuleHandle,
 #if defined(_HOST_WINDOWS_)
   auto mgr = SkFontMgr_New_DirectWrite();
 #elif defined(_HOST_LINUX_)
-  auto mgr = SkFontMgr_New_FontConfig(nullptr);
+  sk_sp<SkFontConfigInterface> fci(SkFontConfigInterface::RefGlobal());
+  auto mgr = fci ? SkFontMgr_New_FCI(std::move(fci)) : nullptr;
 #elif defined(_HOST_MACOS_)
   auto mgr = SkFontMgr_New_CoreText(nullptr);
 #else
@@ -120,7 +124,10 @@ bool HYInit(VOIDPTR ModuleHandle,
                                                                 SkSafeUnref((SkTypeface *) ptr);
                                                               });
 #else
-#error "Unsupported platform"
+    g_app.DefaultTypeface = (SkTypeface *) HYResourceRegister(ResourceType::ResourceType_Typeface,
+                                                              g_app.FontMgr->legacyMakeTypeface("FangSong", SkFontStyle()).release(), "", [](void *ptr) {
+                                                                SkSafeUnref((SkTypeface *) ptr);
+                                                              });
 #endif
   }
 

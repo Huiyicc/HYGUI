@@ -156,7 +156,7 @@ HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, in
   if (!window) {
     return nullptr;
   }
-  if (!window->Handle) {
+  if (!window->Handle.handle) {
     return nullptr;
   }
   return new HYObject{window, parent, x, y, width, height, className, name, id};

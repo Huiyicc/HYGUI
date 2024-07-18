@@ -24,7 +24,6 @@ class HYWindow;
 
 typedef void *VOIDPTR;
 typedef intptr_t VOIDPTRT;
-typedef VOIDPTR WINDOWHANDEL;
 typedef VOIDPTR CursorPtr;
 
 

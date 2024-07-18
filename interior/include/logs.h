@@ -7,6 +7,8 @@
 
 #include "format"
 #include <chrono>
+#include <string>
+#include <cstring>
 #include <iostream>
 
 namespace HYGUI {

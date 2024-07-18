@@ -17,11 +17,10 @@
 #endif
 
 struct SDL_Window;
-struct SkPath;
+class SkPath;
 struct SDL_Renderer;
 
 namespace HYGUI {
-
 #ifdef _HOST_WINDOWS_
 constexpr int WINDOWCREATEPOINT_USEDEFAULT = CW_USEDEFAULT;
 #elif defined(_HOST_APPLE_) || defined(_HOST_LINUX_)
@@ -32,13 +31,34 @@ constexpr int WINDOWCREATEPOINT_USEDEFAULT = std::numeric_limits<int>::max();
 class HYWindow;
 typedef HYWindow *HYWindowHandel;
 
+struct WindowHandelInfo {
+#ifdef _HOST_LINUX_
+  bool isWayland = false;
+  /**
+  * 显示字段
+  * 当isWayland为true时为struct wl_display *display
+  * 当isWayland为false时为Display * xdisplay (x11)
+  */
+  void *handle = nullptr;
+  /**
+   * 保留字段
+   * 当isWayland为true时为struct wl_surface * surface
+   * 当isWayland为false时为Window xwindow (x11)
+   */
+  uintptr_t reserve = 0;
+#elif defined(_HOST_WINDOWS_)
+#elif defined(_HOST_APPLE_)
+#endif
+};
+
 class HYWindow {
 public:
   virtual ~HYWindow();
-  VOIDPTR GrCtx = nullptr;    // 设备上下文
-  VOIDPTR SDLOpenGl = nullptr;// sdl设备上下文
 
-  int kStencilBits = 8;// skia需要8位模板缓冲区
+  VOIDPTR GrCtx = nullptr; // 设备上下文
+  VOIDPTR SDLOpenGl = nullptr; // sdl设备上下文
+
+  int kStencilBits = 8; // skia需要8位模板缓冲区
 
   uint32_t ID = 0;
   SDL_Window *SDLWindow = nullptr;
@@ -47,39 +67,39 @@ public:
   bool Show = false;
   bool isTransparent = false;
 
-  WINDOWHANDEL Handle = nullptr;
+  WindowHandelInfo Handle = {false};
   SurfacePtr Surface = nullptr;
   CanvasPtr Canvas = nullptr;
 
   bool IsReady = false;
-  int Width = 0;                   // 窗口宽度
-  int Height = 0;                  // 窗口高度
-  int X = 0;                       // 窗口左上角x坐标
-  int Y = 0;                       // 窗口左上角y坐标
-  float round = 0;                    // 窗口圆角度
-  float ry = 0;                    // y轴圆角半径
-  HYRect ClientRect = {0, 0, 0, 0};// 客户区域
-  SkPath* GlobalClipPath = nullptr;
+  int Width = 0; // 窗口宽度
+  int Height = 0; // 窗口高度
+  int X = 0; // 窗口左上角x坐标
+  int Y = 0; // 窗口左上角y坐标
+  float round = 0; // 窗口圆角度
+  float ry = 0; // y轴圆角半径
+  HYRect ClientRect = {0, 0, 0, 0}; // 客户区域
+  SkPath *GlobalClipPath = nullptr;
 
-  int TitleBarHeight = 30;// 标题栏高度
-  int BackGroundColor = {0};// 背景颜色
-  int Diaphaneity = 255;  // 透明度
-  HYString Title;        // 窗口标题
+  int TitleBarHeight = 30; // 标题栏高度
+  int BackGroundColor = {0}; // 背景颜色
+  int Diaphaneity = 255; // 透明度
+  HYString Title; // 窗口标题
   HYObjectEventQueue EventQueue;
 
-  bool Drag = false;                 // 是否拖动
-  int DragType = 0;                  // 拖动类型
-  int DragType1 = 0;                 // 拖动类型(标记左右/上下)
-  HYPoint oldMousePoint = {0, 0};    // 旧鼠标位置
-  HYPoint oldMouseMovePoint = {0, 0};// 旧鼠标移动位置 (win下有可能无限触发移动事件)
-  HYRect oldWinRect = {0, 0, 0, 0};  // 旧窗口位置
+  bool Drag = false; // 是否拖动
+  int DragType = 0; // 拖动类型
+  int DragType1 = 0; // 拖动类型(标记左右/上下)
+  HYPoint oldMousePoint = {0, 0}; // 旧鼠标位置
+  HYPoint oldMouseMovePoint = {0, 0}; // 旧鼠标移动位置 (win下有可能无限触发移动事件)
+  HYRect oldWinRect = {0, 0, 0, 0}; // 旧窗口位置
 
-  std::mutex PaintMutex;                            // 绘制锁
-  std::condition_variable PaintCV;                  // 绘制条件变量
-  std::mutex MessageMutex;                          // 消息锁
-  std::unordered_map<intptr_t, intptr_t> UserData;  // 用户数据
-  std::unordered_map<intptr_t, CursorPtr> CursorMap;// 光标映射
-  std::set<HYObject *> Children;                    // 组件树
+  std::mutex PaintMutex; // 绘制锁
+  std::condition_variable PaintCV; // 绘制条件变量
+  std::mutex MessageMutex; // 消息锁
+  std::unordered_map<intptr_t, intptr_t> UserData; // 用户数据
+  std::unordered_map<intptr_t, CursorPtr> CursorMap; // 光标映射
+  std::set<HYObject *> Children; // 组件树
 };
 
 
@@ -106,7 +126,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title,
 void HYWindowDestroy(HYWindowHandel wnd);
 
 
-void* HYWindowGetHandel(HYWindowHandel wnd);
+WindowHandelInfo HYWindowGetHandel(HYWindowHandel wnd);
 
 /**
  * @brief 显示窗口
@@ -129,17 +149,18 @@ uint32_t HYWindowMessageLoopDialog(HYWindowHandel wnd, HYWindowHandel parent = n
  * @param handle 窗口句柄
  * @return
  */
-HYWindowHandel HYWindowGetWindowFromHandle(WINDOWHANDEL handle);
+HYWindowHandel HYWindowGetWindowFromHandle(const WindowHandelInfo& handle);
+
 HYWindow *HYWindowGetWindowFromID(int id);
 
-  /**
- * @brief 挂接窗口皮肤
- * @param wnd 窗口指针
- * @param backGroundColor 背景颜色 RGB
- * @param diaphaneity 窗口透明度
- * @param round 窗口圆角半径
- */
-void HYWindowSkinHook(HYWindowHandel wnd, HYRGB backGroundColor, int diaphaneity, double round=0);
+/**
+* @brief 挂接窗口皮肤
+* @param wnd 窗口指针
+* @param backGroundColor 背景颜色 RGB
+* @param diaphaneity 窗口透明度
+* @param round 窗口圆角半径
+*/
+void HYWindowSkinHook(HYWindowHandel wnd, HYRGB backGroundColor, int diaphaneity, double round = 0);
 
 /**
  * @brief 发送窗口事件
@@ -177,8 +198,6 @@ void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
                                                      intptr_t value)> &callback = nullptr);
 
 void HYWindowSendEventRePaint(HYWindow *wind);
-
-
-}// namespace HYGUI
+} // namespace HYGUI
 
 #endif//HYGUI_WINDOW_H

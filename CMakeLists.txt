@@ -150,9 +150,9 @@ elseif (OS_IS_APPLE)
     target_link_libraries(HYGUI PRIVATE  icudata icutu icui18n icuuc SDL2 ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY} OpenGL::GL)
 
 elseif (OS_IS_LINUX)
-    target_link_libraries(HYGUI PRIVATE SDL2 X11
+    target_link_libraries(HYGUI PRIVATE SDL3::SDL3-static X11
             GL GLU glut
-            png jpeg freetype
+            png jpeg freetype fontconfig
     )
 
 endif ()

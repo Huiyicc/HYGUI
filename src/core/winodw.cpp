@@ -19,6 +19,23 @@
 #include <include/gpu/gl/GrGLAssembleInterface.h>
 #include <map>
 #include <mutex>
+#ifdef _HOST_LINUX_
+#include <X11/Xlib.h>
+#endif
+
+#include "SDL3/SDL.h"
+#include "include/core/SkCanvas.h"
+#include "include/gpu/gl/GrGLTypes.h"
+// #include "include/gpu/ganesh/SkSurfaceGanesh.h"
+#include "include/core/SkColorSpace.h"
+#include "include/core/SkSurface.h"
+#include "include/gpu/GrBackendSurface.h"
+#include "include/gpu/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
+#include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_system.h>
+#include <gpu/ganesh/SkSurfaceGanesh.h>
+#include <src/gpu/ganesh/gl/GrGLDefines.h>
 
 namespace HYGUI {
 HYWindow::~HYWindow() {
@@ -48,12 +65,10 @@ HYWindow::~HYWindow() {
     HYResourceRemove(ResourceType::ResourceType_Other, GrCtx);
     GrCtx = nullptr;
   }
-
-
 }
 
 void HYWindowDestroy(HYWindowHandel wnd) {
-  if (!wnd->Handle) { return; }
+  if (!wnd->Handle.handle) { return; }
   std::lock_guard<std::mutex> lock_lookup(g_app.LookupLock);
   std::lock_guard<std::mutex> lock_table(g_app.WindowsTableMutex);
 
@@ -80,21 +95,21 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     PrintDebug("{}", SDL_GetError());
   }
   auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), width, height,
-                                   SDL_WINDOW_OPENGL                // opengl
-                                     | SDL_WINDOW_HIGH_PIXEL_DENSITY// 高dpi
-                                                                    //                                     | SDL_WINDOW_HIDDEN       // 隐藏
-                                     | SDL_WINDOW_RESIZABLE         // 可调整大小
-                                     | SDL_WINDOW_BORDERLESS        // 无边框
-                                     | SDL_WINDOW_TRANSPARENT);
+                                   SDL_WINDOW_OPENGL // opengl
+                                   | SDL_WINDOW_HIGH_PIXEL_DENSITY // 高dpi
+                                   //                                     | SDL_WINDOW_HIDDEN       // 隐藏
+                                   | SDL_WINDOW_RESIZABLE // 可调整大小
+                                   | SDL_WINDOW_BORDERLESS // 无边框
+                                   | SDL_WINDOW_TRANSPARENT);
   if (sdl_wind == nullptr) {
     return nullptr;
   }
 
   SDL_HideWindow(sdl_wind);
   HYResourceRegister(ResourceType::ResourceType_Window, sdl_wind, "sdl window", [](void *resource) {
-    std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
-    SDL_DestroyWindow((SDL_Window *) resource);
-  });
+                     std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
+                     SDL_DestroyWindow((SDL_Window *) resource);
+                     });
 
   // 创建OpenGL上下文
   SDL_GLContext glContext = SDL_GL_CreateContext(sdl_wind);
@@ -103,8 +118,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
     return nullptr;
   }
   HYResourceRegisterOther(glContext, "SDL_GLContext", [](void *resource) {
-    SDL_GL_DestroyContext((SDL_GLContext) resource);
-  });
+                          SDL_GL_DestroyContext((SDL_GLContext) resource);
+                          });
   // 切换到OpenGL上下文
   int success = SDL_GL_MakeCurrent(sdl_wind, glContext);
   if (success != 0) {
@@ -114,7 +129,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   }
   // auto opengl_buffer = SDL_GetProperty(SDL_GetWindowProperties(sdl_wind), SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, nullptr);
   // glEnable(GL_MULTISAMPLE);
-  static const int kMsaaSampleCount = 0;//4;
+  static const int kMsaaSampleCount = 0; //4;
 
   int contextType;
   SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextType);
@@ -150,10 +165,10 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   auto window = new HYWindow;
   auto grctx = grContext.release();
   window->GrCtx = HYResourceRegisterOther(grctx, "GrDirectContext", [](void *resource) {
-    auto ctx = (GrDirectContext *) resource;
-    ctx->abandonContext();
-    SkSafeUnref(ctx);
-  });
+                                          auto ctx = (GrDirectContext *) resource;
+                                          ctx->abandonContext();
+                                          SkSafeUnref(ctx);
+                                          });
   //window->GrCtx = HYResourceRegisterOther(grctx, "GrDirectContext", nullptr);
   window->SDLOpenGl = glContext;
   window->ID = SDL_GetWindowID(sdl_wind);
@@ -161,7 +176,7 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   window->ClientRect = {0, 0, dw, dh};
 
   auto hWnd = HYWindowGetHandel(window);
-  if (hWnd == nullptr) {
+  if (hWnd.handle == nullptr) {
     g_app.LastError = "Create window fail";
     HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
     HYResourceRemove(ResourceType::ResourceType_Other, glContext);
@@ -181,8 +196,8 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   }
   g_app.WindowsTable.insert(window);
   HYResourceRegister(ResourceType::ResourceType_Window, window, "hywindow", [](void *resource) {
-    delete (HYWindow *) resource;
-  });
+                     delete (HYWindow *) resource;
+                     });
   HYResourceRemoveClearFunc(ResourceType::ResourceType_Window, sdl_wind);
   return window;
 }
@@ -223,7 +238,7 @@ void window_paint(HYWindow *windowPtr, void *evevt) {
 };
 
 
-std::map<uint32_t, std::function<void(HYWindow *, void *)>> g_win_event_map = {
+std::map<uint32_t, std::function<void(HYWindow *, void *)> > g_win_event_map = {
   {HYWindowEvent::HYWindowEvent_Paint, window_paint},
 };
 
@@ -330,7 +345,6 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
         window->Height = window->oldWinRect.height + wp.y - window->oldMousePoint.y;
         SDL_SetWindowSize(window->SDLWindow, window->Width, window->Height);
       }
-
     } else if (window->DragType == HY_SYSTEM_CURSOR_SIZENESW) {
       // 处于左下/右上角调整窗口尺寸
       auto wp = HYMouseGetPosition();
@@ -349,7 +363,6 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
         SDL_SetWindowPosition(window->SDLWindow, window->X, window->Y);
         SDL_SetWindowSize(window->SDLWindow, window->Width, window->Height);
       }
-
     } else if (window->DragType == HY_SYSTEM_CURSOR_SIZEWE) {
       // 处于左右边缘调整窗口尺寸
       auto wp = HYMouseGetPosition();
@@ -364,7 +377,6 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
         window->Width = window->oldWinRect.width + wp.x - window->oldMousePoint.x;
         SDL_SetWindowSize(window->SDLWindow, window->Width, window->Height);
       }
-
     } else if (window->DragType == HY_SYSTEM_CURSOR_SIZENS) {
       // 处于上下边缘调整窗口尺寸
       auto wp = HYMouseGetPosition();
@@ -379,7 +391,6 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
         window->Height = window->oldWinRect.height + wp.y - window->oldMousePoint.y;
         SDL_SetWindowSize(window->SDLWindow, window->Width, window->Height);
       }
-
     } else if (window->DragType == HY_SYSTEM_CURSOR_SIZENWSE) {
       // 处于左下角调整窗口尺寸
       auto wp = HYMouseGetPosition();
@@ -405,6 +416,51 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
     }
   }
   return 0;
+}
+
+void window_recreate_surface(HYWindow *windowPtr) {
+  // 更新HDC/画笔尺寸
+  if (windowPtr->Surface) {
+    HYResourceRemove(ResourceType::ResourceType_Other, windowPtr->Surface);
+  }
+
+  SDL_GL_MakeCurrent(windowPtr->SDLWindow, (SDL_GLContext)windowPtr->SDLOpenGl);
+
+  // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
+  SDL_GetWindowSizeInPixels(windowPtr->SDLWindow, &windowPtr->ClientRect.width, &windowPtr->ClientRect.height);
+
+  glViewport(0, 0, windowPtr->ClientRect.width, windowPtr->ClientRect.height);
+  GrGLint buffer;
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
+  GrGLFramebufferInfo binfo;
+  binfo.fFBOID = (GrGLuint) buffer;
+#if defined(_HOST_ANDROID_)
+  binfo.fFormat = GL_RGBA8_OES;
+#else
+  binfo.fFormat = GL_RGBA8;
+#endif
+  auto grtarget = GrBackendRenderTargets::MakeGL(windowPtr->ClientRect.width,
+                                                 windowPtr->ClientRect.height,
+                                                 0, 8,
+                                                 binfo);
+
+  SkSurfaceProps props = {0, kUnknown_SkPixelGeometry};
+
+  sk_sp<SkSurface> surface(SkSurfaces::WrapBackendRenderTarget(((GrDirectContext *) windowPtr->GrCtx), grtarget,
+                                                               kBottomLeft_GrSurfaceOrigin,
+                                                               kRGBA_8888_SkColorType, nullptr, &props));
+  windowPtr->Surface = surface.release();
+  if (!windowPtr->Surface) {
+    // 硬件加速失败
+    PrintError("Hardware acceleration failed, fallback to software rendering");
+    exit(1);
+  }
+  HYResourceRegisterOther(windowPtr->Surface, "skia surface", [](void *ptr) {
+    SkSafeUnref((SkSurface *) ptr);
+  });
+  windowPtr->Canvas = windowPtr->Surface->getCanvas();
+
+  HYWindowSendEventRePaint(windowPtr);
 }
 
 void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, double round) {
@@ -437,7 +493,7 @@ void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, dou
     wnd->CursorMap[cursor] = HYResourceRegister(ResourceType::ResourceType_Cursor,
                                                 SDL_CreateSystemCursor((SDL_SystemCursor) cursor),
                                                 "sdl cursor", [](void *resource) {
-                                                  SDL_DestroyCursor((SDL_Cursor *) resource);
+                                                SDL_DestroyCursor((SDL_Cursor *) resource);
                                                 });
   }
   window_hook_handel(wnd);
@@ -496,10 +552,8 @@ uint32_t HYWindowMessageLoop() {
       SDL_GetWindowPosition(window->SDLWindow, &window->X, &window->Y);
     } else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_MOUSE_LEAVE) {
       // 窗口失去焦点
-
     } else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_MOUSE_ENTER) {
       // 窗口获得焦点
-
     } else if (event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
       // 窗口大小/位置改变
       SDL_GetWindowSize(window->SDLWindow, &window->Width, &window->Height);
@@ -514,7 +568,6 @@ uint32_t HYWindowMessageLoop() {
       if (handleMouseButtonUp(&event, window) != 0) {
         continue;
       }
-
     } else if (event.type == SDL_EventType::SDL_EVENT_MOUSE_MOTION) {
       // 鼠标移动事件
       if (handleMouseMotion(&event, window) != 0) {
@@ -547,7 +600,7 @@ void HYWindowUserDataRemove(HYWindowHandel window, intptr_t key,
   }
 }
 
-void *HYWindowGetHandel(HYWindowHandel wnd) {
+WindowHandelInfo HYWindowGetHandel(HYWindowHandel wnd) {
 #if defined(_HOST_WINDOWS_)
   // HWND
   return SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
@@ -558,17 +611,17 @@ void *HYWindowGetHandel(HYWindowHandel wnd) {
   }
 #elif defined(_HOST_LINUX_)
   if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "x11") == 0) {
-    Display *xdisplay = (Display *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
-    Window xwindow = (Window) SDL_GetNumberProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
-    if (xdisplay && xwindow) {
-      ...
-    }
+    auto xdisplay = (Display *) SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow),
+                                                SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
+    auto xwindow = (Window) SDL_GetNumberProperty(SDL_GetWindowProperties(wnd->SDLWindow),
+                                                  SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+    return {false, xdisplay, xwindow};
   } else if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0) {
-    struct wl_display *display = (struct wl_display *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
-    struct wl_surface *surface = (struct wl_surface *) SDL_GetProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
-    if (display && surface) {
-      ...
-    }
+    struct wl_display *display = (struct wl_display *) SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow),
+                                                                       SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
+    struct wl_surface *surface = (struct wl_surface *) SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow),
+                                                                       SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
+    return {true, display, (uintptr_t) surface};
   }
 #elif defined(SDL_PLATFORM_IOS)
   SDL_PropertiesID props = SDL_GetWindowProperties(window);
@@ -578,17 +631,18 @@ void *HYWindowGetHandel(HYWindowHandel wnd) {
     GLuint colorbuffer = (GLuint) SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RENDERBUFFER_NUMBER, 0);
     GLuint resolveFramebuffer = (GLuint) SDL_GetNumberProperty(props, SDL_PROP_WINDOW_UIKIT_OPENGL_RESOLVE_FRAMEBUFFER_NUMBER, 0);
   }
+  return ;
 #else
 #error "Not support"
 #endif
 }
 
-HYWindow *HYWindowGetWindowFromHandle(WINDOWHANDEL handle) {
+HYWindow *HYWindowGetWindowFromHandle(const WindowHandelInfo& handle) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   auto &debug_app = g_app;
   if (!g_app.WindowsTable.empty()) {
     for (auto &iter: g_app.WindowsTable) {
-      if (iter->Handle == handle) {
+      if (iter->Handle.handle == handle.handle) {
         return iter;
       }
     }
@@ -627,5 +681,4 @@ void HYWindowSendEventRePaint(HYWindow *wind) {
   event.window.data2 = 0;
   SDL_PushEvent(&event);
 }
-
-}// namespace HYGUI
+} // namespace HYGUI
