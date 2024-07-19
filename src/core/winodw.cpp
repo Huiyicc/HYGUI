@@ -464,7 +464,7 @@ void window_recreate_surface(HYWindow *windowPtr) {
 }
 
 void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, double round) {
-  wnd->EventQueue.SetProcessCallback(processing_object_event);
+  //wnd->EventQueue.SetProcessCallback(processing_object_event);
   wnd->round = round;
   wnd->BackGroundColor = HYColorRGBToInt(backGroundColor);
   wnd->Diaphaneity = diaphaneity;
@@ -578,6 +578,17 @@ uint32_t HYWindowMessageLoop() {
       auto iter = g_win_event_map.find(event.window.reserved);
       if (iter != g_win_event_map.end())
         iter->second(window, &event.window);
+    } else if (event.type == g_app.EventObject) {
+      // 自定义组件事件
+      auto ts = (uint64_t *)event.user.data1;
+      auto object = (HYObjectHandle)ts;
+      auto param1 = *(uint64_t *)((uintptr_t(ts)+sizeof(uint64_t*)));
+      auto param2 = *(uint64_t *)((uintptr_t(ts)+sizeof(uint64_t*)+sizeof(uint64_t*)));
+      free(ts);
+      if (object) {
+        // HYObjectSendEvent(window, object, (HYObjectEvent)event.user.code, param1, param2);
+        _obj_event(window, object, (HYObjectEvent)event.user.code, param1, param2);
+      }
     }
     // ---------------------窗口事件---------------------------------
     //tic_fps_func();

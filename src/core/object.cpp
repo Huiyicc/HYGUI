@@ -12,7 +12,7 @@ namespace HYGUI {
 
 
 // 组件绘制消息
-int _obj_paint(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
+int _obj_paint(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
   int r = 0;
   for (auto &callback: obj->EventPaintCallbacks) {
     if (callback.second) {
@@ -32,7 +32,7 @@ int _obj_paint(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint
   return r;
 }
 
-int _obj_left_down(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
+int _obj_left_down(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
   int r = 0;
   auto mode = SDL_GetModState();
   auto [x, y] = HYPointFromLParam(param2);
@@ -48,13 +48,13 @@ int _obj_left_down(HYWindow *window, HYObject *obj, int event, uint64_t param1, 
 }
 
 // 组件事件_鼠标移动
-int _obj_mouse_move(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
+int _obj_mouse_move(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
   auto p = HYPointFromLParam(param2);
   // PrintDebug("obj_mouse_move {} {} {}", obj->Name.toStdStringView(), p.x, p.y);
   return 0;
 }
 
-std::map<int, std::function<int(HYWindow *, HYObject *, int, uint64_t, uint32_t)>> _obj_event_callback_map = {
+std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int64_t, int64_t)>> _obj_event_callback_map = {
   // 鼠标移动
   {HYObjectEvent_MouseMove, _obj_mouse_move},
   // 组件绘制
@@ -64,7 +64,14 @@ std::map<int, std::function<int(HYWindow *, HYObject *, int, uint64_t, uint32_t)
 
 };
 
-int _obj_event(HYWindow *window, HYObject *obj, int event, uint64_t param1, uint32_t param2) {
+int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  int r = 0;
+  if (obj->MessageEventFunc) {
+    r = obj->MessageEventFunc(window, obj, event, param1, param2);
+  }
+  if (r != 0) {
+    return r;
+  }
   auto iter = _obj_event_callback_map.find(event);
   if (iter != _obj_event_callback_map.end()) {
     return iter->second(window, obj, event, param1, param2);
@@ -79,8 +86,8 @@ int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_
 }
 
 HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
-                   const HYString &className, const HYString &name, int id) : Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height),
-                                                                              ClassName(std::make_shared<HYString>(className)), Name(std::make_shared<HYString>(name)), ID(id) {
+                   const HYString &className, const HYString &name, int id, HYObjectEventMessageHandel messageEventFunc) : Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height),
+                                                                                                                           ClassName(std::make_shared<HYString>(className)), Name(std::make_shared<HYString>(name)), ID(id), MessageEventFunc(std::move(messageEventFunc)) {
   RawObjRect = {x, y, width, height};
   if (parent) {
     parent->Children.insert(this);
@@ -162,15 +169,28 @@ HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, in
   return new HYObject{window, parent, x, y, width, height, className, name, id};
 }
 
-void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2) {
-  _obj_event(window, object, event, param1, param2);
+void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2) {
+  SDL_Event e;
+  auto& l = g_app;
+  e.type = g_app.EventObject;
+  e.user.windowID = window->ID;
+  e.user.code = (SDL_EventType)event;
+  e.user.timestamp = SDL_GetTicksNS();
+  auto ts = (uint64_t *)malloc(sizeof (uint64_t)*3);
+  ts[0] = uint64_t (object);
+  ts[1] = param1;
+  ts[2] = param2;
+  e.user.data1 = ts;
+  e.user.data2 = nullptr;
+  SDL_PushEvent(&e);
 }
 
-void HYObjectSendEventLIst(HYWindow *window, int event, uint64_t param1, uint32_t param2) {
+void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2) {
   for (auto &obj: window->Children) {
     _obj_event(window, obj, event, param1, param2);
   }
 }
+
 
 void HYObjectRefresh(HYObjectHandle object) {
   if (!object) {

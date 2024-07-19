@@ -327,8 +327,6 @@ public:
   void UnRegisterEventCharInputCallback(uint32_t id);
 
 
-
-
 };
 
 }// namespace HYGUI

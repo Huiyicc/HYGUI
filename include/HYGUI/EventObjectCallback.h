@@ -9,6 +9,16 @@
 namespace HYGUI {
 
 /**
+ * @brief 组件事件_消息事件
+ * @param HYWindow*: 窗口句柄
+ * @param HYObject*: 组件句柄
+ * @param HYObjectEvent: 事件类型,参考枚举值HYObjectEvent
+ * @param uint64_t: 参数1
+ * @param uint32_t: 参数2
+ * */
+typedef std::function<int(HYWindow *, HYObject *, HYObjectEvent, uint64_t, uint32_t)> HYObjectEventMessageHandel;
+
+/**
  * @brief 组件事件_创建
  * @param HYWindow*: 窗口句柄
  * @param HYObject*: 组件句柄

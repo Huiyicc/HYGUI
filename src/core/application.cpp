@@ -79,8 +79,8 @@ bool HYInit(VOIDPTR ModuleHandle,
     PrintError("{}",g_app.LastError.c_str());
     return false;
   }
-  g_app.EventWindow = g_app.EventCustomStart + 1;
-  g_app.EventObject = g_app.EventCustomStart + 2;
+  g_app.EventWindow = g_app.EventCustomStart;
+  g_app.EventObject = g_app.EventCustomStart + 1;
 
   // 加载字体
 #if defined(_HOST_WINDOWS_)

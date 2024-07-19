@@ -33,9 +33,10 @@ typedef HYObject *HYObjectHandle;
  * 标签控件用于显示文本信息，并可设置背景色。
  */
 class HYObject : public HYObjectBase {
+
 public:
   HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height, const HYString &className,
-           const HYString &name = "", int id = 0);
+           const HYString &name = "", int id = 0, HYObjectEventMessageHandel messageEventFunc = nullptr);
   ~HYObject() override;
 
   HYWindow *Window = nullptr;// 归属窗口
@@ -54,10 +55,12 @@ public:
   std::shared_ptr<HYString> Name;     // 组件名
   int ID = 0;                         // 组件ID
 
-  CanvasPtr Canvas = nullptr;                       // 画布,用于绘制,除了绘制事件外不应该直接操作
-                                                    //  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
-  std::set<HYObject *> Children;                    // 子对象
-  std::unordered_map<intptr_t, intptr_t> UserData;  // 用户数据
+  HYObjectEventMessageHandel MessageEventFunc = nullptr; // 用户消息事件回调
+
+  CanvasPtr Canvas = nullptr;                     // 画布,用于绘制,除了绘制事件外不应该直接操作
+                                                  //  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
+  std::set<HYObject *> Children;                  // 子对象
+  std::unordered_map<intptr_t, intptr_t> UserData;// 用户数据
 
   // 判断给定坐标是否在当前对象范围内
   bool contains(int px, int py) const;
@@ -141,23 +144,24 @@ void HYObjectSetID(HYObjectHandle object, int id);
  *
  * @param window 窗口的指针，事件将在这个窗口内被处理。
  * @param object 接收事件的对象的句柄。
- * @param event 发送的事件类型。
+ * @param event 发送的事件类型,参考枚举值 HYObjectEvent。
  * @param param1 事件的第一个参数，具体含义取决于事件类型。
  * @param param2 事件的第二个参数，具体含义取决于事件类型。
  */
-void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2);
+void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
+void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
 
-/**
- * @brief 向窗口内所有对象发送事件。
- *
- * @param window 窗口的指针，事件将在这个窗口内被处理。
- * @param object 接收事件的对象的句柄。
- * @param event 发送的事件类型。
- * @param param1 事件的第一个参数，具体含义取决于事件类型。
- * @param param2 事件的第二个参数，具体含义取决于事件类型。
- *
- * */
-void HYObjectSendEventLIst(HYWindow *window, int event, uint64_t param1, uint32_t param2);
+///**
+// * @brief 向窗口内所有对象发送事件。
+// *
+// * @param window 窗口的指针，事件将在这个窗口内被处理。
+// * @param object 接收事件的对象的句柄。
+// * @param event 发送的事件类型。
+// * @param param1 事件的第一个参数，具体含义取决于事件类型。
+// * @param param2 事件的第二个参数，具体含义取决于事件类型。
+// *
+// * */
+//void HYObjectSendEventLIst(HYWindow *window, int event, uint64_t param1, uint32_t param2);
 
 /**
  * @brief 为对象设置用户数据。

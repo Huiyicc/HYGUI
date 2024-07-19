@@ -153,8 +153,8 @@ int label_event_paint(HYWindow *window, HYObject *object) {
   return 0;
 }
 
-HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height)
-    : HYObject{window, parent, x, y, width, height, ObjectName}, Text{text} {
+HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height, HYObjectEventMessageHandel messageEventFunc)
+    : HYObject{window, parent, x, y, width, height, ObjectName, "", 0, std::move(messageEventFunc)}, Text{text} {
   RegisterEventPaintCallback(label_event_paint);
   RegisterEventLeftDownCallback(label_event_left_down);
   Font = HYFontCreateFromTypeface(HYTypefaceCreateFromDefault());
@@ -168,8 +168,8 @@ HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, 
 HYLabelhandle
 HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height) {
   auto label = new HYLabel{window, parent, text, x, y, width, height};
-  return HYResourceRegister(ResourceType::ResourceType_Object, label, "Label", [](void* ptr){
-    delete reinterpret_cast<HYLabel*>(ptr);
+  return HYResourceRegister(ResourceType::ResourceType_Object, label, "Label", [](void *ptr) {
+    delete reinterpret_cast<HYLabel *>(ptr);
   });
 }
 
