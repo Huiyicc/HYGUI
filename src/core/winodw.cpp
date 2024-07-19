@@ -91,9 +91,9 @@ HYWindowHandel HYWindowCreate(HYWindowHandel parent, const HYString &title, int 
   if (y == WINDOWCREATEPOINT_USEDEFAULT) {
     y = (dsinfo->h - height) / 2;
   }
-  if (SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8) != 0) {
-    PrintDebug("{}", SDL_GetError());
-  }
+  // if (SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8) != 0) {
+  //   PrintDebug("{}", SDL_GetError());
+  // }
   auto sdl_wind = SDL_CreateWindow(title.toStdString().c_str(), width, height,
                                    SDL_WINDOW_OPENGL                // opengl
                                      | SDL_WINDOW_HIGH_PIXEL_DENSITY// 高dpi
@@ -623,16 +623,16 @@ WindowHandelInfo HYWindowGetHandel(HYWindowHandel wnd) {
   }
 #elif defined(_HOST_LINUX_)
   if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "x11") == 0) {
-    auto xdisplay = (Display *) SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow),
-                                                SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
+    auto xdisplay = (Display *) SDL_GetPropertyType(SDL_GetWindowProperties(wnd->SDLWindow),
+                                                SDL_PROP_WINDOW_X11_DISPLAY_POINTER);
     auto xwindow = (Window) SDL_GetNumberProperty(SDL_GetWindowProperties(wnd->SDLWindow),
                                                   SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
     return {false, xdisplay, xwindow};
   } else if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0) {
-    struct wl_display *display = (struct wl_display *) SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow),
-                                                                       SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
-    struct wl_surface *surface = (struct wl_surface *) SDL_GetProperty(SDL_GetWindowProperties(wnd->SDLWindow),
-                                                                       SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
+    struct wl_display *display = (struct wl_display *) SDL_GetPropertyType(SDL_GetWindowProperties(wnd->SDLWindow),
+                                                                       SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER);
+    struct wl_surface *surface = (struct wl_surface *) SDL_GetPropertyType(SDL_GetWindowProperties(wnd->SDLWindow),
+                                                                       SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER);
     return {true, display, (uintptr_t) surface};
   }
 #elif defined(SDL_PLATFORM_IOS)
