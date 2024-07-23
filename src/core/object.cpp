@@ -47,6 +47,25 @@ int _obj_left_down(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t
   return r;
 }
 
+int _obj_resize(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  int r = 0;
+  if (param1 == 0) {
+    return -1;
+  }
+  auto rect = *(HYRect *) param1;
+  delete (HYRect *)param1;
+  for (auto &callback: obj->EventResizeCallbacks) {
+    if (callback.second) {
+      r = callback.second(window, obj, &rect);
+      if (r != 0) {
+        break;
+      }
+    }
+  }
+  HYObjectRefresh(obj);
+  return r;
+}
+
 // 组件事件_鼠标移动
 int _obj_mouse_move(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
   auto p = HYPointFromLParam(param2);
@@ -61,10 +80,14 @@ std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int64_t, 
   {HYObjectEvent_Paint, _obj_paint},
   // 鼠标左键被按下
   {HYObjectEvent_LeftDown, _obj_left_down},
-
+  // 组件大小改变
+  {HYObjectEvent_Resize, _obj_resize},
 };
 
 int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  if (!obj->isShow) {
+
+  }
   int r = 0;
   if (obj->MessageEventFunc) {
     r = obj->MessageEventFunc(window, obj, event, param1, param2);
@@ -142,8 +165,11 @@ HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int wi
       VisibleRect.height = window->Height;
     }
   }
-  HYResourceRegister(ResourceType::ResourceType_Object, this, className, nullptr);
+  // HYResourceRegister(ResourceType::ResourceType_Object, this, className, nullptr);
   // 创建事件
+  if (MessageEventFunc) {
+    MessageEventFunc(window, this, HYObjectEvent_Create, 0, 0);
+  }
   for (auto &callback: EventCreateCallbacks) {
     if (callback.second) {
       callback.second(window, this);
@@ -152,6 +178,14 @@ HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int wi
 }
 
 HYObject::~HYObject() {
+  if (MessageEventFunc) {
+    MessageEventFunc(Window, this, HYObjectEvent_Destroy, 0, 0);
+  }
+  for (auto &callback: EventDestroyCallbacks) {
+    if (callback.second) {
+      callback.second(Window, this);
+    }
+  }
   for (auto &child: Children) {
     HYResourceRemove(ResourceType::ResourceType_Object, child);
   }
@@ -171,13 +205,13 @@ HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, in
 
 void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2) {
   SDL_Event e;
-  auto& l = g_app;
+  auto &l = g_app;
   e.type = g_app.EventObject;
   e.user.windowID = window->ID;
-  e.user.code = (SDL_EventType)event;
+  e.user.code = (SDL_EventType) event;
   e.user.timestamp = SDL_GetTicksNS();
-  auto ts = (uint64_t *)malloc(sizeof (uint64_t)*3);
-  ts[0] = uint64_t (object);
+  auto ts = (uint64_t *) malloc(sizeof(uint64_t) * 3);
+  ts[0] = uint64_t(object);
   ts[1] = param1;
   ts[2] = param2;
   e.user.data1 = ts;
@@ -249,7 +283,7 @@ HYObjectHandle HYObjectGetFromMousePos(HYObjectHandle obj, int px, int py) {
   return HYPointIsInsideRectangle({px, py}, obj->VisibleRect) ? obj : nullptr;
 }
 
-HYObjectHandle HYObjectGetFromMousePos(HYWindow *window, int px, int py) {
+HYObjectHandle HYObjectGetFromMousePos(HYWindowHandel window, int px, int py) {
   HYObjectHandle topObject = nullptr;
   for (auto it = window->Children.rbegin(); it != window->Children.rend(); ++it) {
     topObject = HYObjectGetFromMousePos(*it, px, py);
@@ -302,6 +336,11 @@ void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint) {
   object->Canvas = nullptr;
   delete repaint;
   object->Window->PaintMutex.unlock();
+}
+
+void HYObjectResize(HYObjectHandle object, int width, int height) {
+  auto rect = new HYRect{object->X, object->Y, object->Width, object->Height};
+  HYObjectSendEvent(object->Window, object, HYObjectEvent_Resize, (intptr_t) rect, 0);
 }
 
 }// namespace HYGUI

@@ -586,7 +586,6 @@ uint32_t HYWindowMessageLoop() {
       auto param2 = *(uint64_t *)((uintptr_t(ts)+sizeof(uint64_t*)+sizeof(uint64_t*)));
       free(ts);
       if (object) {
-        // HYObjectSendEvent(window, object, (HYObjectEvent)event.user.code, param1, param2);
         _obj_event(window, object, (HYObjectEvent)event.user.code, param1, param2);
       }
     }

@@ -39,6 +39,8 @@ public:
            const HYString &name = "", int id = 0, HYObjectEventMessageHandel messageEventFunc = nullptr);
   ~HYObject() override;
 
+  bool isShow = false;
+
   HYWindow *Window = nullptr;// 归属窗口
   HYObject *Parent = nullptr;// 父对象,为nullptr时表示为一级对象
 
@@ -46,7 +48,7 @@ public:
   int Y = 0;     // 左上角y坐标
   int Width = 0; // 宽度
   int Height = 0;// 高度
-
+  bool Visible = false;
 
   HYRect VisibleRect = {0};// 相对于窗口的实际可视范围
   HYRect RawObjRect = {0}; // 相对于窗口的实际范围(无裁剪)
@@ -148,8 +150,8 @@ void HYObjectSetID(HYObjectHandle object, int id);
  * @param param1 事件的第一个参数，具体含义取决于事件类型。
  * @param param2 事件的第二个参数，具体含义取决于事件类型。
  */
-void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
 void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
+// void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
 
 ///**
 // * @brief 向窗口内所有对象发送事件。

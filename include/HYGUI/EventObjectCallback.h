@@ -45,8 +45,9 @@ typedef std::function<int(HYWindow *, HYObject *)> HYObjectEventPaintHandel;
  * @param HYWindow*: 窗口句柄
  * @param HYObject*: 组件句柄
  * @param HYRect*: 新尺寸
+ * @result 0: 放行, 1: 拦截
  * */
-typedef std::function<void(HYWindow *, HYObject *, HYRect *)> HYObjectEventResizeHandel;
+typedef std::function<int(HYWindow *, HYObject *, HYRect *)> HYObjectEventResizeHandel;
 
 /**
  * @brief 组件事件_显示

@@ -17,11 +17,6 @@
 
 namespace HYGUI {
 
-HYLabel::~HYLabel() {
-  HYFontRelease(Font);
-  HYTextBlobBuilderDestroy(TextBlobBuilder);
-}
-
 int label_event_left_down(HYWindow *window, HYObject *obj, int x, int y, int function_key) {
 
   return 0;
@@ -165,14 +160,18 @@ HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, 
   BanckgroundGradientDirection = HYGradientDirection::HYGradientDirectionNone;
 }
 
+HYLabel::~HYLabel() {
+  HYFontRelease(Font);
+  HYTextBlobBuilderDestroy(TextBlobBuilder);
+}
+
 HYLabelhandle
-HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height) {
-  auto label = new HYLabel{window, parent, text, x, y, width, height};
+HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height, HYObjectEventMessageHandel messageEventFunc) {
+  auto label = new HYLabel{window, parent, text, x, y, width, height, std::move(messageEventFunc)};
   return HYResourceRegister(ResourceType::ResourceType_Object, label, "Label", [](void *ptr) {
     delete reinterpret_cast<HYLabel *>(ptr);
   });
 }
-
 
 void HYLabelSetColorStyle(HYLabelhandle label,
                           HYGradientMode banckgroundGradientMode,          // 背景色渐变模式
