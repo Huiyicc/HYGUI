@@ -25,7 +25,7 @@ int _obj_paint(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t par
   if (r == 0) {
     if (!obj->Children.empty()) {
       for (auto &child: obj->Children) {
-        HYObjectSendEvent(window, child, event, param1, param2);
+        HYObjectPushEventCall(window, child, event, param1, param2);
       }
     }
   }
@@ -53,7 +53,7 @@ int _obj_resize(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t pa
     return -1;
   }
   auto rect = *(HYRect *) param1;
-  delete (HYRect *)param1;
+  delete (HYRect *) param1;
   for (auto &callback: obj->EventResizeCallbacks) {
     if (callback.second) {
       r = callback.second(window, obj, &rect);
@@ -86,7 +86,6 @@ std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int64_t, 
 
 int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
   if (!obj->isShow) {
-
   }
   int r = 0;
   if (obj->MessageEventFunc) {
@@ -104,7 +103,7 @@ int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t par
 
 
 int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_info) {
-  _obj_event(event_info.Window, event_info.Object, event_info.Event, event_info.Param1, event_info.Param2);
+  //  _obj_event(event_info.Window, event_info.Object, event_info.Event, event_info.Param1, event_info.Param2);
   return 0;
 }
 
@@ -219,10 +218,11 @@ void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent ev
   SDL_PushEvent(&e);
 }
 
-void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2) {
-  for (auto &obj: window->Children) {
-    _obj_event(window, obj, event, param1, param2);
-  }
+void HYObjectPushEventCall(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2) {
+  //  for (auto &obj: window->Children) {
+  //    _obj_event(window, obj, event, param1, param2);
+  //  }
+  _obj_event(window, object, event, param1, param2);
 }
 
 
@@ -230,7 +230,7 @@ void HYObjectRefresh(HYObjectHandle object) {
   if (!object) {
     return;
   }
-  HYObjectSendEvent(object->Window, object, HYObjectEvent_Paint, 0, 0);
+  HYObjectPushEventCall(object->Window, object, HYObjectEvent_Paint, 0, 0);
 }
 
 void HYObjectDestroy(HYObjectHandle object) {
@@ -340,7 +340,7 @@ void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint) {
 
 void HYObjectResize(HYObjectHandle object, int width, int height) {
   auto rect = new HYRect{object->X, object->Y, object->Width, object->Height};
-  HYObjectSendEvent(object->Window, object, HYObjectEvent_Resize, (intptr_t) rect, 0);
+  HYObjectPushEventCall(object->Window, object, HYObjectEvent_Resize, (intptr_t) rect, 0);
 }
 
 }// namespace HYGUI

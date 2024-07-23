@@ -139,7 +139,8 @@ void HYObjectSetName(HYObjectHandle object, const char *name);
 void HYObjectSetID(HYObjectHandle object, int id);
 
 /**
- * @brief 同步向对象发送事件。
+ * @brief 同步向对象发送事件(call方式)。
+ * 与HYObjectPushEvent的区别在于，HYObjectPushEventCall的底层是直接call消息链的。
  *
  * 该函数用于向指定的对象发送一个事件，对象可以根据事件类型执行相应的操作。
  * 例如，点击事件可能导致对象触发一个动作或改变其状态。
@@ -150,8 +151,21 @@ void HYObjectSetID(HYObjectHandle object, int id);
  * @param param1 事件的第一个参数，具体含义取决于事件类型。
  * @param param2 事件的第二个参数，具体含义取决于事件类型。
  */
-void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
-// void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
+void HYObjectPushEventCall(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
+
+/**
+ * @brief 同步向对象发送事件(event方式)。
+ * 与HYObjectPushEventCall的区别在于，HYObjectPushEvent的底层是先投递消息到窗口,由窗口移交给消息链处理。
+ *
+ * 该函数用于向指定的对象发送一个事件，对象可以根据事件类型执行相应的操作。
+ * 例如，点击事件可能导致对象触发一个动作或改变其状态。
+ * @param window 窗口的指针，事件将在这个窗口内被处理。
+ * @param object 接收事件的对象的句柄。
+ * @param event 发送的事件类型,参考枚举值 HYObjectEvent。
+ * @param param1 事件的第一个参数，具体含义取决于事件类型。
+ * @param param2 事件的第二个参数，具体含义取决于事件类型。
+ * */
+void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
 
 ///**
 // * @brief 向窗口内所有对象发送事件。

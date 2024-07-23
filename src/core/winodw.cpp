@@ -225,7 +225,7 @@ void window_paint(HYWindow *windowPtr, void *evevt) {
   canvas->save();
   for (auto obj: windowPtr->Children) {
     // 子组件绘制
-    HYObjectSendEvent(windowPtr, obj, HYObjectEvent::HYObjectEvent_Paint, 0, 1);
+    HYObjectPushEventCall(windowPtr, obj, HYObjectEvent::HYObjectEvent_Paint, 0, 1);
   }
 
   canvas->restore();
@@ -304,7 +304,7 @@ int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
       if (act_obj) {
         // 转换坐标
         auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
-        HYObjectSendEvent(window, act_obj, HYObjectEvent::HYObjectEvent_LeftDown, 0, HYPointGenLParam(x1, y1));
+        HYObjectPushEventCall(window, act_obj, HYObjectEvent::HYObjectEvent_LeftDown, 0, HYPointGenLParam(x1, y1));
       }
     }
   }
@@ -412,7 +412,7 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
     if (obj) {
       // 转换坐标
       auto [x1, y1] = HYObjectGetRelativePoint(obj, event->button.x, event->button.y);
-      HYObjectSendEvent(window, obj, HYObjectEvent_MouseMove, 0, HYPointGenLParam(x1, y1));
+      HYObjectPushEventCall(window, obj, HYObjectEvent_MouseMove, 0, HYPointGenLParam(x1, y1));
     }
   }
   return 0;
@@ -464,7 +464,7 @@ void window_recreate_surface(HYWindow *windowPtr) {
 }
 
 void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, double round) {
-  //wnd->EventQueue.SetProcessCallback(processing_object_event);
+//  wnd->EventQueue.SetProcessCallback(processing_object_event);
   wnd->round = round;
   wnd->BackGroundColor = HYColorRGBToInt(backGroundColor);
   wnd->Diaphaneity = diaphaneity;
