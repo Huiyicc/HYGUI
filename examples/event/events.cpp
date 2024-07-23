@@ -14,6 +14,7 @@ int event(HYWindow *window, HYObject *obj, HYObjectEvent event, uint64_t p1, uin
     // 由于架构设计原因,创建事件只能由此派发
     std::cout << "组件创建" << std::endl;
   }
+  // std::cout << std::format("event:{}",(int)event) << std::endl;
   return 0;
 }
 
@@ -34,6 +35,29 @@ int onLeftDown3(HYWindow *, HYObject *, int, int, int) {
   return 0;
 }
 
+int onLeftUp(HYWindow *, HYObject *, int, int, int) {
+  std::cout << "左键弹起" << std::endl;
+  return 0;
+}
+
+int onRightDown(HYWindow *, HYObject *, int, int, int) {
+  std::cout << "右键按下" << std::endl;
+  return 0;
+}
+
+int onRightUp(HYWindow *, HYObject *, int, int, int) {
+  std::cout << "右键弹起" << std::endl;
+  return 0;
+}
+
+int mouseMove(HYWindow *, HYObject *, int x, int y, int status) {
+  std::cout << std::format("鼠标移动:[{},{}]({})",x,y,status) << std::endl;
+  return 0;
+}
+
+void isShow(HYWindow *, HYObject *) {
+  std::cout << "显示事件" << std::endl;
+}
 
 int main() {
 
@@ -45,7 +69,7 @@ int main() {
   auto wind = HYWindowCreate(nullptr, "Hello World");
   HYWindowSkinHook(wind, HYRGB{255, 255, 255}, 210);
 
-  auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, event);
+  auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, true, event);
   HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
                        HYGradientDirection::HYGradientDirectionTopToBottom,
                        {HYARGB{255, 0, 255, 0}, HYARGB{255, 0, 0, 255}},
@@ -56,8 +80,13 @@ int main() {
   label->RegisterEventLeftDownCallback(onLeftDown1);
   label->RegisterEventLeftDownCallback(onLeftDown2);
   label->RegisterEventLeftDownCallback(onLeftDown3);
+  label->RegisterEventLeftUpCallback(onLeftUp);
+  label->RegisterEventRightDownCallback(onRightDown);
+  label->RegisterEventRightUpCallback(onRightUp);
+  label->RegisterEventMouseMoveCallback(mouseMove);
+  label->RegisterEventShowCallback(isShow);
 
-  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250);
+  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
   HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,
                        HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
                        {HYARGB{255, 0, 0, 255}, HYARGB{255, 255, 0, 0}},

@@ -35,11 +35,12 @@ typedef HYObject *HYObjectHandle;
 class HYObject : public HYObjectBase {
 
 public:
-  HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height, const HYString &className,
+  HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,bool visible, const HYString &className,
            const HYString &name = "", int id = 0, HYObjectEventMessageHandel messageEventFunc = nullptr);
   ~HYObject() override;
 
-  bool isShow = false;
+  bool IsShow = false;
+  bool IsVisible = false;
 
   HYWindow *Window = nullptr;// 归属窗口
   HYObject *Parent = nullptr;// 父对象,为nullptr时表示为一级对象
@@ -272,6 +273,26 @@ PaintPtr HYObjectBeginPaint(HYObjectHandle object, bool clear = true);
  * */
 void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint);
 
+/**
+ * @brief 获取对象是否可见。
+ *
+ * 该函数用于获取指定对象的可见性。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @return bool 是否可见。
+ * */
+bool HYObjectGetVisible(HYObjectHandle object);
+
+/**
+ * @brief 设置对象是否可见。
+ *
+ * 该函数用于设置指定对象的可见性。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param visible 是否可见。
+ * @param repaint 是否重绘。
+ * */
+void HYObjectSetVisible(HYObjectHandle object, bool visible,bool repaint = true);
 
 }// namespace HYGUI
 

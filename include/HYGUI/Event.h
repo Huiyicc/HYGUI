@@ -45,6 +45,10 @@ enum HYObjectEvent {
   HYObjectEvent_RightDown,
   // 鼠标右键按下
   HYObjectEvent_RightUp,
+  // 鼠标中键按下
+  HYObjectEvent_MiddleDown,
+  // 鼠标中键放开
+  HYObjectEvent_MiddleUp,
   // 鼠标移动
   HYObjectEvent_MouseMove,
   // 被双击

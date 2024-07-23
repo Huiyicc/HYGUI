@@ -15,7 +15,7 @@ class HYLabel : public HYObject {
 public:
   constexpr static const char *ObjectName = "Label";
 
-  HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height, HYObjectEventMessageHandel messageEventFunc = nullptr);
+  HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,bool visible, HYObjectEventMessageHandel messageEventFunc = nullptr);
 
   ~HYLabel() override;
 
@@ -43,7 +43,7 @@ typedef HYLabel *HYLabelhandle;
  * @return 返回创建的标签控件的句柄。
  */
 HYLabelhandle
-HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,HYObjectEventMessageHandel messageEventFunc= nullptr);
+HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,bool visible,HYObjectEventMessageHandel messageEventFunc= nullptr);
 
 void HYLabelSetColorStyle(HYLabelhandle label,
                           HYGradientMode banckgroundGradientMode,          // 背景色渐变模式

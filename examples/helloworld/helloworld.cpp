@@ -16,7 +16,7 @@ int main() {
   auto wind = HYWindowCreate(nullptr, "Hello World");
   HYWindowSkinHook(wind, HYRGB{255, 255, 255}, 210);
 
-  auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500);
+  auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, true);
   HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
                        HYGradientDirection::HYGradientDirectionTopToBottom,
                        {HYARGB{255, 0, 255, 0}, HYARGB{255, 0, 0, 255}},
@@ -24,7 +24,7 @@ int main() {
                        HYARGB{255, 0, 0, 255}, 2);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label), "标签1 g");
 
-  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250);
+  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
   HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,
                        HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
                        {HYARGB{255, 0, 0, 255}, HYARGB{255, 255, 0, 0}},

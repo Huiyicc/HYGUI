@@ -286,36 +286,72 @@ int getMouseCursorType(HYWindow *window, int x, int y, int edge = 5) {
 
 int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
   // 鼠标按键按下事件
+  auto push_event = HYObjectEvent::HYObjectEvent_LeftDown;
   if (event->button.button == SDL_BUTTON_LEFT) {
     // 左键被按下
-    auto dragType = getMouseCursorType(window, event->button.x, event->button.y);
-    if ((event->button.y < window->TitleBarHeight && event->button.y > 0) || dragType != HY_SYSTEM_CURSOR_ARROW) {
-      // 准备移动窗口
-      window->Drag = true;
-      window->DragType = dragType == HY_SYSTEM_CURSOR_ARROW ? 0 : dragType;
-      auto wp = HYMouseGetPosition();
-      window->oldMousePoint = {int(wp.x), int(wp.y)};
-      window->oldWinRect = {window->X, window->Y, window->Width, window->Height};
-    } else {
-      // 通知子组件
-      window->Drag = false;
-      window->DragType = 0;
-      auto act_obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
-      if (act_obj) {
-        // 转换坐标
-        auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
-        HYObjectPushEventCall(window, act_obj, HYObjectEvent::HYObjectEvent_LeftDown, 0, HYPointGenLParam(x1, y1));
-      }
+    push_event = HYObjectEvent::HYObjectEvent_LeftDown;
+  } else if (event->button.button == SDL_BUTTON_RIGHT) {
+    // 右键被按下
+    push_event = HYObjectEvent::HYObjectEvent_RightDown;
+  } else if (event->button.button == SDL_BUTTON_MIDDLE) {
+    // 中键被按下
+    push_event = HYObjectEvent::HYObjectEvent_MiddleDown;
+  }
+  auto dragType = getMouseCursorType(window, event->button.x, event->button.y);
+  if ((event->button.y < window->TitleBarHeight && event->button.y > 0) || dragType != HY_SYSTEM_CURSOR_ARROW) {
+    // 准备移动窗口
+    window->Drag = true;
+    window->DragType = dragType == HY_SYSTEM_CURSOR_ARROW ? 0 : dragType;
+    auto wp = HYMouseGetPosition();
+    window->oldMousePoint = {int(wp.x), int(wp.y)};
+    window->oldWinRect = {window->X, window->Y, window->Width, window->Height};
+  } else {
+    // 通知子组件
+    window->Drag = false;
+    window->DragType = 0;
+    auto act_obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
+    if (act_obj) {
+      // 转换坐标
+      auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
+      HYObjectPushEventCall(window, act_obj, push_event, 0, HYPointGenLParam(x1, y1));
     }
   }
   return 0;
 }
 
 int handleMouseButtonUp(SDL_Event *event, HYWindow *window) {
-  window->Drag = false;
-  window->DragType = 0;
-  window->oldWinRect = {0, 0, 0, 0};
-  window->oldMousePoint = {0, 0};
+  // 鼠标按键放开
+  auto push_event = HYObjectEvent::HYObjectEvent_LeftUp;
+  if (event->button.button == SDL_BUTTON_LEFT) {
+    // 左键被按下
+    push_event = HYObjectEvent::HYObjectEvent_LeftUp;
+  } else if (event->button.button == SDL_BUTTON_RIGHT) {
+    // 右键被按下
+    push_event = HYObjectEvent::HYObjectEvent_RightUp;
+  } else if (event->button.button == SDL_BUTTON_MIDDLE) {
+    // 中键被按下
+    push_event = HYObjectEvent::HYObjectEvent_MiddleUp;
+  }
+  auto dragType = getMouseCursorType(window, event->button.x, event->button.y);
+  if ((event->button.y < window->TitleBarHeight && event->button.y > 0) || dragType != HY_SYSTEM_CURSOR_ARROW) {
+    // 准备移动窗口
+    window->Drag = false;
+    window->DragType = 0;
+    window->oldWinRect = {0, 0, 0, 0};
+    window->oldMousePoint = {0, 0};
+  } else {
+    // 通知子组件
+    window->Drag = false;
+    window->DragType = 0;
+    window->oldWinRect = {0, 0, 0, 0};
+    window->oldMousePoint = {0, 0};
+    auto act_obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
+    if (act_obj) {
+      // 转换坐标
+      auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
+      HYObjectPushEventCall(window, act_obj, push_event, 0, HYPointGenLParam(x1, y1));
+    }
+  }
   return 0;
 }
 

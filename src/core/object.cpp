@@ -10,82 +10,154 @@
 
 namespace HYGUI {
 
-
-// 组件绘制消息
-int _obj_paint(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
-  int r = 0;
-  for (auto &callback: obj->EventPaintCallbacks) {
-    if (callback.second) {
-      r = callback.second(window, obj);
-      if (r != 0) {
-        break;
-      }
-    }
-  }
-  if (r == 0) {
-    if (!obj->Children.empty()) {
-      for (auto &child: obj->Children) {
-        HYObjectPushEventCall(window, child, event, param1, param2);
-      }
-    }
-  }
-  return r;
-}
-
-int _obj_left_down(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
-  int r = 0;
-  auto mode = SDL_GetModState();
-  auto [x, y] = HYPointFromLParam(param2);
-  for (auto &callback: obj->EventLeftDownCallbacks) {
-    if (callback.second) {
-      r = callback.second(window, obj, x, y, mode);
-      if (r != 0) {
-        break;
-      }
-    }
-  }
-  return r;
-}
-
-int _obj_resize(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
-  int r = 0;
-  if (param1 == 0) {
-    return -1;
-  }
-  auto rect = *(HYRect *) param1;
-  delete (HYRect *) param1;
-  for (auto &callback: obj->EventResizeCallbacks) {
-    if (callback.second) {
-      r = callback.second(window, obj, &rect);
-      if (r != 0) {
-        break;
-      }
-    }
-  }
-  HYObjectRefresh(obj);
-  return r;
-}
-
-// 组件事件_鼠标移动
-int _obj_mouse_move(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
-  auto p = HYPointFromLParam(param2);
-  // PrintDebug("obj_mouse_move {} {} {}", obj->Name.toStdStringView(), p.x, p.y);
-  return 0;
-}
-
-std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int64_t, int64_t)>> _obj_event_callback_map = {
-  // 鼠标移动
-  {HYObjectEvent_MouseMove, _obj_mouse_move},
+const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int64_t, int64_t)>> _obj_event_callback_map = {
   // 组件绘制
-  {HYObjectEvent_Paint, _obj_paint},
-  // 鼠标左键被按下
-  {HYObjectEvent_LeftDown, _obj_left_down},
+  {HYObjectEvent_Paint, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     int r = 0;
+     for (auto &callback: obj->EventPaintCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     if (r == 0) {
+       if (!obj->Children.empty()) {
+         for (auto &child: obj->Children) {
+           HYObjectPushEventCall(window, child, event, param1, param2);
+         }
+       }
+     }
+     return r;
+   }},
+
   // 组件大小改变
-  {HYObjectEvent_Resize, _obj_resize},
+  {HYObjectEvent_Resize, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     int r = 0;
+     if (param1 == 0) {
+       return -1;
+     }
+     auto rect = *(HYRect *) param1;
+     delete (HYRect *) param1;
+     for (auto &callback: obj->EventResizeCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, &rect);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     HYObjectRefresh(obj);
+     return r;
+   }},
+
+  // 组件显示
+  {HYObjectEvent_Show, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     for (auto &callback: obj->EventShowCallbacks) {
+       if (callback.second) {
+         callback.second(window, obj);
+       }
+     }
+     return 0;
+   }},
+
+  // 组件隐藏
+  {HYObjectEvent_Hide, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     for (auto &callback: obj->EventHideCallbacks) {
+       if (callback.second) {
+         callback.second(window, obj);
+       }
+     }
+     return 0;
+   }},
+
+  // 鼠标左键被按下
+  {HYObjectEvent_LeftDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     int r = 0;
+     auto mode = SDL_GetModState();
+     auto [x, y] = HYPointFromLParam(param2);
+     for (auto &callback: obj->EventLeftDownCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, x, y, mode);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+  // 鼠标左键被放开
+  {HYObjectEvent_LeftUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     int r = 0;
+     auto mode = SDL_GetModState();
+     auto [x, y] = HYPointFromLParam(param2);
+     for (auto &callback: obj->EventLeftUpCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, x, y, mode);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+  // 鼠标右键被按下
+  {HYObjectEvent_RightDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     int r = 0;
+     auto mode = SDL_GetModState();
+     auto [x, y] = HYPointFromLParam(param2);
+     for (auto &callback: obj->EventRightDownCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, x, y, mode);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+  // 鼠标右键被放开
+  {HYObjectEvent_RightUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     int r = 0;
+     auto mode = SDL_GetModState();
+     auto [x, y] = HYPointFromLParam(param2);
+     for (auto &callback: obj->EventRightUpCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, x, y, mode);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+  // 鼠标移动
+  {HYObjectEvent_MouseMove, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+     int r = 0;
+     auto mode = SDL_GetModState();
+     auto [x, y] = HYPointFromLParam(param2);
+     for (auto &callback: obj->EventMouseMoveCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, x, y, mode);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
 };
 
 int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
-  if (!obj->isShow) {
+  if (!obj->IsShow && obj->IsVisible) {
+    // 发送show消息
+    obj->IsShow = true;
+    HYObjectPushEventCall(window, obj, HYObjectEvent_Show, 0, 0);
   }
   int r = 0;
   if (obj->MessageEventFunc) {
@@ -103,13 +175,17 @@ int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t par
 
 
 int processing_object_event(HYObjectEventQueue *queue, HYObjectEventInfo &event_info) {
-  //  _obj_event(event_info.Window, event_info.Object, event_info.Event, event_info.Param1, event_info.Param2);
+  _obj_event(event_info.Window, event_info.Object, event_info.Event, event_info.Param1, event_info.Param2);
   return 0;
 }
 
-HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
-                   const HYString &className, const HYString &name, int id, HYObjectEventMessageHandel messageEventFunc) : Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height),
-                                                                                                                           ClassName(std::make_shared<HYString>(className)), Name(std::make_shared<HYString>(name)), ID(id), MessageEventFunc(std::move(messageEventFunc)) {
+HYObject::HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height, bool visible,
+                   const HYString &className, const HYString &name, int id, HYObjectEventMessageHandel messageEventFunc)
+    : Window(window), Parent(reinterpret_cast<HYObject *>(parent)), X(x), Y(y), Width(width), Height(height), IsVisible(visible),
+      ClassName(std::make_shared<HYString>(className)),
+      Name(std::make_shared<HYString>(name)),
+      ID(id), MessageEventFunc(std::move(messageEventFunc)) {
+
   RawObjRect = {x, y, width, height};
   if (parent) {
     parent->Children.insert(this);
@@ -191,7 +267,7 @@ HYObject::~HYObject() {
   Children.clear();
 }
 
-HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,
+HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height, bool visible,
                               const HYString &className, const HYString &name, int id) {
   if (!window) {
     return nullptr;
@@ -199,7 +275,7 @@ HYObjectHandle HYObjectCreate(HYWindow *window, HYObjectHandle parent, int x, in
   if (!window->Handle.handle) {
     return nullptr;
   }
-  return new HYObject{window, parent, x, y, width, height, className, name, id};
+  return new HYObject{window, parent, x, y, width, height, visible, className, name, id};
 }
 
 void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2) {
@@ -341,6 +417,29 @@ void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint) {
 void HYObjectResize(HYObjectHandle object, int width, int height) {
   auto rect = new HYRect{object->X, object->Y, object->Width, object->Height};
   HYObjectPushEventCall(object->Window, object, HYObjectEvent_Resize, (intptr_t) rect, 0);
+}
+
+bool HYObjectGetVisible(HYObjectHandle object) {
+  return object->Visible;
+}
+
+void HYObjectSetVisible(HYObjectHandle object, bool visible, bool repaint) {
+  if (visible == object->Visible) {
+    if (repaint) {
+      HYObjectRefresh(object);
+    }
+    return;
+  }
+  object->Visible = visible;
+  if (visible) {
+    HYObjectPushEventCall(object->Window, object, HYObjectEvent_Show, 0, 0);
+  } else {
+    HYObjectPushEventCall(object->Window, object, HYObjectEvent_Hide, 0, 0);
+  }
+
+  if (repaint) {
+    HYObjectRefresh(object);
+  }
 }
 
 }// namespace HYGUI
