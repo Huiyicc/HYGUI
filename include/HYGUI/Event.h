@@ -51,8 +51,10 @@ enum HYObjectEvent {
   HYObjectEvent_MiddleUp,
   // 鼠标移动
   HYObjectEvent_MouseMove,
-  // 被双击
-  HYObjectEvent_DoubleClick,
+  // 鼠标进入组件
+  HYObjectEvent_MouseEnter,
+  // 鼠标离开组件
+  HYObjectEvent_MouseLeave,
   // 按下某键
   HYObjectEvent_KeyDown,
   // 放开某键
@@ -102,7 +104,7 @@ private:
   }
 
   template<typename TC>
-  uint32_t _registerCallback(std::map<uint32_t,TC>& table, const TC &callback) {
+  uint32_t _registerCallback(std::map<uint32_t, TC> &table, const TC &callback) {
     auto riter = table.rbegin();
     if (riter == table.rend()) {
       table.insert(std::make_pair(0, callback));
@@ -263,19 +265,6 @@ public:
    * */
   void UnRegisterEventMouseMoveCallback(uint32_t id);
 
-  std::map<uint32_t, HYObjectEventDoubleClickHandel> EventDoubleClickCallbacks;
-  /**
-   * @brief 添加对象被双击回调
-   * @param callback: 回调函数
-   * @return: 回调ID,用于取消回调
-   * */
-  uint32_t RegisterEventDoubleClickCallback(const HYObjectEventDoubleClickHandel &callback);
-  /**
-   * @brief 删除对象被双击回调
-   * @param id: 回调ID
-   * */
-  void UnRegisterEventDoubleClickCallback(uint32_t id);
-
   std::map<uint32_t, HYObjectEventKeyDownHandel> EventKeyDownCallbacks;
   /**
    * @brief 添加对象按下某键回调
@@ -329,6 +318,34 @@ public:
    * @param id: 回调ID
    * */
   void UnRegisterEventCharInputCallback(uint32_t id);
+
+
+  std::map<uint32_t, HYObjectEventMouseEnterHandel> EventMouseEnterCallbacks;
+  /**
+   * @brief 添加鼠标进入回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventMouseEnterCallback(const HYObjectEventMouseEnterHandel &callback);
+  /**
+   * @brief 删除鼠标退出回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventMouseEnterCallback(uint32_t id);
+
+
+  std::map<uint32_t, HYObjectEventMouseLeaveHandel> EventMouseLeaveCallbacks;
+  /**
+   * @brief 添加鼠标进入回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventMouseLeaveCallback(const HYObjectEventMouseLeaveHandel &callback);
+  /**
+   * @brief 删除鼠标退出回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventMouseLeaveCallback(uint32_t id);
 
 
 };

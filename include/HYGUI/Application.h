@@ -9,8 +9,7 @@
 
 namespace HYGUI {
 
-bool HYInit(VOIDPTR ModuleHandle,
-            HYGlobalFlag DefaultGlobalFlags,
+bool HYInit(HYGlobalFlag DefaultGlobalFlags,
             const HYString&DefaultFont="");
 
 

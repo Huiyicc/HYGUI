@@ -45,21 +45,21 @@ struct HYPointf {
 };
 
 /**
- * 生成基于二维坐标(x, y)的长整型参数(lParam)。
+ * 生成基于二维坐标(x, y)的长整型参数(wParam)。
  *
  * @param x 横坐标，类型为无符号短整型。
  * @param y 纵坐标，类型为无符号短整型。
- * @return 返回一个无符号长整型值，代表结合了x和y坐标的lParam。
+ * @return 返回一个无符号长整型值，代表结合了x和y坐标的wParam。
  */
-uint32_t HYPointGenLParam(uint16_t x, uint16_t y);
+uint32_t HYPointGenWParam(uint16_t x, uint16_t y);
 
 /**
- * 从长整型参数(lParam)中解析出二维坐标点。
+ * 从长整型参数(wParam)中解析出二维坐标点。
  *
  * @param lParam 长整型参数，包含x和y坐标信息。
  * @return 返回一个HYPoint结构体，包含解析出的x和y坐标。
  */
-HYPoint HYPointFromLParam(uint32_t lParam);
+HYPoint HYPointFromWParam(uint32_t lParam);
 
 /**
  * 判断一个点是否位于矩形内部。
@@ -69,6 +69,23 @@ HYPoint HYPointFromLParam(uint32_t lParam);
  * @return 如果点位于矩形内部，返回true；否则返回false。
  */
 bool HYPointIsInsideRectangle(const HYPoint& point, const HYRect& rectangle);
+
+/**
+ * 从长整型参数(wParam)中解析出二维坐标点(float)。
+ *
+ * @param wParam 长整型参数，包含x和y坐标信息。
+ * @return 返回一个HYPointf结构体，包含解析出的x和y坐标。
+ * */
+HYPointf HYPointfFromWParam(int64_t wParam);
+
+/**
+ * 生成基于二维坐标(x, y)的长整型参数(wParam)。
+ *
+ * @param x 横坐标。
+ * @param y 纵坐标。
+ * @return 返回一个长整型值，代表结合了x和y坐标的wParam。
+ */
+int64_t HYPointfGenWParam(float x, float y);
 
 }
 

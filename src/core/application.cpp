@@ -33,8 +33,7 @@ namespace HYGUI {
 
 ApplicationInfo g_app;
 
-bool HYInit(VOIDPTR ModuleHandle,
-            HYGlobalFlag DefaultGlobalFlags,
+bool HYInit(HYGlobalFlag DefaultGlobalFlags,
             const HYString &DefaultFont) {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     g_app.LastError = SDL_GetError();
@@ -69,7 +68,6 @@ bool HYInit(VOIDPTR ModuleHandle,
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
-  g_app.Instance = ModuleHandle;
   g_app.GlobalFlags = DefaultGlobalFlags;
 
   // 注册sdl事件

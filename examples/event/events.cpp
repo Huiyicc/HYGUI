@@ -51,7 +51,22 @@ int onRightUp(HYWindow *, HYObject *, int, int, int) {
 }
 
 int mouseMove(HYWindow *, HYObject *, int x, int y, int status) {
-  std::cout << std::format("鼠标移动:[{},{}]({})",x,y,status) << std::endl;
+  // std::cout << std::format("鼠标移动:[{},{}]({})",x,y,status) << std::endl;
+  return 0;
+}
+
+int mouseEnter(HYWindow *, HYObject *) {
+  std::cout << std::format("鼠标进入") << std::endl;
+  return 0;
+}
+
+int mouseLeave(HYWindow *, HYObject *) {
+  std::cout << std::format("鼠标退出") << std::endl;
+  return 0;
+}
+
+int mouseWheel(HYWindow *, HYObject *,float x,float y,int status) {
+  std::cout << std::format("鼠标滚轮移动:[{},{}]({})",x,y,status) << std::endl;
   return 0;
 }
 
@@ -65,7 +80,7 @@ int main() {
   system("chcp 65001");
 #endif
 
-  HYInit(nullptr, HYGlobalFlag::HYGlobalFlagGraphicDefault);
+  HYInit(HYGlobalFlag::HYGlobalFlagGraphicDefault);
   auto wind = HYWindowCreate(nullptr, "Hello World");
   HYWindowSkinHook(wind, HYRGB{255, 255, 255}, 210);
 
@@ -85,6 +100,9 @@ int main() {
   label->RegisterEventRightUpCallback(onRightUp);
   label->RegisterEventMouseMoveCallback(mouseMove);
   label->RegisterEventShowCallback(isShow);
+  label->RegisterEventMouseEnterCallback(mouseEnter);
+  label->RegisterEventMouseLeaveCallback(mouseLeave);
+  label->RegisterEventMouseWheelCallback(mouseWheel);
 
   auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
   HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,

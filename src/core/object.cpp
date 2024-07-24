@@ -12,7 +12,7 @@ namespace HYGUI {
 
 const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int64_t, int64_t)>> _obj_event_callback_map = {
   // 组件绘制
-  {HYObjectEvent_Paint, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_Paint, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
      for (auto &callback: obj->EventPaintCallbacks) {
        if (callback.second) {
@@ -33,7 +33,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
    }},
 
   // 组件大小改变
-  {HYObjectEvent_Resize, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_Resize, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
      if (param1 == 0) {
        return -1;
@@ -53,7 +53,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
    }},
 
   // 组件显示
-  {HYObjectEvent_Show, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_Show, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      for (auto &callback: obj->EventShowCallbacks) {
        if (callback.second) {
          callback.second(window, obj);
@@ -63,7 +63,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
    }},
 
   // 组件隐藏
-  {HYObjectEvent_Hide, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_Hide, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      for (auto &callback: obj->EventHideCallbacks) {
        if (callback.second) {
          callback.second(window, obj);
@@ -73,10 +73,10 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
    }},
 
   // 鼠标左键被按下
-  {HYObjectEvent_LeftDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_LeftDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
      auto mode = SDL_GetModState();
-     auto [x, y] = HYPointFromLParam(param2);
+     auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventLeftDownCallbacks) {
        if (callback.second) {
          r = callback.second(window, obj, x, y, mode);
@@ -89,10 +89,10 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
    }},
 
   // 鼠标左键被放开
-  {HYObjectEvent_LeftUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_LeftUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
      auto mode = SDL_GetModState();
-     auto [x, y] = HYPointFromLParam(param2);
+     auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventLeftUpCallbacks) {
        if (callback.second) {
          r = callback.second(window, obj, x, y, mode);
@@ -105,10 +105,10 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
    }},
 
   // 鼠标右键被按下
-  {HYObjectEvent_RightDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_RightDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
      auto mode = SDL_GetModState();
-     auto [x, y] = HYPointFromLParam(param2);
+     auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventRightDownCallbacks) {
        if (callback.second) {
          r = callback.second(window, obj, x, y, mode);
@@ -121,10 +121,10 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
    }},
 
   // 鼠标右键被放开
-  {HYObjectEvent_RightUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_RightUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
      auto mode = SDL_GetModState();
-     auto [x, y] = HYPointFromLParam(param2);
+     auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventRightUpCallbacks) {
        if (callback.second) {
          r = callback.second(window, obj, x, y, mode);
@@ -137,10 +137,10 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
    }},
 
   // 鼠标移动
-  {HYObjectEvent_MouseMove, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  {HYObjectEvent_MouseMove, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
      auto mode = SDL_GetModState();
-     auto [x, y] = HYPointFromLParam(param2);
+     auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventMouseMoveCallbacks) {
        if (callback.second) {
          r = callback.second(window, obj, x, y, mode);
@@ -151,9 +151,61 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
      }
      return r;
    }},
+
+  // 鼠标进入事件
+  {HYObjectEvent_MouseEnter, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     int r = 0;
+     for (auto &callback: obj->EventMouseEnterCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+  // 鼠标退出事件
+  {HYObjectEvent_MouseLeave, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     int r = 0;
+     for (auto &callback: obj->EventMouseLeaveCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+
+  // 鼠标滚轮事件
+  {HYObjectEvent_MouseWheel, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     int r = 0;
+     auto mode = SDL_GetModState();
+     auto [x, y] = HYPointfFromWParam(param2);
+     for (auto &callback: obj->EventMouseWheelCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, x, y, mode);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+
 };
 
 int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
+  window->Calltag = true;
+  window->LastEventObject = window->CurrentEventObject;
+  window->LastEventObjectTime = window->CurrentEventObjectTime;
+  window->CurrentEventObject = obj;
+  window->CurrentEventObjectTime = SDL_GetTicksNS();
   if (!obj->IsShow && obj->IsVisible) {
     // 发送show消息
     obj->IsShow = true;
@@ -295,9 +347,9 @@ void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent ev
 }
 
 void HYObjectPushEventCall(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2) {
-  //  for (auto &obj: window->Children) {
-  //    _obj_event(window, obj, event, param1, param2);
-  //  }
+  if (!(object && window)) {
+    return;
+  }
   _obj_event(window, object, event, param1, param2);
 }
 

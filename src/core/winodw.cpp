@@ -305,6 +305,12 @@ int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
     auto wp = HYMouseGetPosition();
     window->oldMousePoint = {int(wp.x), int(wp.y)};
     window->oldWinRect = {window->X, window->Y, window->Width, window->Height};
+
+    window->LastEventObject = window->CurrentEventObject;
+    window->LastEventObjectTime = window->CurrentEventObjectTime;
+    window->CurrentEventObject = nullptr;
+    window->CurrentEventObjectTime = event->button.timestamp;
+
   } else {
     // 通知子组件
     window->Drag = false;
@@ -313,7 +319,7 @@ int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
     if (act_obj) {
       // 转换坐标
       auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
-      HYObjectPushEventCall(window, act_obj, push_event, 0, HYPointGenLParam(x1, y1));
+      HYObjectPushEventCall(window, act_obj, push_event, 0, HYPointGenWParam(x1, y1));
     }
   }
   return 0;
@@ -349,8 +355,19 @@ int handleMouseButtonUp(SDL_Event *event, HYWindow *window) {
     if (act_obj) {
       // 转换坐标
       auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
-      HYObjectPushEventCall(window, act_obj, push_event, 0, HYPointGenLParam(x1, y1));
+      HYObjectPushEventCall(window, act_obj, push_event, 0, HYPointGenWParam(x1, y1));
     }
+  }
+  return 0;
+}
+
+int handleMouseWheel(SDL_Event *event, HYWindow *window) {
+  // 屏幕坐标转窗口坐标
+  auto [bx, by] = HYMouseGetPositionFromWindow(window);
+  auto obj = HYObjectGetFromMousePos(window, bx,by);
+  if (obj) {
+    auto lp = HYPointfGenWParam(event->wheel.x, event->wheel.y);
+    HYObjectPushEventCall(window, obj, HYObjectEvent::HYObjectEvent_MouseWheel, 0, lp);
   }
   return 0;
 }
@@ -446,9 +463,27 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
 
     auto obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
     if (obj) {
+
+      if (window->CurrentEventObject != obj) {
+        if (window->CurrentEventObject) {
+          // 退出事件
+          HYObjectPushEventCall(window, window->CurrentEventObject, HYObjectEvent::HYObjectEvent_MouseLeave, 0, 0);
+        }
+        // 进入事件
+        HYObjectPushEventCall(window, obj, HYObjectEvent::HYObjectEvent_MouseEnter, 0, 0);
+      }
       // 转换坐标
       auto [x1, y1] = HYObjectGetRelativePoint(obj, event->button.x, event->button.y);
-      HYObjectPushEventCall(window, obj, HYObjectEvent_MouseMove, 0, HYPointGenLParam(x1, y1));
+      HYObjectPushEventCall(window, obj, HYObjectEvent_MouseMove, 0, HYPointGenWParam(x1, y1));
+    } else {
+      if (window->CurrentEventObject) {
+        // 退出事件
+        HYObjectPushEventCall(window, window->CurrentEventObject, HYObjectEvent::HYObjectEvent_MouseLeave, 0, 0);
+        window->LastEventObject = window->CurrentEventObject;
+        window->LastEventObjectTime = window->CurrentEventObjectTime;
+        window->CurrentEventObject = nullptr;
+        window->CurrentEventObjectTime = SDL_GetTicksNS();
+      }
     }
   }
   return 0;
@@ -500,7 +535,7 @@ void window_recreate_surface(HYWindow *windowPtr) {
 }
 
 void HYWindowSkinHook(HYWindow *wnd, HYRGB backGroundColor, int diaphaneity, double round) {
-//  wnd->EventQueue.SetProcessCallback(processing_object_event);
+  //  wnd->EventQueue.SetProcessCallback(processing_object_event);
   wnd->round = round;
   wnd->BackGroundColor = HYColorRGBToInt(backGroundColor);
   wnd->Diaphaneity = diaphaneity;
@@ -604,11 +639,22 @@ uint32_t HYWindowMessageLoop() {
       if (handleMouseButtonUp(&event, window) != 0) {
         continue;
       }
+    } else if (event.type == SDL_EventType::SDL_EVENT_MOUSE_WHEEL) {
+      // 鼠标滚轮事件
+      if (handleMouseWheel(&event, window) != 0) {
+        continue;
+      }
     } else if (event.type == SDL_EventType::SDL_EVENT_MOUSE_MOTION) {
       // 鼠标移动事件
       if (handleMouseMotion(&event, window) != 0) {
         continue;
       }
+    } else if (event.type == SDL_EventType::SDL_EVENT_KEY_DOWN) {
+      // 键盘按键按下事件
+
+    } else if (event.type == SDL_EventType::SDL_EVENT_KEY_UP) {
+      // 键盘按键抬起事件
+
     } else if (event.type == g_app.EventWindow) {
       // 自定义窗口事件
       auto iter = g_win_event_map.find(event.window.reserved);
@@ -616,17 +662,15 @@ uint32_t HYWindowMessageLoop() {
         iter->second(window, &event.window);
     } else if (event.type == g_app.EventObject) {
       // 自定义组件事件
-      auto ts = (uint64_t *)event.user.data1;
-      auto object = (HYObjectHandle)ts;
-      auto param1 = *(uint64_t *)((uintptr_t(ts)+sizeof(uint64_t*)));
-      auto param2 = *(uint64_t *)((uintptr_t(ts)+sizeof(uint64_t*)+sizeof(uint64_t*)));
+      auto ts = (uint64_t *) event.user.data1;
+      auto object = (HYObjectHandle) ts;
+      auto param1 = *(uint64_t *) ((uintptr_t(ts) + sizeof(uint64_t *)));
+      auto param2 = *(uint64_t *) ((uintptr_t(ts) + sizeof(uint64_t *) + sizeof(uint64_t *)));
       free(ts);
       if (object) {
-        _obj_event(window, object, (HYObjectEvent)event.user.code, param1, param2);
+        _obj_event(window, object, (HYObjectEvent) event.user.code, param1, param2);
       }
     }
-    // ---------------------窗口事件---------------------------------
-    //tic_fps_func();
   }
   return 0;
 }
@@ -659,15 +703,15 @@ WindowHandelInfo HYWindowGetHandel(HYWindowHandel wnd) {
 #elif defined(_HOST_LINUX_)
   if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "x11") == 0) {
     auto xdisplay = (Display *) SDL_GetPropertyType(SDL_GetWindowProperties(wnd->SDLWindow),
-                                                SDL_PROP_WINDOW_X11_DISPLAY_POINTER);
+                                                    SDL_PROP_WINDOW_X11_DISPLAY_POINTER);
     auto xwindow = (Window) SDL_GetNumberProperty(SDL_GetWindowProperties(wnd->SDLWindow),
                                                   SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
     return {false, xdisplay, xwindow};
   } else if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0) {
     struct wl_display *display = (struct wl_display *) SDL_GetPropertyType(SDL_GetWindowProperties(wnd->SDLWindow),
-                                                                       SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER);
+                                                                           SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER);
     struct wl_surface *surface = (struct wl_surface *) SDL_GetPropertyType(SDL_GetWindowProperties(wnd->SDLWindow),
-                                                                       SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER);
+                                                                           SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER);
     return {true, display, (uintptr_t) surface};
   }
 #elif defined(SDL_PLATFORM_IOS)
@@ -729,3 +773,4 @@ void HYWindowSendEventRePaint(HYWindow *wind) {
   SDL_PushEvent(&event);
 }
 }// namespace HYGUI
+
