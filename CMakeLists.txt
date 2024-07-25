@@ -9,9 +9,9 @@ set(CMAKE_CXX_STANDARD 20)
 #    message(FATAL_ERROR "SKIA_PATH is not defined")
 #endif ()
 
-set(MODULES_DIR ./modules)
-set(GLOBAL_INCLUDE_DIR ./modules/include)
-set(GLOBAL_LIB_DIR ./modules/lib)
+set(MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules)
+set(GLOBAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/include)
+set(GLOBAL_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/lib)
 set(SKIA_PATH ${MODULES_DIR}/projects/skia)
 
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
