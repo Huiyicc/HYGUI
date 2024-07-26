@@ -3,7 +3,8 @@
 //
 #include "HYGUI/Object.h"
 #include "HYGUI/Event.h"
-#include "HYGUI/KeyCode.h"
+#include "HYGUI/Utils.h"
+#include "HYGUI/Keyboard.h"
 #include "HYGUI/Window.h"
 #include "PrivateDefinition.h"
 #include <map>
@@ -75,7 +76,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
   // 鼠标左键被按下
   {HYObjectEvent_LeftDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
-     auto mode = SDL_GetModState();
+     auto mode = HYKeyboardGetMods();
      auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventLeftDownCallbacks) {
        if (callback.second) {
@@ -91,7 +92,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
   // 鼠标左键被放开
   {HYObjectEvent_LeftUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
-     auto mode = SDL_GetModState();
+     auto mode = HYKeyboardGetMods();
      auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventLeftUpCallbacks) {
        if (callback.second) {
@@ -107,7 +108,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
   // 鼠标右键被按下
   {HYObjectEvent_RightDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
-     auto mode = SDL_GetModState();
+     auto mode = HYKeyboardGetMods();
      auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventRightDownCallbacks) {
        if (callback.second) {
@@ -123,7 +124,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
   // 鼠标右键被放开
   {HYObjectEvent_RightUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
-     auto mode = SDL_GetModState();
+     auto mode = HYKeyboardGetMods();
      auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventRightUpCallbacks) {
        if (callback.second) {
@@ -139,7 +140,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
   // 鼠标移动
   {HYObjectEvent_MouseMove, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
-     auto mode = SDL_GetModState();
+     auto mode = HYKeyboardGetMods();
      auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventMouseMoveCallbacks) {
        if (callback.second) {
@@ -184,7 +185,7 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
   // 鼠标滚轮事件
   {HYObjectEvent_MouseWheel, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
      int r = 0;
-     auto mode = SDL_GetModState();
+     auto mode = HYKeyboardGetMods();
      auto [x, y] = HYPointfFromWParam(param2);
      for (auto &callback: obj->EventMouseWheelCallbacks) {
        if (callback.second) {
@@ -215,6 +216,43 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
        }
      }
      return 0;
+   }},
+
+  // 按下某键
+  {HYObjectEvent_KeyDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     int r = 0;
+     HYKeyboardID which = HYGetHighUint32(param1);
+     auto scancode = (HYScancode)HYGetLowUint32(param1);
+     HYKeyCode key = HYGetHighUint32(param2);
+     HYKeymod mod = HYGetLowUint32(param2);
+     for (auto &callback: obj->EventKeyDownCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj,which, scancode, key, mod);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+
+  // 抬起某键
+  {HYObjectEvent_KeyUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     int r = 0;
+     HYKeyboardID which = HYGetHighUint32(param1);
+     auto scancode = (HYScancode)HYGetLowUint32(param1);
+     HYKeyCode key = HYGetHighUint32(param2);
+     HYKeymod mod = HYGetLowUint32(param2);
+     for (auto &callback: obj->EventKeyUpCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj,which, scancode, key, mod);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
    }},
 
 

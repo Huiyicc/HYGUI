@@ -25,13 +25,13 @@
 
 #include "SDL3/SDL.h"
 #include "include/core/SkCanvas.h"
-#include "include/gpu/gl/GrGLTypes.h"
-// #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkSurface.h"
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
+#include "include/gpu/gl/GrGLTypes.h"
+#include <HYGUI/Utils.h>
 #include <SDL3/SDL_opengl.h>
 #include <SDL3/SDL_system.h>
 #include <gpu/ganesh/SkSurfaceGanesh.h>
@@ -500,6 +500,27 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
   return 0;
 }
 
+int handleKeyDown(SDL_Event *event, HYWindow *window) {
+  if (!window->FocusObject) {
+    return 0;
+  }
+  auto p1 = HYCombineUint32(event->key.which, event->key.scancode);
+  auto p2 = HYCombineUint32(event->key.key, event->key.mod);
+  // PrintDebug("code:{}",event->key.key);
+  HYObjectPushEventCall(window, window->FocusObject, HYObjectEvent_KeyDown, p1, p2);
+  return 0;
+}
+
+int handleKeyUp(SDL_Event *event, HYWindow *window) {
+  if (!window->FocusObject) {
+    return 0;
+  }
+  auto p1 = HYCombineUint32(event->key.which, event->key.scancode);
+  auto p2 = HYCombineUint32(event->key.key, event->key.mod);
+  HYObjectPushEventCall(window, window->FocusObject, HYObjectEvent_KeyUp, p1, p2);
+  return 0;
+}
+
 void window_recreate_surface(HYWindow *windowPtr) {
   // 更新HDC/画笔尺寸
   if (windowPtr->Surface) {
@@ -662,10 +683,14 @@ uint32_t HYWindowMessageLoop() {
       }
     } else if (event.type == SDL_EventType::SDL_EVENT_KEY_DOWN) {
       // 键盘按键按下事件
-
+      if (handleKeyDown(&event, window) != 0) {
+        continue;
+      }
     } else if (event.type == SDL_EventType::SDL_EVENT_KEY_UP) {
       // 键盘按键抬起事件
-
+      if (handleKeyUp(&event, window) != 0) {
+        continue;
+      }
     } else if (event.type == g_app.EventWindow) {
       // 自定义窗口事件
       auto iter = g_win_event_map.find(event.window.reserved);
