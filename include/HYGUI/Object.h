@@ -57,6 +57,7 @@ public:
   std::shared_ptr<HYString> ClassName;// 组件类名
   std::shared_ptr<HYString> Name;     // 组件名
   int ID = 0;                         // 组件ID
+  bool AllowGetFocus = true;        // 是否允许获取焦点
 
   HYObjectEventMessageHandel MessageEventFunc = nullptr; // 用户消息事件回调
 
@@ -293,6 +294,14 @@ bool HYObjectGetVisible(HYObjectHandle object);
  * @param repaint 是否重绘。
  * */
 void HYObjectSetVisible(HYObjectHandle object, bool visible,bool repaint = true);
+
+/**
+ * @brief 设置对象焦点。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param focus 是否获得焦点,如果为true则设置对象为焦点，否则取消焦点。当应用本身有焦点时不会进行操作。
+ * */
+void HYObjectSetFocus(HYObject* obj, bool focus);
 
 }// namespace HYGUI
 

@@ -159,7 +159,7 @@ typedef std::function<int(HYWindow *, HYObject *, int, int)> HYObjectEventKeyUpH
  * @param HYWindow*: 窗口句柄
  * @param HYObject*: 组件句柄
  * @param float: x滚动距离
- * @param float: y滚动距离
+ * @param float: y滚动距离(一般只需要关注y)
  * @param int: 功能键状态,参见常量定义 HY_KMOD_
  * @result 0: 放行, 1: 拦截
  * */
@@ -174,6 +174,20 @@ typedef std::function<int(HYWindow *, HYObject *, float,float, int)> HYObjectEve
  * @result 0: 放行, 1: 拦截
  * */
 typedef std::function<int(HYWindow *, HYObject *, int, int)> HYObjectEventCharInputHandel;
+
+/**
+ * @brief 组件事件_获取焦点
+ * @param HYWindow*: 窗口句柄
+ * @param HYObject*: 组件句柄
+ * */
+typedef std::function<void(HYWindow *, HYObject *)> HYObjectEventFocusGainedHandel;
+
+/**
+ * @brief 组件事件_丢失焦点
+ * @param HYWindow*: 窗口句柄
+ * @param HYObject*: 组件句柄
+ * */
+typedef std::function<void(HYWindow *, HYObject *)> HYObjectEventFocusLostHandel;
 
 
 }// namespace HYGUI

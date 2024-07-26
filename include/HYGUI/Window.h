@@ -98,11 +98,12 @@ public:
   HYPoint oldMouseMovePoint = {0, 0}; // 旧鼠标移动位置 (win下有可能无限触发移动事件)
   HYRect oldWinRect = {0, 0, 0, 0}; // 旧窗口位置
 
-  bool Calltag = false; // 最后一次事件触发
   HYObject* CurrentEventObject = nullptr; // 当前事件对象
   uint64_t CurrentEventObjectTime = 0; // 当前对象事件触发时间戳
   HYObject* LastEventObject = nullptr; // 上次事件对象
   uint64_t LastEventObjectTime = 0; // 上次事件对象触发时间戳
+  HYObject* FocusObject = nullptr; // 当前焦点对象
+  HYObject* HoverObject = nullptr; // 鼠标当前悬停对象
 
   std::mutex PaintMutex; // 绘制锁
   std::condition_variable PaintCV; // 绘制条件变量

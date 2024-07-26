@@ -74,6 +74,14 @@ void isShow(HYWindow *, HYObject *) {
   std::cout << "显示事件" << std::endl;
 }
 
+void focusGained(HYWindow *, HYObject *) {
+  std::cout << "获得焦点" << std::endl;
+}
+
+void focusLost(HYWindow *, HYObject *) {
+  std::cout << "失去焦点" << std::endl;
+}
+
 int main() {
 
 #ifdef _WIN32
@@ -103,6 +111,8 @@ int main() {
   label->RegisterEventMouseEnterCallback(mouseEnter);
   label->RegisterEventMouseLeaveCallback(mouseLeave);
   label->RegisterEventMouseWheelCallback(mouseWheel);
+  label->RegisterEventFocusGainedCallback(focusGained);
+  label->RegisterEventFocusLostCallback(focusLost);
 
   auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
   HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,

@@ -63,7 +63,10 @@ enum HYObjectEvent {
   HYObjectEvent_MouseWheel,
   // 字符输入
   HYObjectEvent_CharInput,
-
+  // 获取焦点
+  HYObjectEvent_FocusGained,
+  // 失去焦点
+  HYObjectEvent_FocusLost,
 };
 
 enum HYWindowEvent {
@@ -346,6 +349,34 @@ public:
    * @param id: 回调ID
    * */
   void UnRegisterEventMouseLeaveCallback(uint32_t id);
+
+
+  std::map<uint32_t, HYObjectEventFocusGainedHandel> EventFocusGainedCallbacks;
+  /**
+   * @brief 添加获取焦点回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventFocusGainedCallback(const HYObjectEventFocusGainedHandel &callback);
+  /**
+   * @brief 删除获取焦点回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventFocusGainedCallback(uint32_t id);
+
+
+  std::map<uint32_t, HYObjectEventFocusLostHandel> EventFocusLostCallbacks;
+  /**
+   * @brief 添加丢失焦点回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventFocusLostCallback(const HYObjectEventFocusLostHandel &callback);
+  /**
+   * @brief 删除丢失焦点回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventFocusLostCallback(uint32_t id);
 
 
 };

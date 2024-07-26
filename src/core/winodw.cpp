@@ -317,9 +317,18 @@ int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
     window->DragType = 0;
     auto act_obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
     if (act_obj) {
+      if (push_event == HYObjectEvent::HYObjectEvent_LeftDown) {
+        // 组件获取焦点
+        HYObjectSetFocus(act_obj, true);
+      }
       // 转换坐标
       auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
       HYObjectPushEventCall(window, act_obj, push_event, 0, HYPointGenWParam(x1, y1));
+    } else {
+      if (window->FocusObject) {
+        // 释放焦点
+        HYObjectSetFocus(window->FocusObject, false);
+      }
     }
   }
   return 0;
@@ -364,7 +373,7 @@ int handleMouseButtonUp(SDL_Event *event, HYWindow *window) {
 int handleMouseWheel(SDL_Event *event, HYWindow *window) {
   // 屏幕坐标转窗口坐标
   auto [bx, by] = HYMouseGetPositionFromWindow(window);
-  auto obj = HYObjectGetFromMousePos(window, bx,by);
+  auto obj = HYObjectGetFromMousePos(window, bx, by);
   if (obj) {
     auto lp = HYPointfGenWParam(event->wheel.x, event->wheel.y);
     HYObjectPushEventCall(window, obj, HYObjectEvent::HYObjectEvent_MouseWheel, 0, lp);
@@ -463,12 +472,12 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
 
     auto obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
     if (obj) {
-
       if (window->CurrentEventObject != obj) {
         if (window->CurrentEventObject) {
           // 退出事件
           HYObjectPushEventCall(window, window->CurrentEventObject, HYObjectEvent::HYObjectEvent_MouseLeave, 0, 0);
         }
+        window->HoverObject = obj;
         // 进入事件
         HYObjectPushEventCall(window, obj, HYObjectEvent::HYObjectEvent_MouseEnter, 0, 0);
       }
@@ -476,9 +485,11 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
       auto [x1, y1] = HYObjectGetRelativePoint(obj, event->button.x, event->button.y);
       HYObjectPushEventCall(window, obj, HYObjectEvent_MouseMove, 0, HYPointGenWParam(x1, y1));
     } else {
-      if (window->CurrentEventObject) {
+      if (window->CurrentEventObject && window->HoverObject) {
         // 退出事件
-        HYObjectPushEventCall(window, window->CurrentEventObject, HYObjectEvent::HYObjectEvent_MouseLeave, 0, 0);
+        auto hoverObj = window->HoverObject;
+        window->HoverObject = nullptr;
+        HYObjectPushEventCall(window, hoverObj, HYObjectEvent::HYObjectEvent_MouseLeave, 0, 0);
         window->LastEventObject = window->CurrentEventObject;
         window->LastEventObjectTime = window->CurrentEventObjectTime;
         window->CurrentEventObject = nullptr;
@@ -772,5 +783,6 @@ void HYWindowSendEventRePaint(HYWindow *wind) {
   event.window.data2 = 0;
   SDL_PushEvent(&event);
 }
-}// namespace HYGUI
 
+
+}// namespace HYGUI

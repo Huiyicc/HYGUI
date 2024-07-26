@@ -197,11 +197,30 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
      return r;
    }},
 
+  // 获取焦点
+  {HYObjectEvent_FocusGained, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     for (auto &callback: obj->EventFocusGainedCallbacks) {
+       if (callback.second) {
+         callback.second(window, obj);
+       }
+     }
+     return 0;
+   }},
+
+  // 失去焦点
+  {HYObjectEvent_FocusLost, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     for (auto &callback: obj->EventFocusLostCallbacks) {
+       if (callback.second) {
+         callback.second(window, obj);
+       }
+     }
+     return 0;
+   }},
+
 
 };
 
 int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) {
-  window->Calltag = true;
   window->LastEventObject = window->CurrentEventObject;
   window->LastEventObjectTime = window->CurrentEventObjectTime;
   window->CurrentEventObject = obj;
@@ -492,6 +511,51 @@ void HYObjectSetVisible(HYObjectHandle object, bool visible, bool repaint) {
   if (repaint) {
     HYObjectRefresh(object);
   }
+}
+
+void HYObjectSetFocus(HYObject *obj, bool focus) {
+  if (!obj->AllowGetFocus) {
+    // 不允许获取焦点
+    return;
+  }
+  if (focus) {
+    if (obj->Window->FocusObject == obj) {
+      return;
+    }
+    if (obj->Window->FocusObject) {
+      // 发送取消焦点事件
+      HYObjectPushEventCall(obj->Window, obj->Window->FocusObject, HYObjectEvent::HYObjectEvent_FocusLost, 0, 0);
+    }
+    obj->Window->FocusObject = obj;
+    HYObjectPushEventCall(obj->Window, obj, HYObjectEvent::HYObjectEvent_FocusGained, 0, 0);
+  } else {
+    if (obj->Window->FocusObject != obj) {
+      return;
+    }
+    obj->Window->FocusObject = nullptr;
+    HYObjectPushEventCall(obj->Window, obj, HYObjectEvent::HYObjectEvent_FocusLost, 0, 0);
+  }
+
+
+  //  if ((focus && obj->Window->FocusObject == obj)
+  //      || (!focus && obj->Window->FocusObject != obj)
+  //      || !obj->AllowGetFocus) {
+  //    return;
+  //  }
+  //  auto a = HYObjectEvent::HYObjectEvent_FocusLost;
+  //  auto b = HYObjectEvent::HYObjectEvent_FocusGained;
+  //  if (!focus) {
+  //    std::swap(a, b);
+  //  }
+  //  if (focus) {
+  //    if (obj->Window->FocusObject) {
+  //      // 如果存在
+  //      // 发送取消焦点事件
+  //      HYObjectPushEventCall(obj->Window, obj->Window->FocusObject, a, 0, 0);
+  //    }
+  //  }
+  //  obj->Window->FocusObject = obj;
+  //  HYObjectPushEventCall(obj->Window, obj, b, 0, 0);
 }
 
 }// namespace HYGUI
