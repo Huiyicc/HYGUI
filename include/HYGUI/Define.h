@@ -28,15 +28,23 @@ typedef VOIDPTR CursorPtr;
 
 
 struct ApplicationInfo {
+  // 最后错误信息
   HYString LastError;
-  VOIDPTR Instance = nullptr;
+  // 消息循环锁
   std::mutex LookupLock;
+  // 是否正在运行
   bool isRuning = false;
+  // 全局标志
   HYGlobalFlag GlobalFlags = HYGlobalFlag::HYGlobalFlagGraphicDefault;
+  // 默认类名
   HYString DefaultClassName;
+  // 光标
   CursorPtr Cursor = nullptr;
+  // 默认图标
   VOIDPTR Icon = nullptr;
+  // 默认小图标
   VOIDPTR IconSm = nullptr;
+
   std::set<HYWindow *> WindowsTable;
   std::mutex WindowsTableMutex;
   uint32_t EventCustomStart;

@@ -17,11 +17,6 @@
 
 namespace HYGUI {
 
-HYLabel::~HYLabel() {
-  HYFontRelease(Font);
-  HYTextBlobBuilderDestroy(TextBlobBuilder);
-}
-
 int label_event_left_down(HYWindow *window, HYObject *obj, int x, int y, int function_key) {
 
   return 0;
@@ -153,8 +148,8 @@ int label_event_paint(HYWindow *window, HYObject *object) {
   return 0;
 }
 
-HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height)
-    : HYObject{window, parent, x, y, width, height, ObjectName}, Text{text} {
+HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,bool visible, HYObjectEventMessageHandel messageEventFunc)
+    : HYObject{window, parent, x, y, width, height, true, ObjectName, "", 0, std::move(messageEventFunc)}, Text{text} {
   RegisterEventPaintCallback(label_event_paint);
   RegisterEventLeftDownCallback(label_event_left_down);
   Font = HYFontCreateFromTypeface(HYTypefaceCreateFromDefault());
@@ -165,14 +160,18 @@ HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, 
   BanckgroundGradientDirection = HYGradientDirection::HYGradientDirectionNone;
 }
 
-HYLabelhandle
-HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height) {
-  auto label = new HYLabel{window, parent, text, x, y, width, height};
-  return HYResourceRegister(ResourceType::ResourceType_Object, label, "Label", [](void* ptr){
-    delete reinterpret_cast<HYLabel*>(ptr);
-  });
+HYLabel::~HYLabel() {
+  HYFontRelease(Font);
+  HYTextBlobBuilderDestroy(TextBlobBuilder);
 }
 
+HYLabelhandle
+HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height, bool visible,HYObjectEventMessageHandel messageEventFunc) {
+  auto label = new HYLabel{window, parent, text, x, y, width, height,visible, std::move(messageEventFunc)};
+  return HYResourceRegister(ResourceType::ResourceType_Object, label, "Label", [](void *ptr) {
+    delete reinterpret_cast<HYLabel *>(ptr);
+  });
+}
 
 void HYLabelSetColorStyle(HYLabelhandle label,
                           HYGradientMode banckgroundGradientMode,          // 背景色渐变模式

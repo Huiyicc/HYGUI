@@ -45,10 +45,16 @@ enum HYObjectEvent {
   HYObjectEvent_RightDown,
   // 鼠标右键按下
   HYObjectEvent_RightUp,
+  // 鼠标中键按下
+  HYObjectEvent_MiddleDown,
+  // 鼠标中键放开
+  HYObjectEvent_MiddleUp,
   // 鼠标移动
   HYObjectEvent_MouseMove,
-  // 被双击
-  HYObjectEvent_DoubleClick,
+  // 鼠标进入组件
+  HYObjectEvent_MouseEnter,
+  // 鼠标离开组件
+  HYObjectEvent_MouseLeave,
   // 按下某键
   HYObjectEvent_KeyDown,
   // 放开某键
@@ -57,7 +63,10 @@ enum HYObjectEvent {
   HYObjectEvent_MouseWheel,
   // 字符输入
   HYObjectEvent_CharInput,
-
+  // 获取焦点
+  HYObjectEvent_FocusGained,
+  // 失去焦点
+  HYObjectEvent_FocusLost,
 };
 
 enum HYWindowEvent {
@@ -98,7 +107,7 @@ private:
   }
 
   template<typename TC>
-  uint32_t _registerCallback(std::map<uint32_t,TC>& table, const TC &callback) {
+  uint32_t _registerCallback(std::map<uint32_t, TC> &table, const TC &callback) {
     auto riter = table.rbegin();
     if (riter == table.rend()) {
       table.insert(std::make_pair(0, callback));
@@ -259,19 +268,6 @@ public:
    * */
   void UnRegisterEventMouseMoveCallback(uint32_t id);
 
-  std::map<uint32_t, HYObjectEventDoubleClickHandel> EventDoubleClickCallbacks;
-  /**
-   * @brief 添加对象被双击回调
-   * @param callback: 回调函数
-   * @return: 回调ID,用于取消回调
-   * */
-  uint32_t RegisterEventDoubleClickCallback(const HYObjectEventDoubleClickHandel &callback);
-  /**
-   * @brief 删除对象被双击回调
-   * @param id: 回调ID
-   * */
-  void UnRegisterEventDoubleClickCallback(uint32_t id);
-
   std::map<uint32_t, HYObjectEventKeyDownHandel> EventKeyDownCallbacks;
   /**
    * @brief 添加对象按下某键回调
@@ -327,6 +323,60 @@ public:
   void UnRegisterEventCharInputCallback(uint32_t id);
 
 
+  std::map<uint32_t, HYObjectEventMouseEnterHandel> EventMouseEnterCallbacks;
+  /**
+   * @brief 添加鼠标进入回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventMouseEnterCallback(const HYObjectEventMouseEnterHandel &callback);
+  /**
+   * @brief 删除鼠标退出回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventMouseEnterCallback(uint32_t id);
+
+
+  std::map<uint32_t, HYObjectEventMouseLeaveHandel> EventMouseLeaveCallbacks;
+  /**
+   * @brief 添加鼠标进入回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventMouseLeaveCallback(const HYObjectEventMouseLeaveHandel &callback);
+  /**
+   * @brief 删除鼠标退出回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventMouseLeaveCallback(uint32_t id);
+
+
+  std::map<uint32_t, HYObjectEventFocusGainedHandel> EventFocusGainedCallbacks;
+  /**
+   * @brief 添加获取焦点回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventFocusGainedCallback(const HYObjectEventFocusGainedHandel &callback);
+  /**
+   * @brief 删除获取焦点回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventFocusGainedCallback(uint32_t id);
+
+
+  std::map<uint32_t, HYObjectEventFocusLostHandel> EventFocusLostCallbacks;
+  /**
+   * @brief 添加丢失焦点回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventFocusLostCallback(const HYObjectEventFocusLostHandel &callback);
+  /**
+   * @brief 删除丢失焦点回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventFocusLostCallback(uint32_t id);
 
 
 };

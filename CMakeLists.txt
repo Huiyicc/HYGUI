@@ -9,9 +9,9 @@ set(CMAKE_CXX_STANDARD 20)
 #    message(FATAL_ERROR "SKIA_PATH is not defined")
 #endif ()
 
-set(MODULES_DIR ./modules)
-set(GLOBAL_INCLUDE_DIR ./modules/include)
-set(GLOBAL_LIB_DIR ./modules/lib)
+set(MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules)
+set(GLOBAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/include)
+set(GLOBAL_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/lib)
 set(SKIA_PATH ${MODULES_DIR}/projects/skia)
 
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
@@ -167,6 +167,9 @@ if (NOT DEFINED NO_EXAMPLES)
     # helloworld
     add_executable(HelloWorld examples/helloworld/helloworld.cpp)
     target_link_libraries(HelloWorld PRIVATE HYGUI)
+    # event
+    add_executable(EventTest examples/event/events.cpp)
+    target_link_libraries(EventTest PRIVATE HYGUI)
     # cloud_music
     add_executable(CloudMusic examples/CloudMusic/main_window.cpp examples/CloudMusic/layout.cpp)
     target_link_libraries(CloudMusic PRIVATE HYGUI)

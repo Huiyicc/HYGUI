@@ -3,7 +3,7 @@
 //
 #include "HYGUI/KeyCode.h"
 
-namespace HYGUI{
+namespace HYGUI {
 
 
 

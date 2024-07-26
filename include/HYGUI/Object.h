@@ -33,10 +33,14 @@ typedef HYObject *HYObjectHandle;
  * 标签控件用于显示文本信息，并可设置背景色。
  */
 class HYObject : public HYObjectBase {
+
 public:
-  HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height, const HYString &className,
-           const HYString &name = "", int id = 0);
+  HYObject(HYWindow *window, HYObjectHandle parent, int x, int y, int width, int height,bool visible, const HYString &className,
+           const HYString &name = "", int id = 0, HYObjectEventMessageHandel messageEventFunc = nullptr);
   ~HYObject() override;
+
+  bool IsShow = false;
+  bool IsVisible = false;
 
   HYWindow *Window = nullptr;// 归属窗口
   HYObject *Parent = nullptr;// 父对象,为nullptr时表示为一级对象
@@ -45,7 +49,7 @@ public:
   int Y = 0;     // 左上角y坐标
   int Width = 0; // 宽度
   int Height = 0;// 高度
-
+  bool Visible = false;
 
   HYRect VisibleRect = {0};// 相对于窗口的实际可视范围
   HYRect RawObjRect = {0}; // 相对于窗口的实际范围(无裁剪)
@@ -53,11 +57,14 @@ public:
   std::shared_ptr<HYString> ClassName;// 组件类名
   std::shared_ptr<HYString> Name;     // 组件名
   int ID = 0;                         // 组件ID
+  bool AllowGetFocus = true;        // 是否允许获取焦点
 
-  CanvasPtr Canvas = nullptr;                       // 画布,用于绘制,除了绘制事件外不应该直接操作
-                                                    //  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
-  std::set<HYObject *> Children;                    // 子对象
-  std::unordered_map<intptr_t, intptr_t> UserData;  // 用户数据
+  HYObjectEventMessageHandel MessageEventFunc = nullptr; // 用户消息事件回调
+
+  CanvasPtr Canvas = nullptr;                     // 画布,用于绘制,除了绘制事件外不应该直接操作
+                                                  //  PaintPtr Paint = nullptr; // 画笔,用于绘制,除了绘制事件外不应该直接操作
+  std::set<HYObject *> Children;                  // 子对象
+  std::unordered_map<intptr_t, intptr_t> UserData;// 用户数据
 
   // 判断给定坐标是否在当前对象范围内
   bool contains(int px, int py) const;
@@ -134,30 +141,45 @@ void HYObjectSetName(HYObjectHandle object, const char *name);
 void HYObjectSetID(HYObjectHandle object, int id);
 
 /**
- * @brief 同步向对象发送事件。
+ * @brief 同步向对象发送事件(call方式)。
+ * 与HYObjectPushEvent的区别在于，HYObjectPushEventCall的底层是直接call消息链的。
  *
  * 该函数用于向指定的对象发送一个事件，对象可以根据事件类型执行相应的操作。
  * 例如，点击事件可能导致对象触发一个动作或改变其状态。
  *
  * @param window 窗口的指针，事件将在这个窗口内被处理。
  * @param object 接收事件的对象的句柄。
- * @param event 发送的事件类型。
+ * @param event 发送的事件类型,参考枚举值 HYObjectEvent。
  * @param param1 事件的第一个参数，具体含义取决于事件类型。
  * @param param2 事件的第二个参数，具体含义取决于事件类型。
  */
-void HYObjectSendEvent(HYWindow *window, HYObjectHandle object, int event, uint64_t param1, uint32_t param2);
+void HYObjectPushEventCall(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
 
 /**
- * @brief 向窗口内所有对象发送事件。
+ * @brief 同步向对象发送事件(event方式)。
+ * 与HYObjectPushEventCall的区别在于，HYObjectPushEvent的底层是先投递消息到窗口,由窗口移交给消息链处理。
  *
+ * 该函数用于向指定的对象发送一个事件，对象可以根据事件类型执行相应的操作。
+ * 例如，点击事件可能导致对象触发一个动作或改变其状态。
  * @param window 窗口的指针，事件将在这个窗口内被处理。
  * @param object 接收事件的对象的句柄。
- * @param event 发送的事件类型。
+ * @param event 发送的事件类型,参考枚举值 HYObjectEvent。
  * @param param1 事件的第一个参数，具体含义取决于事件类型。
  * @param param2 事件的第二个参数，具体含义取决于事件类型。
- *
  * */
-void HYObjectSendEventLIst(HYWindow *window, int event, uint64_t param1, uint32_t param2);
+void HYObjectPushEvent(HYWindow *window, HYObjectHandle object, HYObjectEvent event, int64_t param1, int64_t param2);
+
+///**
+// * @brief 向窗口内所有对象发送事件。
+// *
+// * @param window 窗口的指针，事件将在这个窗口内被处理。
+// * @param object 接收事件的对象的句柄。
+// * @param event 发送的事件类型。
+// * @param param1 事件的第一个参数，具体含义取决于事件类型。
+// * @param param2 事件的第二个参数，具体含义取决于事件类型。
+// *
+// * */
+//void HYObjectSendEventLIst(HYWindow *window, int event, uint64_t param1, uint32_t param2);
 
 /**
  * @brief 为对象设置用户数据。
@@ -252,6 +274,34 @@ PaintPtr HYObjectBeginPaint(HYObjectHandle object, bool clear = true);
  * */
 void HYObjectEndPaint(HYObjectHandle object, SkPaint *repaint);
 
+/**
+ * @brief 获取对象是否可见。
+ *
+ * 该函数用于获取指定对象的可见性。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @return bool 是否可见。
+ * */
+bool HYObjectGetVisible(HYObjectHandle object);
+
+/**
+ * @brief 设置对象是否可见。
+ *
+ * 该函数用于设置指定对象的可见性。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param visible 是否可见。
+ * @param repaint 是否重绘。
+ * */
+void HYObjectSetVisible(HYObjectHandle object, bool visible,bool repaint = true);
+
+/**
+ * @brief 设置对象焦点。
+ *
+ * @param object 对象的句柄，用于指定对象。
+ * @param focus 是否获得焦点,如果为true则设置对象为焦点，否则取消焦点。当应用本身有焦点时不会进行操作。
+ * */
+void HYObjectSetFocus(HYObject* obj, bool focus);
 
 }// namespace HYGUI
 
