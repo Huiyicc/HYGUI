@@ -35,7 +35,7 @@ ApplicationInfo g_app;
 
 bool HYInit(HYGlobalFlag DefaultGlobalFlags,
             const HYString &DefaultFont) {
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+  if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0) {
     g_app.LastError = SDL_GetError();
     PrintError("{}",g_app.LastError.c_str());
 

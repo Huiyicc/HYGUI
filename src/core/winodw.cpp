@@ -521,6 +521,14 @@ int handleKeyUp(SDL_Event *event, HYWindow *window) {
   return 0;
 }
 
+
+int handleTextInput(SDL_Event *event, HYWindow *window) {
+  PrintDebug("input:{}",event->text.text);
+
+  return 0;
+}
+
+
 void window_recreate_surface(HYWindow *windowPtr) {
   // 更新HDC/画笔尺寸
   if (windowPtr->Surface) {
@@ -691,6 +699,15 @@ uint32_t HYWindowMessageLoop() {
       if (handleKeyUp(&event, window) != 0) {
         continue;
       }
+    } else if (event.type == SDL_EventType::SDL_EVENT_TEXT_INPUT) {
+      // 输入文本
+      if (handleTextInput(&event, window) != 0) {
+        continue;
+      }
+    } else if (event.type == SDL_EventType::SDL_EVENT_TEXT_EDITING) {
+      // 输入文本
+    } else if (event.type == SDL_EventType::SDL_EVENT_TEXT_EDITING_CANDIDATES) {
+      // 输入候选词
     } else if (event.type == g_app.EventWindow) {
       // 自定义窗口事件
       auto iter = g_win_event_map.find(event.window.reserved);

@@ -55,7 +55,7 @@ struct WindowHandelInfo {
 #endif
 };
 
-class HYWindow {
+class HYWindow  {
 public:
   virtual ~HYWindow();
 
