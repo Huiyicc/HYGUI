@@ -87,6 +87,7 @@ HYPointf HYPointfFromWParam(int64_t wParam);
  */
 int64_t HYPointfGenWParam(float x, float y);
 
+
 }
 
 #endif //HYGUI_POINT_H

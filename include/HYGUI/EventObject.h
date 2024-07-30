@@ -9,7 +9,10 @@
 
 namespace HYGUI {
 
+class HYWindow;
 class HYObject;
+struct HYPoint;
+struct HYRect;
 
 /**
  * @brief 对象事件
@@ -28,6 +31,8 @@ enum HYObjectEvent {
 
   // 尺寸被改变
   HYObjectEvent_Resize,
+  // 位置被改变
+  HYObjectEvent_Move,
   // 被显示
   HYObjectEvent_Show,
   // 被隐藏
@@ -107,6 +112,15 @@ typedef std::function<void(HYWindow *, HYObject *)> HYObjectEventDestroyHandel;
 typedef std::function<int(HYWindow *, HYObject *)> HYObjectEventPaintHandel;
 
 /**
+ * @brief 组件事件_位置改变
+ * @param HYWindow*: 窗口句柄
+ * @param HYObject*: 组件句柄
+ * @param HYPoint*: 新位置
+ * @result 0: 放行, 1: 拦截
+ * */
+typedef std::function<int(HYWindow *, HYObject *, HYPoint *)> HYObjectEventMoveHandel;
+
+/**
  * @brief 组件事件_尺寸改变
  * @param HYWindow*: 窗口句柄
  * @param HYObject*: 组件句柄
@@ -172,6 +186,28 @@ typedef std::function<int(HYWindow *, HYObject *, int, int, HYKeymod)> HYObjectE
  * @result 0: 放行, 1: 拦截
  * */
 typedef std::function<int(HYWindow *, HYObject *, int, int, HYKeymod)> HYObjectEventRightDownHandel;
+
+/**
+ * @brief 组件事件_鼠标中键放开
+ * @param HYWindow*: 窗口句柄
+ * @param HYObject*: 组件句柄
+ * @param int: 鼠标x坐标
+ * @param int: 鼠标y坐标
+ * @param HYKeymod: 功能键状态,参见常量定义 HY_KMOD_
+ * @result 0: 放行, 1: 拦截
+ * */
+typedef std::function<int(HYWindow *, HYObject *, int, int, HYKeymod)> HYObjectEventMiddleUpHandel;
+
+/**
+ * @brief 组件事件_鼠标中键按下
+ * @param HYWindow*: 窗口句柄
+ * @param HYObject*: 组件句柄
+ * @param int: 鼠标x坐标
+ * @param int: 鼠标y坐标
+ * @param HYKeymod: 功能键状态,参见常量定义 HY_KMOD_
+ * @result 0: 放行, 1: 拦截
+ * */
+typedef std::function<int(HYWindow *, HYObject *, int, int, HYKeymod)> HYObjectEventMiddleDownHandel;
 
 /**
  * @brief 组件事件_鼠标移动
@@ -260,8 +296,7 @@ typedef std::function<void(HYWindow *, HYObject *)> HYObjectEventFocusGainedHand
 typedef std::function<void(HYWindow *, HYObject *)> HYObjectEventFocusLostHandel;
 
 
-
-class HYEventBase {
+class HYObjectEventBase {
 private:
   template<typename T>
   void _unRegisterCallback(T &table, uint32_t id) {
@@ -273,6 +308,9 @@ private:
 
   template<typename TC>
   uint32_t _registerCallback(std::map<uint32_t, TC> &table, const TC &callback) {
+    if (!callback) {
+      return 0;
+    }
     auto riter = table.rbegin();
     if (riter == table.rend()) {
       table.insert(std::make_pair(0, callback));
@@ -284,7 +322,7 @@ private:
   }
 
 public:
-  virtual ~HYEventBase() = default;
+  virtual ~HYObjectEventBase() = default;
 
   std::map<uint32_t, HYObjectEventCreateHandel> EventCreateCallbacks;
   /**
@@ -324,6 +362,19 @@ public:
    * @param id: 回调ID
    * */
   void UnRegisterEventPaintCallback(uint32_t id);
+
+  std::map<uint32_t, HYObjectEventMoveHandel> EventMoveCallbacks;
+  /**
+   * @brief 添加对象位置改变回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventMoveCallback(const HYObjectEventMoveHandel &callback);
+  /**
+   * @brief 删除对象位置改变回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventMoveCallback(uint32_t id);
 
   std::map<uint32_t, HYObjectEventResizeHandel> EventResizeCallbacks;
   /**
@@ -394,15 +445,16 @@ public:
   void UnRegisterEventLeftUpCallback(uint32_t id);
 
 
+
   std::map<uint32_t, HYObjectEventLeftUpHandel> EventRightUpCallbacks;
   /**
-   * @brief 添加对象鼠标右键按下回调
+   * @brief 添加对象鼠标中键弹起回调
    * @param callback: 回调函数
    * @return: 回调ID,用于取消回调
    * */
   uint32_t RegisterEventRightUpCallback(const HYObjectEventRightUpHandel &callback);
   /**
-   * @brief 删除对象鼠标右键按下回调
+   * @brief 删除对象鼠标中键弹起回调
    * @param id: 回调ID
    * */
   void UnRegisterEventRightUpCallback(uint32_t id);
@@ -419,6 +471,33 @@ public:
    * @param id: 回调ID
    * */
   void UnRegisterEventRightDownCallback(uint32_t id);
+
+
+  std::map<uint32_t, HYObjectEventMiddleUpHandel> EventMiddleUpCallbacks;
+  /**
+   * @brief 添加对象鼠标右键弹起回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventMiddleUpCallback(const HYObjectEventMiddleUpHandel &callback);
+  /**
+   * @brief 删除对象鼠标右键弹起回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventMiddleUpCallback(uint32_t id);
+
+  std::map<uint32_t, HYObjectEventMiddleDownHandel> EventMiddleDownCallbacks;
+  /**
+   * @brief 添加对象鼠标中键按下回调
+   * @param callback: 回调函数
+   * @return: 回调ID,用于取消回调
+   * */
+  uint32_t RegisterEventMiddleDownCallback(const HYObjectEventMiddleDownHandel &callback);
+  /**
+   * @brief 删除对象鼠标中键按下回调
+   * @param id: 回调ID
+   * */
+  void UnRegisterEventMiddleDownCallback(uint32_t id);
 
   std::map<uint32_t, HYObjectEventMouseMoveHandel> EventMouseMoveCallbacks;
   /**

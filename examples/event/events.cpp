@@ -4,8 +4,16 @@
 #include <HYGUI/HYGUI.h>
 #include <format>
 #include <iostream>
+#include <random>
 
 using namespace HYGUI;
+
+bool random_bool() {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(0, 1);
+  return dis(gen) == 1;
+}
 
 
 int event(HYWindow *window, HYObject *obj, HYObjectEvent event, uint64_t p1, uint32_t p2) {
@@ -22,7 +30,7 @@ void onCreate(HYWindow *, HYObject *) {
   std::cout << "创建事件" << std::endl;
 }
 int onLeftDown1(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
-  std::cout << std::format("左键按下1(键状态:{})",(int)keymode) << std::endl;
+  std::cout << std::format("左键按下1(键状态:{})", (int) keymode) << std::endl;
   return 0;
 }
 int onLeftDown2(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
@@ -35,8 +43,9 @@ int onLeftDown3(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
   return 0;
 }
 
-int onLeftUp(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+int onLeftUp(HYWindow *w, HYObject *, int, int, HYKeymod keymode) {
   std::cout << "左键弹起" << std::endl;
+  HYWindowDestroy(w);
   return 0;
 }
 
@@ -47,6 +56,16 @@ int onRightDown(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
 
 int onRightUp(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
   std::cout << "右键弹起" << std::endl;
+  return 0;
+}
+
+int onMiddleDown(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+  std::cout << "中键按下" << std::endl;
+  return 0;
+}
+
+int onMiddleUp(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+  std::cout << "中键弹起" << std::endl;
   return 0;
 }
 
@@ -65,18 +84,18 @@ int mouseLeave(HYWindow *, HYObject *) {
   return 0;
 }
 
-int mouseWheel(HYWindow *, HYObject *,float x,float y,HYKeymod keymode) {
-  std::cout << std::format("鼠标滚轮移动:[{},{}]({})",x,y,keymode) << std::endl;
+int mouseWheel(HYWindow *, HYObject *, float x, float y, HYKeymod keymode) {
+  std::cout << std::format("鼠标滚轮移动:[{},{}]({})", x, y, keymode) << std::endl;
   return 0;
 }
 
 int keyDown(HYWindow *, HYObject *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyCode KeyCode, HYKeymod Keymod) {
-  std::cout << std::format("键盘按下: 键盘ID:{} 扫描码:{} 键代码:{} 修饰键:{}",KeyboardID,(uint32_t)Scancode,KeyCode,Keymod) << std::endl;
+  std::cout << std::format("键盘按下: 键盘ID:{} 扫描码:{} 键代码:{} 修饰键:{}", KeyboardID, (uint32_t) Scancode, KeyCode, Keymod) << std::endl;
   return 0;
 }
 
 int keyUp(HYWindow *, HYObject *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyCode KeyCode, HYKeymod Keymod) {
-  std::cout << std::format("键盘抬起: 键盘ID:{} 扫描码:{} 键代码:{} 修饰键:{}",KeyboardID,(uint32_t)Scancode,KeyCode,Keymod) << std::endl;
+  std::cout << std::format("键盘抬起: 键盘ID:{} 扫描码:{} 键代码:{} 修饰键:{}", KeyboardID, (uint32_t) Scancode, KeyCode, Keymod) << std::endl;
   return 0;
 }
 
@@ -92,6 +111,119 @@ void focusLost(HYWindow *, HYObject *) {
   std::cout << "失去焦点" << std::endl;
 }
 
+void windowCreate(HYWindow *) {
+  std::cout << "窗口创建" << std::endl;
+}
+
+void windowPaint(HYWindow *, CanvasPtr canvas, PaintPtr paint, HYRect *) {
+  std::cout << "窗口背景重绘" << std::endl;
+  HYPaintSetColor(paint, HYARGB{255, 190, 249, 129});
+  HYRect r = {10, 50, 30, 30};
+  HYPaintDrawRect(canvas, paint, &r);
+}
+
+bool beforeClose(HYWindow *) {
+  auto c = random_bool();
+  if (c) {
+    std::cout << "窗口允许关闭" << std::endl;
+  } else {
+    std::cout << "窗口不允许关闭" << std::endl;
+  }
+  return c;
+}
+
+void willDestroy(HYWindow *) {
+  std::cout << "窗口将要销毁" << std::endl;
+}
+
+void windowMove(HYWindow *, HYPoint *pNew) {
+  // std::cout << std::format("窗口移动,新:[{},{}]",  pNew->x, pNew->y) << std::endl;
+}
+
+void windowResize(HYWindow *, HYRect *pNew) {
+  // std::cout << std::format("窗口大小改变,新:[{},{}]",  pNew->width, pNew->height) << std::endl;
+}
+
+void windowActivate(HYWindow *) {
+  std::cout << "窗口激活" << std::endl;
+}
+
+void windowDeactivate(HYWindow *) {
+  std::cout << "窗口取消激活" << std::endl;
+}
+
+void windowFirstActivate(HYWindow *) {
+  std::cout << "窗口首次激活" << std::endl;
+}
+
+void windowFocusGained(HYWindow *) {
+  std::cout << "窗口获得焦点" << std::endl;
+}
+
+void windowFocusLost(HYWindow *) {
+  std::cout << "窗口取消焦点" << std::endl;
+}
+
+void windowMouseLeave(HYWindow *) {
+  std::cout << "窗口鼠标退出" << std::endl;
+}
+
+void windowMouseEnter(HYWindow *) {
+  std::cout << "窗口鼠标进入" << std::endl;
+}
+
+void windowShow(HYWindow *) {
+  std::cout << "窗口显示" << std::endl;
+}
+
+void windowHide(HYWindow *) {
+  std::cout << "窗口隐藏" << std::endl;
+}
+
+void windowLeftUp(HYWindow *, int, int, HYKeymod keymode) {
+  std::cout << "窗口左键弹起" << std::endl;
+}
+
+void windowLeftDown(HYWindow *, int, int, HYKeymod keymode) {
+  std::cout << "窗口左键按下" << std::endl;
+}
+
+void windowMiddleUp(HYWindow *, int, int, HYKeymod keymode) {
+  std::cout << "窗口中键弹起" << std::endl;
+}
+
+void windowMiddleDown(HYWindow *, int, int, HYKeymod keymode) {
+  std::cout << "窗口中键按下" << std::endl;
+}
+
+void windowRightUp(HYWindow *, int, int, HYKeymod keymode) {
+  std::cout << "窗口右键弹起" << std::endl;
+}
+
+void windowRightDown(HYWindow *, int, int, HYKeymod keymode) {
+  std::cout << "窗口右键按下" << std::endl;
+}
+
+void windowMouseMove(HYWindow *, int x, int y, HYKeymod keymode) {
+  // std::cout << "窗口鼠标移动" << std::endl;
+}
+
+void windowMouseWheel(HYWindow *, float x, float y, HYKeymod keymode) {
+  std::cout << std::format("窗口鼠标滚轮滚动:[{},{}]({})", x, y, keymode) << std::endl;
+}
+
+
+int windowKeyDown(HYWindow *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyCode KeyCode, HYKeymod Keymod) {
+  std::cout << std::format("窗口键按下: 键盘ID:{} 扫描码:{} 键代码:{} 修饰键:{}", KeyboardID, (uint32_t) Scancode, KeyCode, Keymod) << std::endl;
+  return 0;
+}
+
+int windowKeyUp(HYWindow *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyCode KeyCode, HYKeymod Keymod) {
+  std::cout << std::format("窗口键抬起: 键盘ID:{} 扫描码:{} 键代码:{} 修饰键:{}", KeyboardID, (uint32_t) Scancode, KeyCode, Keymod) << std::endl;
+  return 0;
+}
+
+
 int main() {
 
 #ifdef _WIN32
@@ -102,6 +234,31 @@ int main() {
   auto wind = HYWindowCreate(nullptr, "Hello World");
   HYWindowSkinHook(wind, HYRGB{255, 255, 255}, 210);
 
+  wind->RegisterEventCreateCallback(windowCreate);
+  wind->RegisterEventBackgroundPaintCallback(windowPaint);
+  wind->RegisterEventBeforeCloseCallback(beforeClose);
+  wind->RegisterEventWillDestroyCallback(willDestroy);
+  wind->RegisterEventMoveCallback(windowMove);
+  wind->RegisterEventResizeCallback(windowResize);
+  wind->RegisterEventFirstActivateCallback(windowFirstActivate);
+  wind->RegisterEventFocusGainedCallback(windowFocusGained);
+  wind->RegisterEventFocusLostCallback(windowFocusLost);
+  wind->RegisterEventShowCallback(windowShow);
+  wind->RegisterEventHideCallback(windowHide);
+  wind->RegisterEventLeftUpCallback(windowLeftUp);
+  wind->RegisterEventLeftDownCallback(windowLeftDown);
+  wind->RegisterEventMiddleUpCallback(windowMiddleUp);
+  wind->RegisterEventMiddleDownCallback(windowMiddleDown);
+  wind->RegisterEventRightUpCallback(windowRightUp);
+  wind->RegisterEventRightDownCallback(windowRightDown);
+  wind->RegisterEventMouseLeaveCallback(windowMouseLeave);
+  wind->RegisterEventMouseEnterCallback(windowMouseEnter);
+  wind->RegisterEventMouseMoveCallback(windowMouseMove);
+  wind->RegisterEventMouseWheelCallback(windowMouseWheel);
+  wind->RegisterEventKeyUpCallback(windowKeyUp);
+  wind->RegisterEventKeyDownCallback(windowKeyDown);
+
+
   auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, true, event);
   HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
                        HYGradientDirection::HYGradientDirectionTopToBottom,
@@ -109,6 +266,7 @@ int main() {
                        HYARGB{255, 255, 255, 255},
                        HYARGB{255, 0, 0, 255}, 2);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label), "标签1 g");
+
   label->RegisterEventCreateCallback(onCreate);
   label->RegisterEventLeftDownCallback(onLeftDown1);
   label->RegisterEventLeftDownCallback(onLeftDown2);
@@ -116,6 +274,8 @@ int main() {
   label->RegisterEventLeftUpCallback(onLeftUp);
   label->RegisterEventRightDownCallback(onRightDown);
   label->RegisterEventRightUpCallback(onRightUp);
+  label->RegisterEventMiddleDownCallback(onMiddleDown);
+  label->RegisterEventMiddleUpCallback(onMiddleUp);
   label->RegisterEventMouseMoveCallback(mouseMove);
   label->RegisterEventShowCallback(isShow);
   label->RegisterEventMouseEnterCallback(mouseEnter);
@@ -136,7 +296,6 @@ int main() {
 
   HYWindowShow(wind);
   HYWindowMessageLoop();
-  std::this_thread::sleep_for(std::chrono::seconds(3));
   HYExit();
   return 0;
 }
