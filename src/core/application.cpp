@@ -147,7 +147,7 @@ void HYExit() {
 
   g_app.isRuning = false;
   SDL_Quit();
-
+  HYResourceRemoveOther(g_app.FontMgr);
   // debug
 
   HYResourceDumpDebug();

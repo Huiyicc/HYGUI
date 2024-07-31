@@ -155,14 +155,16 @@ HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, 
   Font = HYFontCreateFromTypeface(HYTypefaceCreateFromDefault());
   Font->setEdging(SkFont::Edging::kAlias);
   Font->setSize(12);
-  TextBlobBuilder = HYTextBlobBuilderCreate();
+  Typeface = Font->getTypeface();
+  //TextBlobBuilder = HYTextBlobBuilderCreate();
   BanckgroundGradientMode = HYGradientMode::HYGradientModeNone;
   BanckgroundGradientDirection = HYGradientDirection::HYGradientDirectionNone;
 }
 
 HYLabel::~HYLabel() {
   HYFontRelease(Font);
-  HYTextBlobBuilderDestroy(TextBlobBuilder);
+  HYTypefaceRelease(Typeface);
+  //HYTextBlobBuilderDestroy(TextBlobBuilder);
 }
 
 HYLabelhandle

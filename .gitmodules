@@ -13,3 +13,6 @@
 [submodule "modules/projects/boost"]
 	path = modules/projects/boost
 	url = https://github.com/OpenHYGUI/boost-cmake
+[submodule "modules/projects/USRefl"]
+	path = modules/projects/USRefl
+	url = https://github.com/Ubpa/USRefl
