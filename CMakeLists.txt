@@ -119,6 +119,7 @@ add_library(HYGUI STATIC ${LIB_SRC})
 target_compile_definitions(HYGUI PRIVATE _HYGUI_MODULE_)
 target_compile_definitions(HYGUI PRIVATE NOMINMAX)
 target_include_directories(HYGUI PRIVATE interior/include)
+target_include_directories(HYGUI PRIVATE interior)
 target_include_directories(HYGUI PRIVATE src/utils)
 
 if (MSVC)

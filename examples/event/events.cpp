@@ -223,12 +223,18 @@ int windowKeyUp(HYWindow *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyC
   return 0;
 }
 
+#include <cuchar>
 
 int main() {
 
 #ifdef _WIN32
   system("chcp 65001");
 #endif
+
+  HYString aa("好好21");
+  aa.forEachUtf8CharBoundary([](size_t start,size_t len) {
+    std::cout << std::format("start:{},len:{}", start, len) << std::endl;
+  });
 
   HYInit(HYGlobalFlag::HYGlobalFlagGraphicDefault);
   auto wind = HYWindowCreate(nullptr, "Hello World");
