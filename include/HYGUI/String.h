@@ -18,6 +18,9 @@ public:
   HYString(const char *pData);
   HYString(const char8_t *pData);
   HYString(const HYString &str);
+  HYString(const std::string &str);
+  HYString(const char32_t *pData, size_t len);
+  HYString(char32_t pData);
   ~HYString();
 
   HYString &operator=(const HYString &str);
@@ -70,7 +73,7 @@ public:
    * @param callback 一个函数对象，它接受两个参数：字符的起始位置和字符的长度。这个函数对象会在每个字符的边界被调用。
    * @return 返回遍历的字符总数。
    */
-  size_t forEachUtf8CharBoundary(const std::function<void(size_t start, size_t len)>&);
+  size_t forEachUtf8CharBoundary(const std::function<void(const char8_t *data,size_t start, size_t len, char32_t c)>&);
 
 private:
   std::shared_ptr<std::u8string> m_pSkString;

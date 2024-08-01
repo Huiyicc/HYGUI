@@ -13,6 +13,8 @@ TextBlobBuilderPtr HYTextBlobBuilderCreate();
 
 void HYTextBlobBuilderDestroy(TextBlobBuilderPtr builder);
 
+
+
 }
 
 #endif//HYGUI_TEXT_H

@@ -232,8 +232,9 @@ int main() {
 #endif
 
   HYString aa("好好21");
-  aa.forEachUtf8CharBoundary([](size_t start,size_t len) {
-    std::cout << std::format("start:{},len:{}", start, len) << std::endl;
+  aa.forEachUtf8CharBoundary([](const char8_t *data,size_t start,size_t len, char32_t c) {
+    HYString a(c);
+    std::cout << std::format("start:{},len:{},c:{}", start, len,a.c_str()) << std::endl;
   });
 
   HYInit(HYGlobalFlag::HYGlobalFlagGraphicDefault);
@@ -264,7 +265,6 @@ int main() {
   wind->RegisterEventKeyUpCallback(windowKeyUp);
   wind->RegisterEventKeyDownCallback(windowKeyDown);
 
-
   auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, true, event);
   HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
                        HYGradientDirection::HYGradientDirectionTopToBottom,
@@ -292,16 +292,17 @@ int main() {
   label->RegisterEventKeyDownCallback(keyDown);
   label->RegisterEventKeyUpCallback(keyUp);
 
-  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
-  HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,
-                       HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
-                       {HYARGB{255, 0, 0, 255}, HYARGB{255, 255, 0, 0}},
-                       HYARGB{255, 255, 255, 255},
-                       HYARGB{255, 255, 0, 0}, 2);
-  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label1), "标签2 b");
+//  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
+//  HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,
+//                       HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
+//                       {HYARGB{255, 0, 0, 255}, HYARGB{255, 255, 0, 0}},
+//                       HYARGB{255, 255, 255, 255},
+//                       HYARGB{255, 255, 0, 0}, 2);
+//  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label1), "标签2 b");
 
   HYWindowShow(wind);
   HYWindowMessageLoop();
   HYExit();
+
   return 0;
 }

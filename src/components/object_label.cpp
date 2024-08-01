@@ -2,6 +2,7 @@
 // Created by 19254 on 24-6-4.
 //
 #include "HYGUI/Font.h"
+#include "HYGUI/Layout.h"
 #include "HYGUI/ObjectLabel.h"
 #include "HYGUI/Paint.h"
 #include "HYGUI/Shader.h"
@@ -12,8 +13,8 @@
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkTypeface.h"
 #include "logs.h"
+#include <boost/algorithm/string.hpp>
 #include <core/SkFont.h>
-
 
 namespace HYGUI {
 
@@ -125,6 +126,35 @@ void label_paint_draw_banckground(HYLabel *label, PaintPtr paint) {
 }
 
 
+void label_event_paint_text(HYWindow *window, HYObject *object, PaintPtr paint) {
+  auto label = reinterpret_cast<HYLabel *>(object);
+  SkRect bounds;
+  auto text = label->Text.toStdStringView().data();
+  //  auto sc = label->Font->measureText(text, label->Text.size(), SkTextEncoding::kUTF8, &bounds);
+  label->Font->measureText(text, label->Text.size(), SkTextEncoding::kUTF8, &bounds);
+  // 文本高
+  SkScalar line_height = bounds.height();
+  std::vector<std::string> draw_texts;
+  boost::split(draw_texts, label->Text.toStdStringView(), boost::is_any_of("\n"));
+  HYPointf paint_point = {0, line_height};
+  HYPaintSetColor(paint, label->TextColor);
+  for (auto &d_text: draw_texts) {
+    float ws = 0;
+    HYString d_text_str = d_text;
+    d_text_str.forEachUtf8CharBoundary([&](const char8_t *data, size_t start, size_t len, char32_t c) {
+      SkRect ts;
+      label->Font->measureText(text + start, len, SkTextEncoding::kUTF8, &ts);
+      ws += ts.width();
+    });
+    object->Canvas->drawString(d_text_str.c_str(), paint_point.x,paint_point.y, *label->Font, *paint);
+    paint_point.y += (line_height);
+  }
+
+    auto blb = SkTextBlob::MakeFromString(text, *label->Font);
+
+}
+
+
 int label_event_paint(HYWindow *window, HYObject *object) {
   auto paint = HYObjectBeginPaint(object);
   auto label = reinterpret_cast<HYLabel *>(object);
@@ -133,22 +163,14 @@ int label_event_paint(HYWindow *window, HYObject *object) {
   label_paint_draw_banckground(label, paint);
 
   // 绘制字体
-  auto text = label->Text.toStdStringView().data();
+  label_event_paint_text(window, object, paint);
 
-  SkRect bounds;
-  label->Font->measureText(text, label->Text.size(), SkTextEncoding::kUTF8, &bounds);
-  SkScalar offsetY = bounds.height();
-
-  auto blb = SkTextBlob::MakeFromString(text, *label->Font);
-
-  HYPaintSetColor(paint, label->TextColor);
-  object->Canvas->drawString(label->Text.toStdStringView().data(), 0, offsetY, *label->Font, *paint);
 
   HYObjectEndPaint(object, paint);
   return 0;
 }
 
-HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,bool visible, HYObjectEventMessageHandel messageEventFunc)
+HYLabel::HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height, bool visible, HYObjectEventMessageHandel messageEventFunc)
     : HYObject{window, parent, x, y, width, height, true, ObjectName, "", 0, std::move(messageEventFunc)}, Text{text} {
   RegisterEventPaintCallback(label_event_paint);
   RegisterEventLeftDownCallback(label_event_left_down);
@@ -168,8 +190,8 @@ HYLabel::~HYLabel() {
 }
 
 HYLabelhandle
-HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height, bool visible,HYObjectEventMessageHandel messageEventFunc) {
-  auto label = new HYLabel{window, parent, text, x, y, width, height,visible, std::move(messageEventFunc)};
+HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height, bool visible, HYObjectEventMessageHandel messageEventFunc) {
+  auto label = new HYLabel{window, parent, text, x, y, width, height, visible, std::move(messageEventFunc)};
   return HYResourceRegister(ResourceType::ResourceType_Object, label, "Label", [](void *ptr) {
     delete reinterpret_cast<HYLabel *>(ptr);
   });
