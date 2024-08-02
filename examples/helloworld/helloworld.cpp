@@ -12,7 +12,7 @@ int main() {
   system("chcp 65001");
 #endif
 
-  HYInit(nullptr, HYGlobalFlag::HYGlobalFlagGraphicDefault);
+  HYInit(HYGlobalFlag::HYGlobalFlagGraphicDefault);
   auto wind = HYWindowCreate(nullptr, "Hello World");
   HYWindowSkinHook(wind, HYRGB{255, 255, 255}, 210);
 
@@ -31,14 +31,14 @@ int main() {
                        HYARGB{255, 255, 255, 255},
                        HYARGB{255, 255, 0, 0}, 2);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label1), "标签2 b");
-  //
-  //  auto label11 = HYLabelCreate(wind, label1, "标签红", -120, -80, 300, 150);
-  //  HYLabelSetColorStyle(label11, HYGradientMode::HYGradientModeLinear,
-  //                       HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
-  //                       {HYARGB{255, 255, 0, 0}, HYARGB{255, 0, 255, 0}},
-  //                       HYARGB{255, 255, 255, 255},
-  //                       HYARGB{255, 0, 0, 255}, 2);
-  //  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label11), "标签红 r");
+
+    auto label11 = HYLabelCreate(wind, label1, "标签红", -120, -80, 300, 150,true);
+    HYLabelSetColorStyle(label11, HYGradientMode::HYGradientModeLinear,
+                         HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
+                         {HYARGB{255, 255, 0, 0}, HYARGB{255, 0, 255, 0}},
+                         HYARGB{255, 255, 255, 255},
+                         HYARGB{255, 0, 0, 255}, 2);
+    HYObjectSetName(reinterpret_cast<HYObjectHandle>(label11), "标签红 r");
 
   HYWindowShow(wind);
   HYWindowMessageLoop();

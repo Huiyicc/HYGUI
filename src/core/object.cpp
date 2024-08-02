@@ -39,17 +39,37 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
      if (param1 == 0) {
        return -1;
      }
-     auto rect = *(HYRect *) param1;
-     delete (HYRect *) param1;
-     for (auto &callback: obj->EventResizeCallbacks) {
-       if (callback.second) {
-         r = callback.second(window, obj, &rect);
-         if (r != 0) {
-           break;
-         }
-       }
+//     auto rect = *(HYRect *) param1;
+//     delete (HYRect *) param1;
+//     for (auto &callback: obj->EventResizeCallbacks) {
+//       if (callback.second) {
+//         r = callback.second(window, obj, &rect);
+//         if (r != 0) {
+//           break;
+//         }
+//       }
+//     }
+//     HYObjectRefresh(obj);
+     return r;
+   }},
+
+  // 组件位置改变
+  {HYObjectEvent_Move, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     int r = 0;
+     if (param1 == 0) {
+       return -1;
      }
-     HYObjectRefresh(obj);
+//     auto rect = *(HYRect *) param1;
+//     delete (HYRect *) param1;
+//     for (auto &callback: obj->EventMoveCallbacks) {
+//       if (callback.second) {
+//         r = callback.second(window, obj, &rect);
+//         if (r != 0) {
+//           break;
+//         }
+//       }
+//     }
+//     HYObjectRefresh(obj);
      return r;
    }},
 
@@ -127,6 +147,38 @@ const std::map<int, std::function<int(HYWindow *, HYObject *, HYObjectEvent, int
      auto mode = HYKeyboardGetMods();
      auto [x, y] = HYPointFromWParam(param2);
      for (auto &callback: obj->EventRightUpCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, x, y, mode);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+  // 鼠标中键被按下
+  {HYObjectEvent_MiddleDown, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     int r = 0;
+     auto mode = HYKeyboardGetMods();
+     auto [x, y] = HYPointFromWParam(param2);
+     for (auto &callback: obj->EventMiddleDownCallbacks) {
+       if (callback.second) {
+         r = callback.second(window, obj, x, y, mode);
+         if (r != 0) {
+           break;
+         }
+       }
+     }
+     return r;
+   }},
+
+  // 鼠标中键被放开
+  {HYObjectEvent_MiddleUp, [](HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2) -> int {
+     int r = 0;
+     auto mode = HYKeyboardGetMods();
+     auto [x, y] = HYPointFromWParam(param2);
+     for (auto &callback: obj->EventMiddleUpCallbacks) {
        if (callback.second) {
          r = callback.second(window, obj, x, y, mode);
          if (r != 0) {
@@ -408,6 +460,7 @@ void HYObjectPushEventCall(HYWindow *window, HYObjectHandle object, HYObjectEven
     return;
   }
   _obj_event(window, object, event, param1, param2);
+  // HYObjectPushEvent(window, object, event, param1, param2);
 }
 
 

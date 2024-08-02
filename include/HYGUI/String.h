@@ -8,6 +8,7 @@
 // class SkString;
 #include <memory>
 #include <string>
+#include <functional>
 
 namespace HYGUI {
 
@@ -17,6 +18,9 @@ public:
   HYString(const char *pData);
   HYString(const char8_t *pData);
   HYString(const HYString &str);
+  HYString(const std::string &str);
+  HYString(const char32_t *pData, size_t len);
+  HYString(char32_t pData);
   ~HYString();
 
   HYString &operator=(const HYString &str);
@@ -60,9 +64,18 @@ public:
   void append(const HYString &str);
   const char *c_str() const;
 
+  /**
+   * 遍历UTF-8字符的边界。
+   *
+   * 该函数通过回调函数的形式，对输入字符串中的每个UTF-8字符的边界进行处理。UTF-8字符的边界是指字符的起始位置和字符的长度。
+   * 对于每个字符，回调函数会被调用一次，传入字符的起始位置和该字符的字节长度。
+   *
+   * @param callback 一个函数对象，它接受两个参数：字符的起始位置和字符的长度。这个函数对象会在每个字符的边界被调用。
+   * @return 返回遍历的字符总数。
+   */
+  size_t forEachUtf8CharBoundary(const std::function<void(const char8_t *data,size_t start, size_t len, char32_t c)>&);
+
 private:
-  //  std::wstring m_wstrData;
-  //  std::string m_strData;
   std::shared_ptr<std::u8string> m_pSkString;
 };
 

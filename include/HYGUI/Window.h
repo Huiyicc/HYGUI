@@ -55,9 +55,9 @@ struct WindowHandelInfo {
 #endif
 };
 
-class HYWindow {
+class HYWindow: public HYWindowEventBase {
 public:
-  virtual ~HYWindow();
+  ~HYWindow() override;
 
   VOIDPTR GrCtx = nullptr; // 设备上下文
   VOIDPTR SDLOpenGl = nullptr; // sdl设备上下文
@@ -69,7 +69,7 @@ public:
   SDL_Renderer *SDLRenderer = nullptr;
   bool IsInit = false;
   bool Show = false;
-  bool isTransparent = false;
+  bool FirstFocus = true;
 
   WindowHandelInfo Handle = {};
   SurfacePtr Surface = nullptr;
@@ -181,7 +181,7 @@ void HYWindowSkinHook(HYWindowHandel wnd, HYRGB backGroundColor, int diaphaneity
  * @param param2 参数2,窄消息
  * @return 返回值
  */
-uint64_t HYWindowSendEvent(HYWindowHandel window, uint32_t event, uint64_t param1, uint32_t param2);
+uint64_t HYWindowSendEvent(HYWindow *wind, HYWindowEvent event,uint64_t data1,uint64_t data2) ;
 
 /**
  * @brief 为窗口对象设置用户数据。
