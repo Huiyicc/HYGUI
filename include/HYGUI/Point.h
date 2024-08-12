@@ -15,6 +15,12 @@ struct HYRect {
   int width = 0;
   int height = 0;
 };
+struct HYRectf {
+  float x = 0.0f;
+  float y = 0.0f;
+  float width = 0.0f;
+  float height = 0.0f;
+};
 
 struct HYPoint {
   int x = 0;
@@ -29,8 +35,8 @@ struct HYPoint {
 };
 
 struct HYPointf {
-  float x = 0;
-  float y = 0;
+  float x = 0.0f;
+  float y = 0.0f;
 
   explicit operator HYPoint() const {
     return {static_cast<int>(x), static_cast<int>(y)};

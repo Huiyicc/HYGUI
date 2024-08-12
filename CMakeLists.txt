@@ -177,4 +177,8 @@ if (NOT DEFINED NO_EXAMPLES)
   # cloud_music
   add_executable(CloudMusic examples/CloudMusic/main_window.cpp examples/CloudMusic/layout.cpp)
   target_link_libraries(CloudMusic PRIVATE HYGUI)
+  # text
+  add_executable(TextParagraph examples/text/paragraph.cpp)
+  target_link_libraries(TextParagraph PRIVATE HYGUI)
+
 endif ()

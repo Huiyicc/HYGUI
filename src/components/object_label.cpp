@@ -123,6 +123,7 @@ void label_paint_draw_banckground(HYLabel *label, PaintPtr paint) {
   HYPaintDrawRect(label->Canvas, paint, &bgrect);
   // 背景绘制完成,清除shader
   HYPaintSetShader(paint, nullptr);
+
 }
 
 
@@ -145,12 +146,13 @@ void label_event_paint_text(HYWindow *window, HYObject *object, PaintPtr paint) 
       SkRect ts;
       label->Font->measureText(text + start, len, SkTextEncoding::kUTF8, &ts);
       ws += ts.width();
+      return 0;
     });
-    object->Canvas->drawString(d_text_str.c_str(), paint_point.x,paint_point.y, *label->Font, *paint);
+    object->Canvas->drawString(d_text_str.c_str(), paint_point.x, paint_point.y, *label->Font, *paint);
     paint_point.y += (line_height);
   }
 
-    auto blb = SkTextBlob::MakeFromString(text, *label->Font);
+  auto blb = SkTextBlob::MakeFromString(text, *label->Font);
 
 }
 

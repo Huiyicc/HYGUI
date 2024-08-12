@@ -27,6 +27,10 @@ HYString::HYString(const char8_t *pData) {
   m_pSkString = std::make_shared<StringBase>(pData);
 }
 
+HYString::HYString(const char8_t *pData, size_t len) {
+  m_pSkString = std::make_shared<StringBase>(pData, len);
+}
+
 HYString::HYString(const char32_t *pData, size_t len) {
   std::u32string d(pData, len);
   m_pSkString = std::make_shared<StringBase>();
@@ -46,7 +50,7 @@ HYString::HYString(const HYString &str) {
 }
 
 HYString::HYString(const std::string &str) {
-  m_pSkString = std::make_shared<StringBase>((char8_t *)str.c_str());
+  m_pSkString = std::make_shared<StringBase>((char8_t *) str.c_str());
 }
 
 HYString &HYString::operator=(const char *pData) {
@@ -176,20 +180,28 @@ void HYString::append(const char *pData) {
   m_pSkString->append((char8_t *) pData);
 }
 
+void HYString::append(const char8_t *str) {
+  m_pSkString->append(str);
+}
+
+void HYString::append(const char *pData,size_t len) {
+  m_pSkString->append((char8_t *) pData,len);
+}
+
+void HYString::append(const char8_t *str,size_t len) {
+  m_pSkString->append(str,len);
+}
 
 void HYString::append(const HYString &str) {
   m_pSkString->append(*str.m_pSkString);
 }
 
-void HYString::append(const char8_t *str) {
-  m_pSkString->append(str);
-}
 
 const char *HYString::c_str() const {
   return (char *) m_pSkString->c_str();
 }
 
-size_t HYString::forEachUtf8CharBoundary(const std::function<void(const char8_t *data, size_t start, size_t len, char32_t c)> &func) {
+size_t HYString::forEachUtf8CharBoundary(const ForEachCharHandel &func) {
   std::string raw((char *) m_pSkString->data());
   char *w = raw.data();
   char *end = w + raw.length();
@@ -198,7 +210,9 @@ size_t HYString::forEachUtf8CharBoundary(const std::function<void(const char8_t 
     char *prev = w;
     auto c = utf8::next(w, end);
     size_t len = w - prev;
-    func(m_pSkString->data(), start, len, c);
+    if (func(m_pSkString->data(), start, len, c) == -1) {
+      break;
+    }
     start += len;
   }
   return start;// 返回处理的字符总数

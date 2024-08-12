@@ -235,6 +235,7 @@ int main() {
   aa.forEachUtf8CharBoundary([](const char8_t *data,size_t start,size_t len, char32_t c) {
     HYString a(c);
     std::cout << std::format("start:{},len:{},c:{}", start, len,a.c_str()) << std::endl;
+    return 0;
   });
 
   HYInit(HYGlobalFlag::HYGlobalFlagGraphicDefault);

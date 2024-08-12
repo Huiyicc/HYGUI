@@ -14,9 +14,22 @@ namespace HYGUI {
 
 class HYString {
 public:
+
+  /**
+   * @brief 遍历UTF-8字符的边界。
+   *
+   * @param data 原始utf8字符串
+   * @param start 起始位置
+   * @param len 字符长度
+   * @param c utf32字符
+   * @return 返回-1则终止遍历
+   * */
+  typedef std::function<int(const char8_t *data,size_t start, size_t len, char32_t c)> ForEachCharHandel;
+
   HYString();
   HYString(const char *pData);
   HYString(const char8_t *pData);
+  HYString(const char8_t *pData, size_t len);
   HYString(const HYString &str);
   HYString(const std::string &str);
   HYString(const char32_t *pData, size_t len);
@@ -61,6 +74,8 @@ public:
 
   void append(const char *pData);
   void append(const char8_t *pData);
+  void append(const char *pData, size_t len);
+  void append(const char8_t *pData, size_t len);
   void append(const HYString &str);
   const char *c_str() const;
 
@@ -73,7 +88,7 @@ public:
    * @param callback 一个函数对象，它接受两个参数：字符的起始位置和字符的长度。这个函数对象会在每个字符的边界被调用。
    * @return 返回遍历的字符总数。
    */
-  size_t forEachUtf8CharBoundary(const std::function<void(const char8_t *data,size_t start, size_t len, char32_t c)>&);
+  size_t forEachUtf8CharBoundary(const ForEachCharHandel&);
 
 private:
   std::shared_ptr<std::u8string> m_pSkString;
