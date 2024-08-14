@@ -34,6 +34,8 @@ enum ResourceType : uint32_t {
     ResourceType_TextBlobBuilder,
     // 着色器
     ResourceType_Shader,
+    // 段落
+    ResourceType_Paragraph,
 };
 
 extern std::unordered_map<uint32_t, std::string_view> g_resource_type_annotation;

@@ -7,6 +7,7 @@
 
 #include "HYGUI/Coding.h"
 #include "HYGUI/String.h"
+#include "boost/algorithm/string.hpp"
 #include "utfcpp/utf8.h"
 #include "utfcpp/utf8/cpp20.h"
 
@@ -184,12 +185,12 @@ void HYString::append(const char8_t *str) {
   m_pSkString->append(str);
 }
 
-void HYString::append(const char *pData,size_t len) {
-  m_pSkString->append((char8_t *) pData,len);
+void HYString::append(const char *pData, size_t len) {
+  m_pSkString->append((char8_t *) pData, len);
 }
 
-void HYString::append(const char8_t *str,size_t len) {
-  m_pSkString->append(str,len);
+void HYString::append(const char8_t *str, size_t len) {
+  m_pSkString->append(str, len);
 }
 
 void HYString::append(const HYString &str) {
@@ -217,5 +218,105 @@ size_t HYString::forEachUtf8CharBoundary(const ForEachCharHandel &func) {
   }
   return start;// 返回处理的字符总数
 }
+
+void HYString::replace(const char *pData, const char *pReplace) {
+  boost::replace_all(*m_pSkString, (char *) pData, (char *) pReplace);
+};
+void HYString::replace(const char8_t *pData, const char8_t *pReplace) {
+  boost::replace_all(*m_pSkString, (char *) pData, (char *) pReplace);
+};
+void HYString::replace(const char *pData, size_t len, const char *pReplace) {
+  boost::replace_all(*m_pSkString, std::string((char *) pData, len), (char *) pReplace);
+};
+void HYString::replace(const char8_t *pData, size_t len, const char8_t *pReplace) {
+  boost::replace_all(*m_pSkString, std::u8string(pData, len), std::u8string(pReplace));
+};
+void HYString::replace(const HYString &str, const HYString &replace) {
+  boost::replace_all(*m_pSkString, *str.m_pSkString, *replace.m_pSkString);
+};
+
+void HYString::replace(const size_t start, size_t len, const char *pReplace) {
+  m_pSkString->replace(start, len, (char8_t *) pReplace);
+};
+void HYString::replace(const size_t start, size_t len, const char8_t *pReplace) {
+  m_pSkString->replace(start, len, pReplace);
+};
+void HYString::replace(const size_t start, size_t len, const HYString &replace) {
+  m_pSkString->replace(start, len, *replace.m_pSkString);
+};
+
+void HYString::remove(const char *pData) {
+  boost::erase_all(*m_pSkString, (char *) pData);
+};
+void HYString::remove(const char8_t *pData) {
+  boost::erase_all(*m_pSkString, (char *) pData);
+};
+void HYString::remove(const char *pData, size_t len) {
+  boost::erase_all(*m_pSkString, std::string((char *) pData, len));
+};
+void HYString::remove(const char8_t *pData, size_t len) {
+  boost::erase_all(*m_pSkString, std::u8string(pData, len));
+};
+void HYString::remove(const HYString &str) {
+  boost::erase_all(*m_pSkString, *str.m_pSkString);
+};
+
+void HYString::insert(size_t pos, const char *pData) {
+  m_pSkString->insert(pos, (char8_t *) pData);
+};
+void HYString::insert(size_t pos, const char8_t *pData) {
+  m_pSkString->insert(pos, pData);
+};
+void HYString::insert(size_t pos, const char *pData, size_t len) {
+  m_pSkString->insert(pos, (char8_t *) pData, len);
+};
+void HYString::insert(size_t pos, const char8_t *pData, size_t len) {
+  m_pSkString->insert(pos, pData, len);
+};
+void HYString::insert(size_t pos, const HYString &str) {
+  m_pSkString->insert(pos, *str.m_pSkString);
+};
+
+void HYString::erase(size_t pos, size_t len) {
+  m_pSkString->erase(pos, len);
+};
+
+size_t HYString::find(const char *pData) const {
+  return m_pSkString->find((char8_t *) pData);
+};
+size_t HYString::find(const char8_t *pData) const {
+  return m_pSkString->find(pData);
+};
+size_t HYString::find(const char *pData, size_t len) const {
+  return m_pSkString->find((char8_t *) pData, 0, len);
+};
+size_t HYString::find(const char8_t *pData, size_t len) const {
+  return m_pSkString->find(pData, 0, len);
+};
+size_t HYString::find(const HYString &str) const {
+  return m_pSkString->find(*str.m_pSkString);
+};
+
+size_t HYString::rfind(const char *pData) const {
+  return m_pSkString->rfind((char8_t *) pData);
+};
+size_t HYString::rfind(const char8_t *pData) const {
+  return m_pSkString->rfind(pData);
+};
+size_t HYString::rfind(const char *pData, size_t len) const {
+  return m_pSkString->rfind((char8_t *) pData, 0, len);
+};
+size_t HYString::rfind(const char8_t *pData, size_t len) const {
+  return m_pSkString->rfind(pData, 0, len);
+};
+size_t HYString::rfind(const HYString &str) const {
+  return m_pSkString->rfind(*str.m_pSkString);
+};
+
+HYString HYString::substr(size_t pos, size_t len) const {
+  HYString ret;
+  ret.m_pSkString = std::make_shared<StringBase>(m_pSkString->substr(pos, len));
+  return ret;
+};
 
 }// namespace HYGUI

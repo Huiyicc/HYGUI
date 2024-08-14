@@ -5,16 +5,21 @@
 #include "HYGUI/Layout.h"
 #include "HYGUI/ObjectLabel.h"
 #include "HYGUI/Paint.h"
+#include "HYGUI/Paragraph.h"
 #include "HYGUI/Shader.h"
-#include "HYGUI/Text.h"
 #include "PrivateDefinition.h"
+#include "core/SkPath.h"
+#include "include/core/SkBlurTypes.h"
 #include "include/core/SkFontMgr.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkTextBlob.h"
 #include "include/core/SkTypeface.h"
 #include "logs.h"
+#include "src/text/gpu/StrikeCache.h"
+#include "third_party/externals/harfbuzz/src/hb-ot.h"
 #include <boost/algorithm/string.hpp>
 #include <core/SkFont.h>
+
 
 namespace HYGUI {
 
@@ -123,7 +128,6 @@ void label_paint_draw_banckground(HYLabel *label, PaintPtr paint) {
   HYPaintDrawRect(label->Canvas, paint, &bgrect);
   // 背景绘制完成,清除shader
   HYPaintSetShader(paint, nullptr);
-
 }
 
 
@@ -139,21 +143,42 @@ void label_event_paint_text(HYWindow *window, HYObject *object, PaintPtr paint) 
   boost::split(draw_texts, label->Text.toStdStringView(), boost::is_any_of("\n"));
   HYPointf paint_point = {0, line_height};
   HYPaintSetColor(paint, label->TextColor);
-  for (auto &d_text: draw_texts) {
-    float ws = 0;
-    HYString d_text_str = d_text;
-    d_text_str.forEachUtf8CharBoundary([&](const char8_t *data, size_t start, size_t len, char32_t c) {
-      SkRect ts;
-      label->Font->measureText(text + start, len, SkTextEncoding::kUTF8, &ts);
-      ws += ts.width();
+//  auto t = g_app.FontMgr->makeFromFile("C:/Users/19254/Downloads/Noto_Color_Emoji/NotoColorEmoji-Regular.ttf");
+//  label->Font->setTypeface(t);
+  label->Font->setSize(16);
+
+
+  paint->setAntiAlias(true);
+  HYParagraphBuilderImpl ParagraphBuilderImpl(HYRectf{0, 0, static_cast<float>(label->Width), static_cast<float>(label->Height)}, label->Font);
+
+  ParagraphBuilderImpl.SetAutoWrap(true);
+  ParagraphBuilderImpl.AddText(label->Text);
+  auto paragraph_builder = ParagraphBuilderImpl.Build();
+  auto text_layouts = paragraph_builder->GetLayouts();
+  //  for (auto &text_layout: text_layouts) {
+  //    object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
+  //
+  //  }
+
+  SkTextBlobBuilder builder;
+  builder.allocRun(*label->Font, 1, 0, 0, &bounds);
+  auto textBlob = builder.make();
+  for (auto &text_layout: text_layouts) {
+    // object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
+    text_layout.str.forEachUtf8CharBoundary([&](const char8_t *data, size_t start, size_t len, char32_t c) -> int {
+      SkPath p;
+      label->Font->setSubpixel(true);
+      auto gg = label->Font->getPath(c, &p);
+
+      PrintDebug("gg:{} c:{}", gg, HYString(data + start, len).toStdStringView());
       return 0;
     });
-    object->Canvas->drawString(d_text_str.c_str(), paint_point.x, paint_point.y, *label->Font, *paint);
-    paint_point.y += (line_height);
+
+    PrintDebug("c:{}", label->Font->countText(text_layout.str.c_str(), text_layout.str.size(), SkTextEncoding::kUTF8));
   }
 
-  auto blb = SkTextBlob::MakeFromString(text, *label->Font);
 
+  //  auto blb = SkTextBlob::MakeFromString(text, *label->Font);
 }
 
 

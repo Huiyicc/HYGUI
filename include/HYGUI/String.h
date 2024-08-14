@@ -90,6 +90,43 @@ public:
    */
   size_t forEachUtf8CharBoundary(const ForEachCharHandel&);
 
+  void replace(const char *pData, const char *pReplace);
+  void replace(const char8_t *pData, const char8_t *pReplace);
+  void replace(const char *pData, size_t len, const char *pReplace);
+  void replace(const char8_t *pData, size_t len, const char8_t *pReplace);
+  void replace(const HYString &str, const HYString &replace);
+  void replace(const size_t start, size_t len, const char *pReplace);
+  void replace(const size_t start, size_t len, const char8_t *pReplace);
+  void replace(const size_t start, size_t len, const HYString &replace);
+
+  void remove(const char *pData);
+  void remove(const char8_t *pData);
+  void remove(const char *pData, size_t len);
+  void remove(const char8_t *pData, size_t len);
+  void remove(const HYString &str);
+
+  void insert(size_t pos, const char *pData);
+  void insert(size_t pos, const char8_t *pData);
+  void insert(size_t pos, const char *pData, size_t len);
+  void insert(size_t pos, const char8_t *pData, size_t len);
+  void insert(size_t pos, const HYString &str);
+
+  void erase(size_t pos, size_t len);
+
+  size_t find(const char *pData) const;
+  size_t find(const char8_t *pData) const;
+  size_t find(const char *pData, size_t len) const;
+  size_t find(const char8_t *pData, size_t len) const;
+  size_t find(const HYString &str) const;
+
+  size_t rfind(const char *pData) const;
+  size_t rfind(const char8_t *pData) const;
+  size_t rfind(const char *pData, size_t len) const;
+  size_t rfind(const char8_t *pData, size_t len) const;
+  size_t rfind(const HYString &str) const;
+
+  HYString substr(size_t pos, size_t len) const;
+
 private:
   std::shared_ptr<std::u8string> m_pSkString;
 };

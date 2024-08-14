@@ -22,7 +22,7 @@ class HYParagraphBuilderImpl {
 public:
   std::vector<HYString> TextCache;
   HYRectf Restrict;
-  char32_t Ellipsis;
+  std::u32string Ellipsis;
   FontPtr Font;
   bool AutoWrap = true;// 自动换行
   bool ClearTop = true;// 清除顶部偏移
@@ -38,15 +38,26 @@ public:
 };
 
 class HYParagraph {
+
 public:
+  HYParagraph();
   struct ParagraphLayout {
     HYString str;
     HYRectf layout={0};
     HYRectf offect={0};
   };
-  HYParagraph();
+
+  const std::vector<HYParagraph::ParagraphLayout>& GetLayouts() const;
+
+  friend HYParagraphBuilderImpl;
+
+private:
+
+  std::vector<HYParagraph::ParagraphLayout> Layouts;
 };
 
+
+void HYParagraphDestroy(HYParagraphHandel handel);
 
 }// namespace HYGUI
 
