@@ -26,7 +26,7 @@ FontPtr HYFontCreateFromTypeface(TypefacePtr typeface) {
                                            delete (SkFont *) ptr;
                                          });
   // HYTypefaceRelease(typeface);
-  f->setTypeface(sk_ref_sp(typeface));
+  f->setTypeface(sk_sp(typeface));
   return f;
 }
 
