@@ -36,6 +36,7 @@ link_directories(${GLOBAL_LIB_DIR})
 include(scripts/sdl.cmake)
 
 
+
 # 检查操作系统
 if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
   # macOS
@@ -114,6 +115,38 @@ include_directories(${SKIA_PATH}/third_party/externals/freetype/include)
 include_directories(include)
 
 add_library(HYGUI STATIC ${LIB_SRC})
+
+# ===========
+
+#  bin2c
+add_executable(Bin2C tools/bin2c/bin2c.cpp)
+
+# 生成emoji字体资源
+set(RESOURCE_EMOJI_FONT_OUTPUT ${PROJECT_SOURCE_DIR}/src/resource/emoji_font_resource)
+
+if(NOT EXISTS ${RESOURCE_EMOJI_FONT_OUTPUT}.cpp)
+  file(WRITE ${RESOURCE_EMOJI_FONT_OUTPUT}.cpp "")
+endif()
+if(NOT EXISTS ${RESOURCE_EMOJI_FONT_OUTPUT}.h)
+  file(WRITE ${RESOURCE_EMOJI_FONT_OUTPUT}.h "")
+endif()
+
+add_custom_target(BuildBin2C ALL DEPENDS Bin2C)
+
+message(STATUS "Generating emoji font resource")
+
+add_custom_command(
+    OUTPUT ${RESOURCE_EMOJI_FONT_OUTPUT}
+    COMMAND Bin2C ${PROJECT_SOURCE_DIR}/resource/font/NotoColorEmoji.ttf emoji_font_resource ${RESOURCE_EMOJI_FONT_OUTPUT}
+    DEPENDS Bin2C ${PROJECT_SOURCE_DIR}/resource/font/NotoColorEmoji.ttf
+    COMMENT "Generating ${RESOURCE_EMOJI_FONT_OUTPUT} using Bin2C"
+)
+
+add_custom_target(BuildEmojiToCTarget DEPENDS ${RESOURCE_EMOJI_FONT_OUTPUT})
+add_dependencies(HYGUI BuildEmojiToCTarget)
+target_sources(HYGUI PRIVATE ${RESOURCE_EMOJI_FONT_OUTPUT}.cpp)
+# ===========
+
 #add_dependencies(HYGUI SDL_SUBMODEL_BUILD)
 # set_property(TARGET HYGUI PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_compile_definitions(HYGUI PRIVATE _HYGUI_MODULE_)
@@ -180,5 +213,11 @@ if (NOT DEFINED NO_EXAMPLES)
   # text
   add_executable(TextParagraph examples/text/paragraph.cpp)
   target_link_libraries(TextParagraph PRIVATE HYGUI)
+
+endif ()
+if (NOT DEFINED NO_TOOLS)
+  # Generate emoji code
+  add_executable(GenerateEmojiCode tools/generate_emoji_code/generate_emoji_code.cpp)
+  target_link_libraries(GenerateEmojiCode PRIVATE HYGUI)
 
 endif ()

@@ -5,7 +5,7 @@
 [submodule "modules/projects/skia"]
 	path = modules/projects/skia
 	url = https://github.com/google/skia
-	branch = chrome/m127
+	branch = chrome/m129
 [submodule "modules/projects/depot_tools"]
 	path = modules/projects/depot_tools
 	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git

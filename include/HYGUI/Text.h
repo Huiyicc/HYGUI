@@ -13,7 +13,7 @@ TextBlobBuilderPtr HYTextBlobBuilderCreate();
 
 void HYTextBlobBuilderDestroy(TextBlobBuilderPtr builder);
 
-
+bool HYTextCharIsEmoji(char32_t codepoint) ;
 
 }
 

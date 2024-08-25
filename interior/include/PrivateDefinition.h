@@ -30,6 +30,7 @@ namespace HYGUI {
 extern ApplicationInfo g_app;
 
 constexpr const char *const DEFAULT_CLASS_NAME = "HYGUI";
+extern const std::unordered_map<char32_t, std::tuple<const char*,const char *>> g_emoji_map;
 
 void window_paint(HYWindow *, void *) ;
 void window_recreate_surface(HYWindow *windowPtr);
@@ -38,6 +39,9 @@ int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t par
 void adjustwindow_by_sdl(HYWindowHandel window , void *newhandel);
 void adjust_win_tyle(SDL_SysWMinfo* wmInfo);
 void window_hook_handel(HYWindow *windowPtr);
+
+
+
 }
 
 #include "logs.h"

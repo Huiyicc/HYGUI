@@ -7,6 +7,7 @@
 #include "HYGUI/Paint.h"
 #include "HYGUI/Paragraph.h"
 #include "HYGUI/Shader.h"
+#include "HYGUI/Text.h"
 #include "PrivateDefinition.h"
 #include "core/SkPath.h"
 #include "include/core/SkBlurTypes.h"
@@ -16,10 +17,10 @@
 #include "include/core/SkTypeface.h"
 #include "logs.h"
 #include "src/text/gpu/StrikeCache.h"
-#include "third_party/externals/harfbuzz/src/hb-ot.h"
 #include <boost/algorithm/string.hpp>
 #include <core/SkFont.h>
 
+#include "modules/skparagraph/include/ParagraphBuilder.h"
 
 namespace HYGUI {
 
@@ -163,14 +164,20 @@ void label_event_paint_text(HYWindow *window, HYObject *object, PaintPtr paint) 
   SkTextBlobBuilder builder;
   builder.allocRun(*label->Font, 1, 0, 0, &bounds);
   auto textBlob = builder.make();
+  auto ntc = g_app.FontMgr->makeFromFile(R"(F:\Engcode\c_c++\HYGUI\resource\font\NotoColorEmoji.ttf)");
+  //auto ntc = g_app.FontMgr->makeFromFile(R"(F:\Engcode\c_c++\HYGUI\resource\font\SourceHanSans-VF.ttf)");
+  auto f = SkFont(ntc, label->Font->getSize());
   for (auto &text_layout: text_layouts) {
-    // object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
+
+    // object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, , *paint);
+    //object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
     text_layout.str.forEachUtf8CharBoundary([&](const char8_t *data, size_t start, size_t len, char32_t c) -> int {
       SkPath p;
       label->Font->setSubpixel(true);
+
       auto gg = label->Font->getPath(c, &p);
 
-      PrintDebug("gg:{} c:{}", gg, HYString(data + start, len).toStdStringView());
+      PrintDebug("gg:{} c:{} len:{}, isemoji:{}", gg, HYString(data + start, len).toStdStringView(),len,HYTextCharIsEmoji(c));
       return 0;
     });
 

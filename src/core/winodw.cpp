@@ -727,7 +727,6 @@ void window_recreate_surface(HYWindow *windowPtr) {
   windowPtr->Surface = surface.release();
   if (!windowPtr->Surface) {
     // 硬件加速失败
-    // TODO: 新版SDL3构建失败
     PrintError("Hardware acceleration failed, fallback to software rendering");
     exit(1);
   }
