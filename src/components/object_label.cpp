@@ -169,7 +169,7 @@ void label_event_paint_text(HYWindow *window, HYObject *object, PaintPtr paint) 
   auto f = SkFont(ntc, label->Font->getSize());
   for (auto &text_layout: text_layouts) {
 
-    // object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, , *paint);
+    object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y,f , *paint);
     //object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
     text_layout.str.forEachUtf8CharBoundary([&](const char8_t *data, size_t start, size_t len, char32_t c) -> int {
       SkPath p;

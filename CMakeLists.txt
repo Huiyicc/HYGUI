@@ -137,7 +137,7 @@ message(STATUS "Generating emoji font resource")
 
 add_custom_command(
     OUTPUT ${RESOURCE_EMOJI_FONT_OUTPUT}
-    COMMAND Bin2C ${PROJECT_SOURCE_DIR}/resource/font/NotoColorEmoji.ttf emoji_font_resource ${RESOURCE_EMOJI_FONT_OUTPUT}
+    COMMAND Bin2C ${PROJECT_SOURCE_DIR}/resource/font/NotoColorEmoji.ttf emoji_font_resource ${RESOURCE_EMOJI_FONT_OUTPUT} "1"
     DEPENDS Bin2C ${PROJECT_SOURCE_DIR}/resource/font/NotoColorEmoji.ttf
     COMMENT "Generating ${RESOURCE_EMOJI_FONT_OUTPUT} using Bin2C"
 )
