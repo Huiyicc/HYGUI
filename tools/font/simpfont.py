@@ -26,10 +26,10 @@ def trim_font(input_font_path, output_font_path, characters):
 
 
 # 输入文件路径
-input_font_path = r"../../resource/font/NotoColorEmojiRaw.ttf"
+input_font_path = r"../../resource/font/EmojiFontRaw.ttf"
 
 # 输出文件路径
-output_font_path = r"../../resource/font/NotoColorEmoji.ttf"
+output_font_path = r"../../resource/font/EmojiFont.ttf"
 
 with open("emoji_map.txt",'r',encoding='utf-8') as f:
     # 需要保留的Emoji字符

@@ -63,6 +63,18 @@ HYString &HYString::operator=(const char8_t *pData) {
   *m_pSkString = pData;
   return *this;
 }
+HYString &HYString::operator=(const char16_t *pData) {
+  std::u16string d(pData);
+  m_pSkString = std::make_shared<StringBase>();
+  utf8::utf16to8(d.begin(), d.end(), std::back_inserter(*m_pSkString));
+  return *this;
+}
+HYString &HYString::operator=(const char32_t *pData) {
+  std::u32string d(pData);
+  m_pSkString = std::make_shared<StringBase>();
+  utf8::utf32to8(d.begin(), d.end(), std::back_inserter(*m_pSkString));
+  return *this;
+}
 
 HYString &HYString::operator=(const std::string &str) {
   *m_pSkString = (char8_t *) str.c_str();
@@ -317,6 +329,17 @@ HYString HYString::substr(size_t pos, size_t len) const {
   HYString ret;
   ret.m_pSkString = std::make_shared<StringBase>(m_pSkString->substr(pos, len));
   return ret;
+};
+
+HYString HYString::trim_copy() {
+  HYString ret;
+  ret.m_pSkString = std::make_shared<StringBase>(boost::trim_copy(*m_pSkString));
+  return ret;
+};
+
+HYString& HYString::trim() {
+  boost::trim(*m_pSkString);
+  return *this;
 };
 
 }// namespace HYGUI

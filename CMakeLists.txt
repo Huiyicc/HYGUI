@@ -119,7 +119,7 @@ add_library(HYGUI STATIC ${LIB_SRC})
 # ===========
 
 #  bin2c
-add_executable(Bin2C tools/bin2c/bin2c.cpp)
+add_executable(HYBin2C tools/bin2c/bin2c.cpp)
 
 # 生成emoji字体资源
 set(RESOURCE_EMOJI_FONT_OUTPUT ${PROJECT_SOURCE_DIR}/src/resource/emoji_font_resource)
@@ -131,14 +131,14 @@ if(NOT EXISTS ${RESOURCE_EMOJI_FONT_OUTPUT}.h)
   file(WRITE ${RESOURCE_EMOJI_FONT_OUTPUT}.h "")
 endif()
 
-add_custom_target(BuildBin2C ALL DEPENDS Bin2C)
+add_custom_target(BuildBin2C ALL DEPENDS HYBin2C)
 
 message(STATUS "Generating emoji font resource")
 
 add_custom_command(
     OUTPUT ${RESOURCE_EMOJI_FONT_OUTPUT}
-    COMMAND Bin2C ${PROJECT_SOURCE_DIR}/resource/font/NotoColorEmoji.ttf emoji_font_resource ${RESOURCE_EMOJI_FONT_OUTPUT} "1"
-    DEPENDS Bin2C ${PROJECT_SOURCE_DIR}/resource/font/NotoColorEmoji.ttf
+    COMMAND HYBin2C ${PROJECT_SOURCE_DIR}/resource/font/EmojiFont.ttf emoji_font_resource ${RESOURCE_EMOJI_FONT_OUTPUT} 0
+    DEPENDS HYBin2C ${PROJECT_SOURCE_DIR}/resource/font/EmojiFont.ttf
     COMMENT "Generating ${RESOURCE_EMOJI_FONT_OUTPUT} using Bin2C"
 )
 

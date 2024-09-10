@@ -37,8 +37,10 @@ public:
   ~HYString();
 
   HYString &operator=(const HYString &str);
-  HYString &operator=(const char8_t *str);
   HYString &operator=(const char *pData);
+  HYString &operator=(const char8_t *str);
+  HYString &operator=(const char16_t *str);
+  HYString &operator=(const char32_t *str);
   HYString &operator=(const std::string &str);
 
   HYString &operator+=(const HYString &str);
@@ -78,6 +80,8 @@ public:
   void append(const char8_t *pData, size_t len);
   void append(const HYString &str);
   const char *c_str() const;
+  HYString trim_copy();
+  HYString& trim();
 
   /**
    * 遍历UTF-8字符的边界。

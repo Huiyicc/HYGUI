@@ -155,34 +155,43 @@ void label_event_paint_text(HYWindow *window, HYObject *object, PaintPtr paint) 
   ParagraphBuilderImpl.SetAutoWrap(true);
   ParagraphBuilderImpl.AddText(label->Text);
   auto paragraph_builder = ParagraphBuilderImpl.Build();
-  auto text_layouts = paragraph_builder->GetLayouts();
-  //  for (auto &text_layout: text_layouts) {
-  //    object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
-  //
-  //  }
+  paragraph_builder->Canvas(object->Canvas,paint,{
+    .x = static_cast<float>(label->X),
+    .y = static_cast<float>(label->Y),
+    .width = static_cast<float>(label->Width),
+    .height = static_cast<float>(label->Height),
+  });
+//  auto text_layouts = paragraph_builder->GetLayouts();
+//  //  for (auto &text_layout: text_layouts) {
+//  //    object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
+//  //
+//  //  }
+//
+//  SkTextBlobBuilder builder;
+//  builder.allocRun(*label->Font, 1, 0, 0, &bounds);
+//  auto textBlob = builder.make();
+//  auto ntc = g_app.FontMgr->makeFromFile(R"(F:\Engcode\c_c++\HYGUI\resource\font\NotoColorEmojiRaw.ttf)");
+//  auto f = SkFont(g_app.EmojiTypeface->makeClone(SkFontArguments{}), label->Font->getSize());
+//
+//  object->Canvas->drawString(label->Text.c_str(), 0, 15,  f, *paint);
+//  //auto ntc = g_app.FontMgr->makeFromFile(R"(F:\Engcode\c_c++\HYGUI\resource\font\SourceHanSans-VF.ttf)");
+//  auto f = SkFont(ntc, label->Font->getSize());
+//  for (auto &text_layout: *text_layouts) {
+//
+//    object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y,f , *paint);
+//    //object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
+//    text_layout.str.forEachUtf8CharBoundary([&](const char8_t *data, size_t start, size_t len, char32_t c) -> int {
+//      SkPath p;
+//      label->Font->setSubpixel(true);
+//
+//      auto gg = label->Font->getPath(c, &p);
+//
+//      PrintDebug("gg:{} c:{} len:{}, isemoji:{}", gg, HYString(data + start, len).toStdStringView(),len,HYTextCharIsEmoji(c));
+//      return 0;
+//    });
 
-  SkTextBlobBuilder builder;
-  builder.allocRun(*label->Font, 1, 0, 0, &bounds);
-  auto textBlob = builder.make();
-  auto ntc = g_app.FontMgr->makeFromFile(R"(F:\Engcode\c_c++\HYGUI\resource\font\NotoColorEmoji.ttf)");
-  //auto ntc = g_app.FontMgr->makeFromFile(R"(F:\Engcode\c_c++\HYGUI\resource\font\SourceHanSans-VF.ttf)");
-  auto f = SkFont(ntc, label->Font->getSize());
-  for (auto &text_layout: text_layouts) {
-
-    object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y,f , *paint);
-    //object->Canvas->drawString(text_layout.str.c_str(), text_layout.layout.x, text_layout.layout.y, *label->Font, *paint);
-    text_layout.str.forEachUtf8CharBoundary([&](const char8_t *data, size_t start, size_t len, char32_t c) -> int {
-      SkPath p;
-      label->Font->setSubpixel(true);
-
-      auto gg = label->Font->getPath(c, &p);
-
-      PrintDebug("gg:{} c:{} len:{}, isemoji:{}", gg, HYString(data + start, len).toStdStringView(),len,HYTextCharIsEmoji(c));
-      return 0;
-    });
-
-    PrintDebug("c:{}", label->Font->countText(text_layout.str.c_str(), text_layout.str.size(), SkTextEncoding::kUTF8));
-  }
+//    PrintDebug("c:{}", label->Font->countText(text_layout.str.c_str(), text_layout.str.size(), SkTextEncoding::kUTF8));
+//  }
 
 
   //  auto blb = SkTextBlob::MakeFromString(text, *label->Font);

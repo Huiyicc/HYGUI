@@ -13,6 +13,8 @@
 
 namespace HYGUI {
 
+constexpr const char* EMOJI_NAME = "_default_emoji_";
+
 enum class HYGlobalFlag : uint32_t {
   HYGlobalFlagGraphicNone = 0,
   // HYGlobalFlagGraphicGL,

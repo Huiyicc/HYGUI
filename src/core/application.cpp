@@ -136,6 +136,7 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
                                       g_app.FontMgr->makeFromStream(std::move(streamAsset)).release(), "Global emoji font", [](void *ptr) {
                                         SkSafeUnref((SkTypeface *) ptr);
                                       });
+
   }
 auto &a = g_app;
   g_app.Cursor = nullptr;
