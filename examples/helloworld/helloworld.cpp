@@ -16,7 +16,7 @@ int main() {
   auto wind = HYWindowCreate(nullptr, "Hello World");
   HYWindowSkinHook(wind, HYRGB{255, 255, 255}, 210);
 
-  auto label = HYLabelCreate(wind, nullptr,"标签1\n\ncascas\nABCDE ⒶⒷⒸⒹⒺ 𝓐𝓑𝓒𝓓𝓔", 50, 50, 700, 500, true);
+  auto label = HYLabelCreate(wind, nullptr,"标签1\n\ncascas\nABCDE ⒶⒷⒸⒹⒺ", 50, 50, 700, 500, true);
   HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
                        HYGradientDirection::HYGradientDirectionTopToBottom,
                        {HYARGB{255, 0, 255, 0}, HYARGB{255, 0, 0, 255}},
@@ -32,7 +32,7 @@ int main() {
                        HYARGB{255, 255, 0, 0}, 2);
   HYObjectSetName(reinterpret_cast<HYObjectHandle>(label1), "标签2 b");
 
-  auto label11 = HYLabelCreate(wind, label1, u8"🥰🤗💕❤️🧐\n"
+  auto label11 = HYLabelCreate(wind, label1, u8"🥰🤗💕❤🧐\n"
                                              "忧从何来？国乎？家乎？民乎？非也，前途战。\n"
                                              "年少终究一场梦，要拼，要闯，要奋斗。曾经岁月的迷茫，早已拔开，却在心中留下了伤疤。我感悟不到天地的悲凉，理解不了先贤的豁达，抒发不出心中的苦闷，只想拼一场，却找不到一条明朗的大道。\n"
                                              "睡梦是美好的，梦醒时分却如坠深渊。要么醍醐灌顶，发愤图强；要么醉生梦死，声色犬马。我们的迷茫来自我们的无知，我们的忧愁来自展望未来，何以解忧？惟有明道。\n"

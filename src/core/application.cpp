@@ -29,6 +29,7 @@
 //#include <GLFW/glfw3.h>
 #include "SDL3/SDL.h"
 #include "emoji_font_resource.h"
+#include "utils_font_resource.h"
 
 namespace HYGUI {
 
@@ -138,7 +139,16 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
                                       });
 
   }
-auto &a = g_app;
+  {
+    auto utilsStream = SkMemoryStream::MakeDirect(utils_font_resource,utils_font_resource_len);
+    std::unique_ptr<SkStreamAsset> streamAsset(utilsStream.release());
+    g_app.UtilsTypeface =(SkTypeface *) HYResourceRegister(ResourceType::ResourceType_Typeface,
+                                                            g_app.FontMgr->makeFromStream(std::move(streamAsset)).release(), "Global utils font", [](void *ptr) {
+                                                              SkSafeUnref((SkTypeface *) ptr);
+                                                            });
+
+  }
+
   g_app.Cursor = nullptr;
 #ifdef _HOST_WINDOWS_
   //HYWindowRegisterClass(DefaultClassName);

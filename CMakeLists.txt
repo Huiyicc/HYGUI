@@ -121,6 +121,7 @@ add_library(HYGUI STATIC ${LIB_SRC})
 #  bin2c
 add_executable(HYBin2C tools/bin2c/bin2c.cpp)
 
+# ---
 # 生成emoji字体资源
 set(RESOURCE_EMOJI_FONT_OUTPUT ${PROJECT_SOURCE_DIR}/src/resource/emoji_font_resource)
 
@@ -131,20 +132,47 @@ if(NOT EXISTS ${RESOURCE_EMOJI_FONT_OUTPUT}.h)
   file(WRITE ${RESOURCE_EMOJI_FONT_OUTPUT}.h "")
 endif()
 
-add_custom_target(BuildBin2C ALL DEPENDS HYBin2C)
-
 message(STATUS "Generating emoji font resource")
 
 add_custom_command(
     OUTPUT ${RESOURCE_EMOJI_FONT_OUTPUT}
-    COMMAND HYBin2C ${PROJECT_SOURCE_DIR}/resource/font/EmojiFont.ttf emoji_font_resource ${RESOURCE_EMOJI_FONT_OUTPUT} 0
-    DEPENDS HYBin2C ${PROJECT_SOURCE_DIR}/resource/font/EmojiFont.ttf
+    COMMAND HYBin2C ${PROJECT_SOURCE_DIR}/resource/font/MergeEmojiFont.ttf emoji_font_resource ${RESOURCE_EMOJI_FONT_OUTPUT} 1
+    DEPENDS HYBin2C ${PROJECT_SOURCE_DIR}/resource/font/MergeEmojiFont.ttf
     COMMENT "Generating ${RESOURCE_EMOJI_FONT_OUTPUT} using Bin2C"
 )
 
-add_custom_target(BuildEmojiToCTarget DEPENDS ${RESOURCE_EMOJI_FONT_OUTPUT})
-add_dependencies(HYGUI BuildEmojiToCTarget)
+add_custom_target(BuildEmojiFontToCTarget DEPENDS ${RESOURCE_EMOJI_FONT_OUTPUT})
+add_dependencies(HYGUI BuildEmojiFontToCTarget)
 target_sources(HYGUI PRIVATE ${RESOURCE_EMOJI_FONT_OUTPUT}.cpp)
+# ---
+
+# 生成特殊符号字体资源
+set(RESOURCE_UTILS_FONT_OUTPUT ${PROJECT_SOURCE_DIR}/src/resource/utils_font_resource)
+
+if(NOT EXISTS ${RESOURCE_UTILS_FONT_OUTPUT}.cpp)
+  file(WRITE ${RESOURCE_UTILS_FONT_OUTPUT}.cpp "")
+endif()
+if(NOT EXISTS ${RESOURCE_UTILS_FONT_OUTPUT}.h)
+  file(WRITE ${RESOURCE_UTILS_FONT_OUTPUT}.h "")
+endif()
+
+add_custom_target(BuildBin2C ALL DEPENDS HYBin2C)
+
+message(STATUS "Generating utils font resource")
+
+add_custom_command(
+    OUTPUT ${RESOURCE_UTILS_FONT_OUTPUT}
+    COMMAND HYBin2C ${PROJECT_SOURCE_DIR}/resource/font/MergeUtilsFont.ttf utils_font_resource ${RESOURCE_UTILS_FONT_OUTPUT} 1
+    DEPENDS HYBin2C ${PROJECT_SOURCE_DIR}/resource/font/MergeUtilsFont.ttf
+    COMMENT "Generating ${RESOURCE_UTILS_FONT_OUTPUT} using Bin2C"
+)
+
+add_custom_target(BuildUtilFontToCTarget DEPENDS ${RESOURCE_UTILS_FONT_OUTPUT})
+add_dependencies(HYGUI BuildUtilFontToCTarget)
+target_sources(HYGUI PRIVATE ${RESOURCE_UTILS_FONT_OUTPUT}.cpp)
+
+# ---
+
 # ===========
 
 #add_dependencies(HYGUI SDL_SUBMODEL_BUILD)

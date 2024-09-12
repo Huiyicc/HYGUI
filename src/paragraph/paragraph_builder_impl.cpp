@@ -56,9 +56,15 @@ HYParagraphHandel HYParagraphBuilderImpl::Build() {
   // 获取测量字体的度量信息
   SkFontMetrics font_metrics{};
   Font->getMetrics(&font_metrics);
+
   auto emoji_font = SkFont(g_app.EmojiTypeface->makeClone(SkFontArguments{}), Font->getSize());
   SkFontMetrics emoji_font_metrics{};
   emoji_font.getMetrics(&emoji_font_metrics);
+
+  auto utils_font = SkFont(g_app.UtilsTypeface->makeClone(SkFontArguments{}), Font->getSize());
+  SkFontMetrics utils_font_metrics{};
+  utils_font.getMetrics(&utils_font_metrics);
+
   // 对每行字体进行挨个测量
   float_t addLen = 0;   // 叠加计算的文本长度偏移
   float_t addHeight = 0;// 叠加计算的文本高度偏移
@@ -92,24 +98,33 @@ HYParagraphHandel HYParagraphBuilderImpl::Build() {
       SkScalar char_scalar;
       auto GlyphID = Font->unicharToGlyph(c);
       if (GlyphID == 0) {
-        // 测量失败,轮到emoji字体了
-        GlyphID = emoji_font.unicharToGlyph(c);
+        // 测量失败,测试特殊字符
+        GlyphID = utils_font.unicharToGlyph(c);
         if (GlyphID != 0) {
-          char_scalar = emoji_font.measureText(tests.c_str(), len, SkTextEncoding::kUTF8, &ts);
-          characterLayout.isEmoji = true;
+          char_scalar = utils_font.measureText(tests.c_str(), len, SkTextEncoding::kUTF8, &ts);
+          characterLayout.glyphType = HYParagraph::CharacterGlyphType::Utils;
         } else {
-          tests = U'☐';
-          tests_c = U'☐';
-          len = tests.size();
-          char_scalar = Font->measureText(tests.c_str(), len, SkTextEncoding::kUTF8, &ts);
+          // 测量失败,测试emoji
+          GlyphID = emoji_font.unicharToGlyph(c);
+          if (GlyphID != 0) {
+            char_scalar = emoji_font.measureText(tests.c_str(), len, SkTextEncoding::kUTF8, &ts);
+            characterLayout.glyphType = HYParagraph::CharacterGlyphType::Emoji;
+          } else {
+            tests = U'☐';
+            tests_c = U'☐';
+            len = tests.size();
+            char_scalar = Font->measureText(tests.c_str(), len, SkTextEncoding::kUTF8, &ts);
+          }
         }
+
       } else {
         char_scalar = Font->measureText(tests.c_str(), len, SkTextEncoding::kUTF8, &ts);
       }
+
       //      if(c==U'。') {
       //        PrintDebug("{} {} {}x{} GlyphID:{}",tests.c_str(),char_scalar,ts.width(),ts.height(),GlyphID);
       //      }
-      // PrintDebug("{} {} {}x{} GlyphID:{}",tests.c_str(),char_scalar,ts.width(),ts.height(),GlyphID);
+      PrintDebug("{} {} {}x{} GlyphID:{}", tests.c_str(), char_scalar, ts.width(), ts.height(), GlyphID);
       characterLayout.metrics.fAscent = ts.top();
       characterLayout.metrics.fDescent = ts.bottom();
       characterLayout.metrics.fLeading = std::max(font_metrics.fLeading, emoji_font_metrics.fLeading);
@@ -154,11 +169,14 @@ std::shared_ptr<std::vector<HYParagraph::LineLayout>> HYParagraph::GetLineLayout
 
 void HYParagraph::Canvas(CanvasPtr canvas, PaintPtr paint, const HYRectf &rect, const HYPointf &offset) {
   auto emoji_font = SkFont(g_app.EmojiTypeface->makeClone(SkFontArguments{}), font->getSize());
+  auto utils_font = SkFont(g_app.UtilsTypeface->makeClone(SkFontArguments{}), font->getSize());
   for (auto &line: *lineLayouts) {
     for (auto &word: line.characterLayouts) {
       SkFont *df = font;
-      if (word.isEmoji) {
+      if (word.glyphType == HYParagraph::CharacterGlyphType::Emoji) {
         df = &emoji_font;
+      } else if (word.glyphType == HYParagraph::CharacterGlyphType::Utils) {
+        df = &utils_font;
       }
       canvas->drawString(word.text.c_str(), offset.x + word.rect.x, offset.y + word.rect.y - line.metrics.fAscent, *df, *paint);
     }

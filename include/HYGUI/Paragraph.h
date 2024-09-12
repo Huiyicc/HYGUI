@@ -51,13 +51,19 @@ public:
     float_t fMaxHeight = 0;// 最大高度 (fMaxHeight = fabs(fAscent) + fabs(fDescent) + fLeading)
   };
 
+  enum CharacterGlyphType : uint32_t {
+    Word = 0,
+    Emoji,
+    Utils,
+  };
+
   struct CharacterLayout {
     CharacterMetrics metrics;
     HYRectf rect;
     char32_t value = '\0';
     HYString text;
     size_t len = 0;
-    bool isEmoji = false;
+    CharacterGlyphType glyphType = CharacterGlyphType::Word;
   };
 
   struct LineLayout {
@@ -66,7 +72,7 @@ public:
     std::vector<CharacterLayout> characterLayouts;
   };
 
-  void Canvas(CanvasPtr canvas,PaintPtr paint, const HYRectf &rect, const HYPointf &offset = {0, 0});
+  void Canvas(CanvasPtr canvas, PaintPtr paint, const HYRectf &rect, const HYPointf &offset = {0, 0});
 
   std::shared_ptr<std::vector<LineLayout>> GetLineLayouts();
 

@@ -54,7 +54,8 @@ struct ApplicationInfo {
   uint32_t EventObject;
   FontMgrPtr FontMgr;
   TypefacePtr DefaultTypeface;
-  TypefacePtr EmojiTypeface;
+  TypefacePtr EmojiTypeface; // emoji字体
+  TypefacePtr UtilsTypeface; // 特殊符号字体
   std::unordered_map<HYString, TypefacePtr> FontTable;
 };
 

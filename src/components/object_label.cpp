@@ -146,7 +146,7 @@ void label_event_paint_text(HYWindow *window, HYObject *object, PaintPtr paint) 
   HYPaintSetColor(paint, label->TextColor);
 //  auto t = g_app.FontMgr->makeFromFile("C:/Users/19254/Downloads/Noto_Color_Emoji/NotoColorEmoji-Regular.ttf");
 //  label->Font->setTypeface(t);
-  label->Font->setSize(16);
+  label->Font->setSize(24);
 
 
   paint->setAntiAlias(true);
