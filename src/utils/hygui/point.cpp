@@ -2,6 +2,7 @@
 // Created by 19254 on 24-6-11.
 //
 #include "HYGUI/Point.h"
+#include "SDL3/SDL.h"
 #include <cstdint>
 #include <cstring>
 
@@ -43,5 +44,6 @@ int64_t HYPointfGenWParam(float x, float y) {
 
   return static_cast<int64_t>(ia) << 32 | (static_cast<uint32_t>(ib) & 0xFFFFFFFF);
 }
+
 
 }

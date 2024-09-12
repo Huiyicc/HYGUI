@@ -20,15 +20,15 @@ class SkShader;
 
 #else
 
-#define SkImage void
-#define SkSurface void
-#define SkCanvas void
-#define SkPaint void
-#define SkTypeface void
-#define SkFont void
-#define SkFontMgr void
-#define SkTextBlobBuilder void
-#define SkShader void
+class SkImage;
+class SkSurface;
+class SkCanvas;
+class SkPaint;
+class SkTypeface;
+class SkFont;
+class SkFontMgr;
+class SkTextBlobBuilder;
+class SkShader;
 
 
 #endif

@@ -15,7 +15,8 @@ class HYLabel : public HYObject {
 public:
   constexpr static const char *ObjectName = "Label";
 
-  HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,bool visible, HYObjectEventMessageHandel messageEventFunc = nullptr);
+  HYLabel(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,
+          bool visible, HYObjectEventMessageHandel messageEventFunc = nullptr);
 
   ~HYLabel() override;
 
@@ -25,6 +26,7 @@ public:
   HYGradientMode BanckgroundGradientMode;          // 背景色渐变模式
   HYGradientDirection BanckgroundGradientDirection;// 背景色渐变方向
   FontPtr Font;                                    // 字体
+  TypefacePtr Typeface;                            // 字体
   TextBlobBuilderPtr TextBlobBuilder;              // 文本块构建器
 };
 
@@ -43,7 +45,8 @@ typedef HYLabel *HYLabelhandle;
  * @return 返回创建的标签控件的句柄。
  */
 HYLabelhandle
-HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,bool visible,HYObjectEventMessageHandel messageEventFunc= nullptr);
+HYLabelCreate(HYWindow *window, HYObjectHandle parent, const HYString &text, int x, int y, int width, int height,
+              bool visible, HYObjectEventMessageHandel messageEventFunc = nullptr);
 
 void HYLabelSetColorStyle(HYLabelhandle label,
                           HYGradientMode banckgroundGradientMode,          // 背景色渐变模式

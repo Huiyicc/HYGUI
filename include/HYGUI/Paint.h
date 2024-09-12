@@ -15,7 +15,7 @@ namespace HYGUI {
  * @param paint 画笔指针
  * @param color 颜色
  * */
-void HYPaintSetColor(PaintPtr paint, HYARGB color);
+void HYPaintSetColor(PaintPtr paint, HYARGB color) ;
 
 /**
  * @brief 设置画笔颜色

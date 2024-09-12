@@ -13,6 +13,8 @@
 
 namespace HYGUI {
 
+constexpr const char* EMOJI_NAME = "_default_emoji_";
+
 enum class HYGlobalFlag : uint32_t {
   HYGlobalFlagGraphicNone = 0,
   // HYGlobalFlagGraphicGL,
@@ -52,6 +54,8 @@ struct ApplicationInfo {
   uint32_t EventObject;
   FontMgrPtr FontMgr;
   TypefacePtr DefaultTypeface;
+  TypefacePtr EmojiTypeface; // emoji字体
+  TypefacePtr UtilsTypeface; // 特殊符号字体
   std::unordered_map<HYString, TypefacePtr> FontTable;
 };
 

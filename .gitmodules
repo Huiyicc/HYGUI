@@ -1,11 +1,11 @@
 [submodule "modules/projects/SDL"]
 	path = modules/projects/SDL
 	url = https://github.com/libsdl-org/SDL
-	branch = 9af7a80767a8e69aa919a41102bb7ed30c4e305b
+	branch = 89de8e2110d81bf708ef02c46c52601f116e213e
 [submodule "modules/projects/skia"]
 	path = modules/projects/skia
 	url = https://github.com/google/skia
-	branch = chrome/m127
+	branch = chrome/m129
 [submodule "modules/projects/depot_tools"]
 	path = modules/projects/depot_tools
 	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git
@@ -13,3 +13,6 @@
 [submodule "modules/projects/boost"]
 	path = modules/projects/boost
 	url = https://github.com/OpenHYGUI/boost-cmake
+[submodule "modules/projects/USRefl"]
+	path = modules/projects/USRefl
+	url = https://github.com/Ubpa/USRefl

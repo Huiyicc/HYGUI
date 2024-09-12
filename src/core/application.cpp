@@ -28,6 +28,8 @@
 
 //#include <GLFW/glfw3.h>
 #include "SDL3/SDL.h"
+#include "emoji_font_resource.h"
+#include "utils_font_resource.h"
 
 namespace HYGUI {
 
@@ -35,7 +37,7 @@ ApplicationInfo g_app;
 
 bool HYInit(HYGlobalFlag DefaultGlobalFlags,
             const HYString &DefaultFont) {
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+  if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0) {
     g_app.LastError = SDL_GetError();
     PrintError("{}",g_app.LastError.c_str());
 
@@ -128,7 +130,24 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
                                                               });
 #endif
   }
+  {
+    auto emojiStream = SkMemoryStream::MakeDirect(emoji_font_resource,emoji_font_resource_len);
+    std::unique_ptr<SkStreamAsset> streamAsset(emojiStream.release());
+    g_app.EmojiTypeface =(SkTypeface *) HYResourceRegister(ResourceType::ResourceType_Typeface,
+                                      g_app.FontMgr->makeFromStream(std::move(streamAsset)).release(), "Global emoji font", [](void *ptr) {
+                                        SkSafeUnref((SkTypeface *) ptr);
+                                      });
 
+  }
+  {
+    auto utilsStream = SkMemoryStream::MakeDirect(utils_font_resource,utils_font_resource_len);
+    std::unique_ptr<SkStreamAsset> streamAsset(utilsStream.release());
+    g_app.UtilsTypeface =(SkTypeface *) HYResourceRegister(ResourceType::ResourceType_Typeface,
+                                                            g_app.FontMgr->makeFromStream(std::move(streamAsset)).release(), "Global utils font", [](void *ptr) {
+                                                              SkSafeUnref((SkTypeface *) ptr);
+                                                            });
+
+  }
 
   g_app.Cursor = nullptr;
 #ifdef _HOST_WINDOWS_
@@ -147,7 +166,7 @@ void HYExit() {
 
   g_app.isRuning = false;
   SDL_Quit();
-
+  HYResourceRemoveOther(g_app.FontMgr);
   // debug
 
   HYResourceDumpDebug();

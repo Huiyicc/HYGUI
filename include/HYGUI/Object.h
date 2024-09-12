@@ -18,7 +18,7 @@ class HYObject;
 
 typedef std::function<int(HYWindow *, HYObject *, int, int, int)> HYObjectEventCallback;
 
-class HYObjectBase : public HYEventBase {
+class HYObjectBase : public HYObjectEventBase {
 public:
   ~HYObjectBase() override = default;
 };

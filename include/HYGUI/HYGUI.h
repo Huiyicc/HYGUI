@@ -14,6 +14,7 @@
 #include <HYGUI/Color.h>
 #include <HYGUI/Event.h>
 #include <HYGUI/Image.h>
+#include <HYGUI/Paint.h>
 #include <HYGUI/Mouse.h>
 #include <HYGUI/Object.h>
 #include <HYGUI/ObjectLabel.h>
