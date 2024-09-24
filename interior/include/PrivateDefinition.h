@@ -5,7 +5,7 @@
 #ifndef HYGUI_PRIVATEDEFINITION_H
 #define HYGUI_PRIVATEDEFINITION_H
 
-
+#include "HYGUI/HYException.h"
 #ifdef _HOST_WINDOWS_
 #include <windows.h>
 #include <ocidl.h>
