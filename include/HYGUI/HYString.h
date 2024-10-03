@@ -25,7 +25,7 @@ public:
    * @param c utf32字符
    * @return 返回-1则终止遍历
    * */
-  typedef std::function<int(const char8_t *data,size_t start, size_t len, char32_t c)> ForEachCharHandel;
+  typedef std::function<int(const char *data,size_t start, size_t len, char32_t c)> ForEachCharHandel;
 
   HYString();
   HYString(const char *pData);
@@ -81,7 +81,7 @@ public:
   void append(const char8_t *pData, size_t len);
   void append(const HYString &str);
   const char *c_str() const;
-  HYString trim_copy();
+  HYString trim_copy() const;
   HYString& trim();
 
   /**
@@ -133,7 +133,7 @@ public:
   HYString substr(size_t pos, size_t len) const;
 
 private:
-  std::shared_ptr<std::u8string> m_pSkString;
+  std::shared_ptr<std::string> m_pSkString;
 };
 
 }// namespace HYGUI

@@ -12,7 +12,7 @@
 #include "utfcpp/utf8/cpp20.h"
 
 namespace HYGUI {
-using StringBase = std::u8string;
+using StringBase = std::string;
 
 HYString::~HYString() = default;
 
@@ -21,15 +21,15 @@ HYString::HYString() {
 }
 
 HYString::HYString(const char *pData) {
-  m_pSkString = std::make_shared<StringBase>((char8_t *) pData);
-}
-
-HYString::HYString(const char8_t *pData) {
   m_pSkString = std::make_shared<StringBase>(pData);
 }
 
+HYString::HYString(const char8_t *pData) {
+  m_pSkString = std::make_shared<StringBase>((char *) pData);
+}
+
 HYString::HYString(const char8_t *pData, size_t len) {
-  m_pSkString = std::make_shared<StringBase>(pData, len);
+  m_pSkString = std::make_shared<StringBase>((char *) pData, len);
 }
 
 HYString::HYString(const char32_t *pData, size_t len) {
@@ -51,16 +51,16 @@ HYString::HYString(const HYString &str) {
 }
 
 HYString::HYString(const std::string &str) {
-  m_pSkString = std::make_shared<StringBase>((char8_t *) str.c_str());
+  m_pSkString = std::make_shared<StringBase>((char *) str.c_str());
 }
 
 HYString &HYString::operator=(const char *pData) {
-  *m_pSkString = (char8_t *) pData;
+  *m_pSkString = pData;
   return *this;
 }
 
 HYString &HYString::operator=(const char8_t *pData) {
-  *m_pSkString = pData;
+  *m_pSkString = (char *) pData;
   return *this;
 }
 HYString &HYString::operator=(const char16_t *pData) {
@@ -77,7 +77,7 @@ HYString &HYString::operator=(const char32_t *pData) {
 }
 
 HYString &HYString::operator=(const std::string &str) {
-  *m_pSkString = (char8_t *) str.c_str();
+  *m_pSkString = str.c_str();
   return *this;
 }
 
@@ -88,12 +88,12 @@ HYString &HYString::operator+=(const HYString &str) {
 }
 
 HYString &HYString::operator+=(const char *pData) {
-  *m_pSkString += (char8_t *) pData;
+  *m_pSkString += pData;
   return *this;
 }
 
 HYString &HYString::operator+=(const char8_t *pData) {
-  *m_pSkString += pData;
+  *m_pSkString += (char *) pData;
   return *this;
 }
 
@@ -108,14 +108,14 @@ HYString HYString::operator+(const HYString &str) {
 HYString HYString::operator+(const char *pData) {
   HYString ret;
   ret.m_pSkString = std::make_shared<StringBase>(*m_pSkString);
-  *ret.m_pSkString += (char8_t *) pData;
+  *ret.m_pSkString +=  pData;
   return ret;
 }
 
 HYString HYString::operator+(const char8_t *pData) {
   HYString ret;
   ret.m_pSkString = std::make_shared<StringBase>(*m_pSkString);
-  *ret.m_pSkString += pData;
+  *ret.m_pSkString += (char *) pData;
   return ret;
 }
 
@@ -124,11 +124,11 @@ bool HYString::operator==(const HYString &str) {
 }
 
 bool HYString::operator==(const char *pData) {
-  return *m_pSkString == (char8_t *) (pData);
+  return *m_pSkString == (pData);
 }
 
 bool HYString::operator==(const char8_t *pData) {
-  return *m_pSkString == (pData);
+  return *m_pSkString == (char *) (pData);
 }
 
 
@@ -137,11 +137,11 @@ bool HYString::operator!=(const HYString &str) {
 }
 
 bool HYString::operator!=(const char *pData) {
-  return !(*m_pSkString == (char8_t *) (pData));
+  return !(*m_pSkString ==  (pData));
 }
 
 bool HYString::operator!=(const char8_t *pData) {
-  return !(*m_pSkString == (pData));
+  return !(*m_pSkString == (char*)(pData));
 }
 
 
@@ -154,7 +154,7 @@ std::string_view HYString::toStdStringView() const {
 }
 
 std::u8string_view HYString::toStdU8StringView() const {
-  return *m_pSkString;
+  return (char8_t*)m_pSkString->data();
 }
 
 std::string HYString::toStdString() const {
@@ -162,7 +162,7 @@ std::string HYString::toStdString() const {
 }
 
 std::u8string HYString::toStdU8String() const {
-  return *m_pSkString;
+  return (char8_t*)m_pSkString->c_str();
 }
 
 
@@ -173,7 +173,7 @@ HYString::operator std::string() {
 }
 
 HYString::operator std::u8string() {
-  return *m_pSkString;
+  return (char8_t*)m_pSkString->c_str();
 }
 
 
@@ -190,19 +190,19 @@ size_t HYString::size() const {
 }
 
 void HYString::append(const char *pData) {
-  m_pSkString->append((char8_t *) pData);
+  m_pSkString->append(pData);
 }
 
 void HYString::append(const char8_t *str) {
-  m_pSkString->append(str);
+  m_pSkString->append((char *) str);
 }
 
 void HYString::append(const char *pData, size_t len) {
-  m_pSkString->append((char8_t *) pData, len);
+  m_pSkString->append(pData, len);
 }
 
 void HYString::append(const char8_t *str, size_t len) {
-  m_pSkString->append(str, len);
+  m_pSkString->append((char *) str, len);
 }
 
 void HYString::append(const HYString &str) {
@@ -248,10 +248,10 @@ void HYString::replace(const HYString &str, const HYString &replace) {
 };
 
 void HYString::replace(const size_t start, size_t len, const char *pReplace) {
-  m_pSkString->replace(start, len, (char8_t *) pReplace);
+  m_pSkString->replace(start, len,  pReplace);
 };
 void HYString::replace(const size_t start, size_t len, const char8_t *pReplace) {
-  m_pSkString->replace(start, len, pReplace);
+  m_pSkString->replace(start, len,(char *)  pReplace);
 };
 void HYString::replace(const size_t start, size_t len, const HYString &replace) {
   m_pSkString->replace(start, len, *replace.m_pSkString);
@@ -274,16 +274,16 @@ void HYString::remove(const HYString &str) {
 };
 
 void HYString::insert(size_t pos, const char *pData) {
-  m_pSkString->insert(pos, (char8_t *) pData);
-};
-void HYString::insert(size_t pos, const char8_t *pData) {
   m_pSkString->insert(pos, pData);
 };
+void HYString::insert(size_t pos, const char8_t *pData) {
+  m_pSkString->insert(pos, (char *) pData);
+};
 void HYString::insert(size_t pos, const char *pData, size_t len) {
-  m_pSkString->insert(pos, (char8_t *) pData, len);
+  m_pSkString->insert(pos, pData, len);
 };
 void HYString::insert(size_t pos, const char8_t *pData, size_t len) {
-  m_pSkString->insert(pos, pData, len);
+  m_pSkString->insert(pos, (char *) pData, len);
 };
 void HYString::insert(size_t pos, const HYString &str) {
   m_pSkString->insert(pos, *str.m_pSkString);
@@ -294,32 +294,32 @@ void HYString::erase(size_t pos, size_t len) {
 };
 
 size_t HYString::find(const char *pData) const {
-  return m_pSkString->find((char8_t *) pData);
+  return m_pSkString->find( pData);
 };
 size_t HYString::find(const char8_t *pData) const {
-  return m_pSkString->find(pData);
+  return m_pSkString->find((char *) pData);
 };
 size_t HYString::find(const char *pData, size_t len) const {
-  return m_pSkString->find((char8_t *) pData, 0, len);
+  return m_pSkString->find( pData, 0, len);
 };
 size_t HYString::find(const char8_t *pData, size_t len) const {
-  return m_pSkString->find(pData, 0, len);
+  return m_pSkString->find((char *) pData, 0, len);
 };
 size_t HYString::find(const HYString &str) const {
   return m_pSkString->find(*str.m_pSkString);
 };
 
 size_t HYString::rfind(const char *pData) const {
-  return m_pSkString->rfind((char8_t *) pData);
+  return m_pSkString->rfind( pData);
 };
 size_t HYString::rfind(const char8_t *pData) const {
-  return m_pSkString->rfind(pData);
+  return m_pSkString->rfind((char *) pData);
 };
 size_t HYString::rfind(const char *pData, size_t len) const {
-  return m_pSkString->rfind((char8_t *) pData, 0, len);
+  return m_pSkString->rfind(pData, 0, len);
 };
 size_t HYString::rfind(const char8_t *pData, size_t len) const {
-  return m_pSkString->rfind(pData, 0, len);
+  return m_pSkString->rfind((char *) pData, 0, len);
 };
 size_t HYString::rfind(const HYString &str) const {
   return m_pSkString->rfind(*str.m_pSkString);
@@ -331,7 +331,7 @@ HYString HYString::substr(size_t pos, size_t len) const {
   return ret;
 };
 
-HYString HYString::trim_copy() {
+HYString HYString::trim_copy() const {
   HYString ret;
   ret.m_pSkString = std::make_shared<StringBase>(boost::trim_copy(*m_pSkString));
   return ret;

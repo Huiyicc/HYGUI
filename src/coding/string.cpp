@@ -6,8 +6,8 @@
 
 #ifdef _HOST_APPLE_
 
-#include <unicode/unistr.h>
-#include <unicode/ucnv.h>
+/*#include <unicode/unistr.h>
+#include <unicode/ucnv.h>*/
 #elif defined(_HOST_LINUX_)
 #include <iconv.h>
 #include <cstring>
@@ -23,13 +23,14 @@ wchar_t *C2W_(const char *str) {
   MultiByteToWideChar(CP_ACP, 0, str, -1, wstr, len);
   return wstr;
 #elif defined(_HOST_APPLE_)
-  auto unicodeString = icu::UnicodeString::fromUTF8(icu::StringPiece(str));
-
-  auto wstr = new wchar_t[unicodeString.length() + 1];
-  UErrorCode status = U_ZERO_ERROR;
-  unicodeString.toUTF32(reinterpret_cast<UChar32 *>(wstr), unicodeString.length() + 1, status);
-
-  return wstr;
+  // auto unicodeString = icu::UnicodeString::fromUTF8(icu::StringPiece(str));
+  //
+  // auto wstr = new wchar_t[unicodeString.length() + 1];
+  // UErrorCode status = U_ZERO_ERROR;
+  // unicodeString.toUTF32(reinterpret_cast<UChar32 *>(wstr), unicodeString.length() + 1, status);
+  //
+  // return wstr;
+  return nullptr;
 #elif defined(_HOST_LINUX_)
   iconv_t cd = iconv_open("WCHAR_T", "UTF-8");
   if (cd == (iconv_t)-1) {
@@ -63,13 +64,14 @@ char *W2C_(const wchar_t *wstr) {
   WideCharToMultiByte(CP_ACP, 0, wstr, -1, cstr, len, nullptr, nullptr);
   return cstr;
 #elif defined(_HOST_APPLE_)
-  auto unicodeString = icu::UnicodeString::fromUTF32(reinterpret_cast<const UChar32 *>(wstr), -1);
-
-  std::string str;
-  unicodeString.toUTF8String(str);
-  auto cstr = new char[str.length() + 1];
-  strcpy(cstr, str.c_str());
-  return cstr;
+  // auto unicodeString = icu::UnicodeString::fromUTF32(reinterpret_cast<const UChar32 *>(wstr), -1);
+  //
+  // std::string str;
+  // unicodeString.toUTF8String(str);
+  // auto cstr = new char[str.length() + 1];
+  // strcpy(cstr, str.c_str());
+  // return cstr;
+  return nullptr;
 #elif defined(_HOST_LINUX_)
   iconv_t cd = iconv_open("UTF-8", "WCHAR_T");
   if (cd == (iconv_t)-1) {

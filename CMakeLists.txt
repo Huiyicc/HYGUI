@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.28)
 project(HYGUI)
 
 set(CMAKE_CXX_STANDARD 20)
-
+if ((CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin"))
+enable_language (OBJC)
+endif ()
 # =================
 
 #if (NOT DEFINED SKIA_PATH)
@@ -212,8 +214,8 @@ if (OS_IS_WINDOWS)
   target_link_libraries(HYGUI PRIVATE Winmm Setupapi Imm32 Version dwmapi FontSub)
 
 elseif (OS_IS_APPLE)
-  target_link_libraries(HYGUI PRIVATE icudata icutu icui18n icuuc ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY} OpenGL::GL)
-
+  #target_link_libraries(HYGUI PRIVATE icudata icutu icui18n icuuc ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY} OpenGL::GL)
+  target_link_libraries(HYGUI PRIVATE ${COCOA_LIBRARY} ${APPKIT_LIBRARY} ${FOUNDATION_LIBRARY} OpenGL::GL)
 elseif (OS_IS_LINUX)
   target_link_libraries(HYGUI PRIVATE X11
       GL GLU glut

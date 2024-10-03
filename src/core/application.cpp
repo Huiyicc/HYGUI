@@ -20,8 +20,9 @@
 
 //#include <gl/GL.h>
 #elif defined(_HOST_APPLE_)
-#include "SDL2/SDL_opengl.h"
+#include "SDL3/SDL_opengl.h"
 #include "include/gpu/gl/GrGLInterface.h"
+#include "include/ports/SkFontMgr_mac_ct.h"
 #elif defined(_HOST_LINUX_)
 #include "include/ports/SkFontConfigInterface.h"
 #include "include/ports/SkFontMgr_FontConfigInterface.h"
@@ -91,7 +92,7 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
 #elif defined(_HOST_LINUX_)
   sk_sp<SkFontConfigInterface> fci(SkFontConfigInterface::RefGlobal());
   auto mgr = fci ? SkFontMgr_New_FCI(std::move(fci)) : nullptr;
-#elif defined(_HOST_MACOS_)
+#elif defined(_HOST_APPLE_)
   auto mgr = SkFontMgr_New_CoreText(nullptr);
 #else
   // SkFontMgr_New_Custom_Empty()
@@ -120,7 +121,7 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
     // 微软雅黑
     g_app.DefaultTypeface = HYTypeface(g_app.FontMgr->legacyMakeTypeface("Microsoft YaHei", SkFontStyle()).release());
 #else
-    g_app.DefaultTypeface = HYTypeface(g_app.FontMgr->legacyMakeTypeface("FangSong", SkFontStyle()).release())
+    g_app.DefaultTypeface = HYTypeface(g_app.FontMgr->legacyMakeTypeface("FangSong", SkFontStyle()).release());
 #endif
   }
   {
