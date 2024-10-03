@@ -230,11 +230,11 @@ if (NOT DEFINED NO_EXAMPLES)
   #    add_executable(ExamplesHashTable examples/data/hashtable.cpp)
   #    target_link_libraries(ExamplesHashTable HYGUI)
   # helloworld
-#  add_executable(HelloWorld examples/helloworld/helloworld.cpp)
-#  target_link_libraries(HelloWorld PRIVATE HYGUI)
+  add_executable(HelloWorld examples/helloworld/helloworld.cpp)
+  target_link_libraries(HelloWorld PRIVATE HYGUI)
   # event
-  add_executable(EventTest examples/event/events.cpp)
-  target_link_libraries(EventTest PRIVATE HYGUI)
+#  add_executable(EventTest examples/event/events.cpp)
+#  target_link_libraries(EventTest PRIVATE HYGUI)
 #  # cloud_music
 #  add_executable(CloudMusic examples/CloudMusic/main_window.cpp examples/CloudMusic/layout.cpp)
 #  target_link_libraries(CloudMusic PRIVATE HYGUI)
