@@ -7,31 +7,19 @@
 
 namespace HYGUI {
 
+HYGUICLASS_SRC_DEFINE(HYFontStyle, SkFontStyle);
+
 HYFontStyle::~HYFontStyle() {
 
 };
 
 HYFontStyle::HYFontStyle() {
-
+  m_ptr = std::make_shared<SkFontStyle>();
 };
 
 HYFontStyle::HYFontStyle(SkFontStyle *ptr)
     : m_ptr(ptr) {
 
 };
-
-
-SkFontStyle *HYFontStyle::operator->() const {
-  return m_ptr.get();
-};
-
-bool HYFontStyle::operator==(const nullptr_t &p) const {
-  return m_ptr == p;
-}
-
-bool HYFontStyle::operator!() const {
-  return !m_ptr;
-};
-
 
 }// namespace HYGUI

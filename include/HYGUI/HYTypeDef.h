@@ -88,7 +88,17 @@ class HYFontMgr;
  * */
 class HYShader;
 
-}
+}// namespace HYGUI
+
+#define HYGUICLASS_HANDER_DEFINE(CLASSTYPE, PKGTYPE) \
+private:                                             \
+  std::shared_ptr<PKGTYPE> m_ptr;                 \
+                                                     \
+public:                                              \
+  PKGTYPE *get() const;                              \
+  PKGTYPE *operator->() const;                       \
+  bool operator==(const nullptr_t &p) const;\
+ bool operator!() const;
 
 
 

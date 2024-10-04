@@ -214,6 +214,10 @@ const char *HYString::c_str() const {
   return (char *) m_pSkString->c_str();
 }
 
+const char *HYString::data() const {
+  return (char *) m_pSkString->data();
+}
+
 size_t HYString::forEachUtf8CharBoundary(const ForEachCharHandel &func) {
   std::string raw((char *) m_pSkString->data());
   char *w = raw.data();

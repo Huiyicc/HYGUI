@@ -7,29 +7,19 @@
 
 namespace HYGUI {
 
+HYGUICLASS_SRC_DEFINE(HYSurface, SkSurface);
+
 HYSurface::~HYSurface() {
 
 };
-
-HYSurface::HYSurface() {
-
-};
+//
+// HYSurface::HYSurface() {
+//
+// };
 
 HYSurface::HYSurface(SkSurface *ptr)
     : m_ptr(ptr, HYPtrDeleter<SkSurface>()) {
 
-};
-
-SkSurface *HYSurface::operator->() const {
-  return m_ptr.get();
-};
-
-bool HYSurface::operator==(const nullptr_t &p) const {
-  return m_ptr == p;
-}
-
-bool HYSurface::operator!() const {
-  return !m_ptr;
 };
 
 }// namespace HYGUI

@@ -81,6 +81,7 @@ public:
   void append(const char8_t *pData, size_t len);
   void append(const HYString &str);
   const char *c_str() const;
+  const char *data() const;
   HYString trim_copy() const;
   HYString& trim();
 

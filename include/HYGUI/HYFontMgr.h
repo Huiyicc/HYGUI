@@ -5,7 +5,7 @@
 #ifndef HYGUI_HYFONTMGR_H
 #define HYGUI_HYFONTMGR_H
 
-#include <HYGUI/HYDefine.h>
+#include <HYGUI/HYTypeDef.h>
 #include <memory>
 
 class SkFontMgr;
@@ -19,12 +19,8 @@ public:
   explicit HYFontMgr();
   explicit HYFontMgr(SkFontMgr* ptr);
 
-  SkFontMgr* operator->() const;
-  bool operator==(const nullptr_t&p) const;
-  bool operator!() const;
+  HYGUICLASS_HANDER_DEFINE(HYFontMgr, SkFontMgr);
 
-private:
-  std::shared_ptr<SkFontMgr> m_ptr;
 };
 
 }

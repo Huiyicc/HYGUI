@@ -18,12 +18,8 @@ public:
   explicit HYPaint();
   explicit HYPaint(SkPaint* ptr);
 
-  SkPaint* operator->() const;
-  bool operator==(const nullptr_t&p) const;
-  bool operator!() const;
+  HYGUICLASS_HANDER_DEFINE(HYPaint, SkPaint);
 
-private:
-  std::shared_ptr<SkPaint> m_ptr;
 };
 
 }

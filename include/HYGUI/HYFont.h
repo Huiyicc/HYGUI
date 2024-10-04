@@ -18,13 +18,8 @@ public:
   explicit HYFont();
   explicit HYFont(SkFont* ptr);
 
-  SkFont* operator->() const;
-  bool operator==(const nullptr_t&p) const;
-  bool operator!() const;
+  HYGUICLASS_HANDER_DEFINE(HYFont, SkFont);
 
-
-private:
-  std::shared_ptr<SkFont> m_ptr;
 };
 
 }

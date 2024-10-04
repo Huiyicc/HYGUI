@@ -7,11 +7,14 @@
 
 namespace HYGUI {
 
+HYGUICLASS_SRC_DEFINE(HYPaint, SkPaint);
+
 HYPaint::~HYPaint() {
 
 };
 
 HYPaint::HYPaint() {
+  m_ptr = std::make_shared<SkPaint>();
 
 };
 
@@ -20,17 +23,5 @@ HYPaint::HYPaint(SkPaint *ptr)
 
 };
 
-
-SkPaint *HYPaint::operator->() const {
-  return m_ptr.get();
-};
-
-bool HYPaint::operator==(const nullptr_t &p) const {
-  return m_ptr == p;
-}
-
-bool HYPaint::operator!() const {
-  return !m_ptr;
-};
 
 }// namespace HYGUI

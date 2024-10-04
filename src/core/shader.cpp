@@ -7,31 +7,18 @@
 
 namespace HYGUI {
 
+HYGUICLASS_SRC_DEFINE(HYShader, SkShader);
+
 HYShader::~HYShader() {
 
 };
 
-HYShader::HYShader() {
-
-};
+// HYShader::HYShader() {
+//
+// };
 
 HYShader::HYShader(SkShader *ptr)
-    : m_ptr(ptr, HYPtrDeleter<SkShader>()) {
-
-      };
-
-
-SkShader *HYShader::operator->() const {
-  return m_ptr.get();
-};
-
-bool HYShader::operator==(const nullptr_t &p) const {
-  return m_ptr == p;
-}
-
-bool HYShader::operator!() const {
-  return !m_ptr;
-};
+    : m_ptr(ptr, HYPtrDeleter<SkShader>()) {};
 
 
 }// namespace HYGUI

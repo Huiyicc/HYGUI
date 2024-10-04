@@ -7,11 +7,11 @@
 
 #include "HYGUI/HYException.h"
 #ifdef _HOST_WINDOWS_
-#include <windows.h>
-#include <ocidl.h>
-#include <olectl.h>
 #include <atlbase.h>
 #include <atlwin.h>
+#include <ocidl.h>
+#include <olectl.h>
+#include <windows.h>
 #elif defined(_HOST_APPLE_)
 #elif defined(_HOST_LINUX_)
 
@@ -30,7 +30,7 @@ namespace HYGUI {
 extern ApplicationInfo g_app;
 
 constexpr const char *const DEFAULT_CLASS_NAME = "HYGUI";
-extern const std::unordered_map<char32_t, std::tuple<const char*,const char *>> g_emoji_map;
+extern const std::unordered_map<char32_t, std::tuple<const char *, const char *>> g_emoji_map;
 
 //void window_paint(HYWindow *, void *) ;
 //void window_recreate_surface(HYWindow *windowPtr);
@@ -42,16 +42,30 @@ extern const std::unordered_map<char32_t, std::tuple<const char*,const char *>> 
 
 template<typename T>
 struct HYPtrDeleter {
-  void operator()(T* ptr) {
+  void operator()(T *ptr) {
     if (ptr) {
       ptr->unref();
     }
   }
 };
 
-}
+}// namespace HYGUI
 
-#include "logs.h"
 #include "ResourceManage.h"
+#include "logs.h"
 
-#endif //HYGUI_PRIVATEDEFINITION_H
+#define HYGUICLASS_SRC_DEFINE(CLASSTYPE, PKGTYPE)        \
+  bool CLASSTYPE::operator==(const nullptr_t &p) const { \
+    return m_ptr == p;                                   \
+  }                                                      \
+  PKGTYPE *CLASSTYPE::operator->() const {               \
+    return m_ptr.get();                                  \
+  };                                                     \
+  PKGTYPE *CLASSTYPE::get() const {                      \
+    return m_ptr.get();                                  \
+  };                                                     \
+  bool CLASSTYPE::operator!() const {                    \
+    return !m_ptr;                                       \
+  };
+
+#endif//HYGUI_PRIVATEDEFINITION_H

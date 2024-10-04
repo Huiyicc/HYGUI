@@ -15,15 +15,11 @@ class HYShader : public HYClassBase {
 public:
   ~HYShader() override;
 
-  explicit HYShader();
+  explicit HYShader() = delete;
   explicit HYShader(SkShader *ptr);
 
-  SkShader *operator->() const;
-  bool operator==(const nullptr_t&p) const;
-  bool operator!() const;
+  HYGUICLASS_HANDER_DEFINE(HYShader, SkShader);
 
-private:
-  std::shared_ptr<SkShader> m_ptr;
 };
 
 }// namespace HYGUI

@@ -7,6 +7,8 @@
 
 namespace HYGUI {
 
+HYGUICLASS_SRC_DEFINE(HYFont, SkFont);
+
 HYFont::~HYFont(){
 
 };
@@ -18,18 +20,6 @@ HYFont::HYFont() {
 HYFont::HYFont(SkFont *ptr)
     : m_ptr(ptr){};
 
-SkFont *HYFont::operator->() const {
-  return m_ptr.get();
-};
-
-
-bool HYFont::operator==(const nullptr_t &p) const {
-  return m_ptr == p;
-}
-
-bool HYFont::operator!() const {
-  return !m_ptr;
-};
 
 
 }// namespace HYGUI

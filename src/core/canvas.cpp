@@ -7,28 +7,21 @@
 
 namespace HYGUI {
 
+HYGUICLASS_SRC_DEFINE(HYCanvas, SkCanvas);
+
 HYCanvas::~HYCanvas() {
 
 };
 
 
-HYCanvas::HYCanvas() {};
+HYCanvas::HYCanvas() {
+  m_ptr = std::make_shared<SkCanvas>();
+};
 
 
 HYCanvas::HYCanvas(SkCanvas *ptr)
     : m_ptr(ptr) {
       };
 
-SkCanvas *HYCanvas::operator->() const {
-  return m_ptr.get();
-};
-
-bool HYCanvas::operator==(const nullptr_t &p) const {
-  return m_ptr == p;
-}
-
-bool HYCanvas::operator!() const {
-  return !m_ptr;
-};
 
 };// namespace HYGUI

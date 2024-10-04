@@ -6,11 +6,11 @@
 #include "HYGUI/HYApplication.h"
 #include "HYGUI/HYDefine.h"
 #include "PrivateDefinition.h"
+#include "include/core/SkFontMgr.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkTypeface.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
-#include "include/core/SkFontMgr.h"
 #include "include/ports/SkFontMgr_directory.h"
 #include <filesystem>
 #include <ports/SkTypeface_win.h>
@@ -34,6 +34,8 @@
 #include "emoji_font_resource.h"
 #include "utils_font_resource.h"
 
+#include <HYGUI/HYMemoryStream.h>
+
 namespace HYGUI {
 
 ApplicationInfo g_app;
@@ -41,9 +43,9 @@ ApplicationInfo g_app;
 bool HYInit(HYGlobalFlag DefaultGlobalFlags,
             const HYString &DefaultFont) {
 
-  if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
     g_app.LastError = SDL_GetError();
-    PrintError("{}",g_app.LastError.c_str());
+    PrintError("{}", g_app.LastError.c_str());
 
     return false;
   };
@@ -64,7 +66,7 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
 #endif
   //SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
 
-//  g_app.kStencilBits = 8;// skia需要8位模板缓冲区
+  //  g_app.kStencilBits = 8;// skia需要8位模板缓冲区
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -80,7 +82,7 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
   g_app.EventCustomStart = SDL_RegisterEvents(2);
   if (g_app.EventCustomStart == (Uint32) -1) {
     g_app.LastError = SDL_GetError();
-    PrintError("{}",g_app.LastError.c_str());
+    PrintError("{}", g_app.LastError.c_str());
     return false;
   }
   g_app.EventWindow = g_app.EventCustomStart;
@@ -109,32 +111,30 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
   // 加载默认字体
   if (!DefaultFont.empty()) {
     // 设置默认字体
-    std::filesystem::path fontpath(DefaultFont.toStdStringView());
-    if (std::filesystem::exists(fontpath)) {
+    if (std::filesystem::path fontPath(DefaultFont.toStdStringView());
+        std::filesystem::exists(fontPath)) {
       // 文件存在
-      g_app.DefaultTypeface = HYTypeface(g_app.FontMgr->makeFromFile(DefaultFont.toStdStringView().data()).release());
+      g_app.DefaultTypeface = HYTypeface::MakeFromFile(DefaultFont);
       useDefault = (g_app.DefaultTypeface == nullptr);
     }
   }
   if (useDefault) {
 #ifdef _HOST_WINDOWS_
     // 微软雅黑
-    g_app.DefaultTypeface = HYTypeface(g_app.FontMgr->legacyMakeTypeface("Microsoft YaHei", SkFontStyle()).release());
+    g_app.DefaultTypeface = HYTypeface::MakeFromLegacyName("Microsoft YaHei");
+#elif defined (_HOST_APPLE_)
+    g_app.DefaultTypeface = HYTypeface::MakeFromLegacyName("PingFang SC");
 #else
-    g_app.DefaultTypeface = HYTypeface(g_app.FontMgr->legacyMakeTypeface("FangSong", SkFontStyle()).release());
+    g_app.DefaultTypeface =HYTypeface::MakeFromLegacyName("FangSong");
 #endif
   }
   {
-    auto emojiStream = SkMemoryStream::MakeDirect(emoji_font_resource,emoji_font_resource_len);
-    std::unique_ptr<SkStreamAsset> streamAsset(emojiStream.release());
-    g_app.EmojiTypeface = HYTypeface(g_app.FontMgr->makeFromStream(std::move(streamAsset)).release());
-
+    auto emojiStream = HYMemoryStream::MakeFromData(emoji_font_resource, emoji_font_resource_len);
+    g_app.EmojiTypeface = HYTypeface::MakeFromStream(std::move(emojiStream));
   }
   {
-    auto utilsStream = SkMemoryStream::MakeDirect(utils_font_resource,utils_font_resource_len);
-    std::unique_ptr<SkStreamAsset> streamAsset(utilsStream.release());
-    g_app.UtilsTypeface =HYTypeface (g_app.FontMgr->makeFromStream(std::move(streamAsset)).release());
-
+    auto utilsStream = HYMemoryStream::MakeFromData(utils_font_resource, utils_font_resource_len);
+    g_app.UtilsTypeface = HYTypeface::MakeFromStream(std::move(utilsStream));
   }
 
   g_app.Cursor = nullptr;
@@ -153,7 +153,7 @@ void HYExit() {
 
   g_app.isRuning = false;
   SDL_Quit();
-//  HYResourceRemoveOther(g_app.FontMgr);
+  //  HYResourceRemoveOther(g_app.FontMgr);
   // debug
 
 //  HYResourceDumpDebug();
