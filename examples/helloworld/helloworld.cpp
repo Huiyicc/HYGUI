@@ -15,6 +15,9 @@ int main() {
   HYInit(HYGlobalFlag::HYGlobalFlagGraphicDefault);
 
   std::cout << 1 <<std::endl;
+  HYWindowBuilder b;
+  auto w = b.Build();
+
 //  auto wind = HYWindowCreate(nullptr, "Hello World");
 //  HYWindowSkinHook(wind, HYRGB{255, 255, 255}, 210);
 //

@@ -38,6 +38,11 @@ class SkImage;
 template<class T>
 class sk_sp;
 
+struct SDL_Window;
+struct SDL_GLContextState;
+typedef struct SDL_GLContextState *SDL_GLContext;
+typedef void *VOIDPTR;
+
 namespace HYGUI {
 
 class HYClassBase {
