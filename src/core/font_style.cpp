@@ -21,11 +21,15 @@ HYFontStyle::HYFontStyle(SkFontStyle *ptr)
 };
 
 
-SkFontStyle *HYFontStyle::operator->() {
+SkFontStyle *HYFontStyle::operator->() const {
   return m_ptr.get();
 };
 
-bool HYFontStyle::operator!() {
+bool HYFontStyle::operator==(const nullptr_t &p) const {
+  return m_ptr == p;
+}
+
+bool HYFontStyle::operator!() const {
   return !m_ptr;
 };
 

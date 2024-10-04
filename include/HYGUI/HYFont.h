@@ -18,8 +18,10 @@ public:
   explicit HYFont();
   explicit HYFont(SkFont* ptr);
 
-  SkFont* operator->();
-  bool operator!();
+  SkFont* operator->() const;
+  bool operator==(const nullptr_t&p) const;
+  bool operator!() const;
+
 
 private:
   std::shared_ptr<SkFont> m_ptr;

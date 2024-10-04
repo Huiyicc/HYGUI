@@ -18,8 +18,9 @@ public:
   explicit HYPaint();
   explicit HYPaint(SkPaint* ptr);
 
-  SkPaint* operator->();
-  bool operator!();
+  SkPaint* operator->() const;
+  bool operator==(const nullptr_t&p) const;
+  bool operator!() const;
 
 private:
   std::shared_ptr<SkPaint> m_ptr;

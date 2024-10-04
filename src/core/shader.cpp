@@ -21,11 +21,15 @@ HYShader::HYShader(SkShader *ptr)
       };
 
 
-SkShader *HYShader::operator->() {
+SkShader *HYShader::operator->() const {
   return m_ptr.get();
 };
 
-bool HYShader::operator!() {
+bool HYShader::operator==(const nullptr_t &p) const {
+  return m_ptr == p;
+}
+
+bool HYShader::operator!() const {
   return !m_ptr;
 };
 

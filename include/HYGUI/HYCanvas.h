@@ -18,8 +18,9 @@ public:
   explicit HYCanvas();
   explicit HYCanvas(SkCanvas* ptr);
 
-  SkCanvas* operator->();
-  bool operator!();
+  SkCanvas* operator->() const;
+  bool operator==(const nullptr_t&p) const;
+  bool operator!() const;
 
 private:
   std::shared_ptr<SkCanvas> m_ptr;

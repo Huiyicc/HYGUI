@@ -19,8 +19,9 @@ public:
   explicit HYFontMgr();
   explicit HYFontMgr(SkFontMgr* ptr);
 
-  SkFontMgr* operator->();
-  bool operator!();
+  SkFontMgr* operator->() const;
+  bool operator==(const nullptr_t&p) const;
+  bool operator!() const;
 
 private:
   std::shared_ptr<SkFontMgr> m_ptr;

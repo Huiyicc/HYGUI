@@ -15,19 +15,19 @@ HYTypeface::HYTypeface() {
 
 };
 HYTypeface::HYTypeface(SkTypeface *ptr)
-    : m_ptr(ptr, HYPtrDeleter<SkTypeface>()) {
+    : m_ptr(ptr, HYPtrDeleter<SkTypeface>()) { };
 
-      };
 //void HYTypeface::reset(SkTypeface*ptr) {
 //  m_ptr.reset(ptr);
 //};
-bool HYTypeface::operator==(const nullptr_t &p) {
+
+bool HYTypeface::operator==(const nullptr_t &p) const {
   return m_ptr == p;
 }
-SkTypeface *HYTypeface::operator->() {
+SkTypeface *HYTypeface::operator->() const {
   return m_ptr.get();
 };
-bool HYTypeface::operator!() {
+bool HYTypeface::operator!() const {
   return !m_ptr;
 };
 

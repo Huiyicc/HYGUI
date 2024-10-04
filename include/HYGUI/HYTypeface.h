@@ -16,9 +16,9 @@ public:
   explicit HYTypeface();
   explicit HYTypeface(SkTypeface* ptr);
 
-  SkTypeface* operator->();
-  bool operator==(const nullptr_t&p);
-  bool operator!();
+  SkTypeface* operator->() const;
+  bool operator==(const nullptr_t&p) const;
+  bool operator!() const;
 
 
 private:

@@ -7,24 +7,27 @@
 
 namespace HYGUI {
 
-HYFont::~HYFont() {
+HYFont::~HYFont(){
 
 };
 
 HYFont::HYFont() {
-
+  m_ptr = std::make_shared<SkFont>();
 };
 
 HYFont::HYFont(SkFont *ptr)
-    : m_ptr(ptr) {
+    : m_ptr(ptr){};
 
-      };
-
-SkFont *HYFont::operator->() {
+SkFont *HYFont::operator->() const {
   return m_ptr.get();
 };
 
-bool HYFont::operator!() {
+
+bool HYFont::operator==(const nullptr_t &p) const {
+  return m_ptr == p;
+}
+
+bool HYFont::operator!() const {
   return !m_ptr;
 };
 

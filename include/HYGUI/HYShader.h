@@ -18,8 +18,9 @@ public:
   explicit HYShader();
   explicit HYShader(SkShader *ptr);
 
-  SkShader *operator->();
-  bool operator!();
+  SkShader *operator->() const;
+  bool operator==(const nullptr_t&p) const;
+  bool operator!() const;
 
 private:
   std::shared_ptr<SkShader> m_ptr;

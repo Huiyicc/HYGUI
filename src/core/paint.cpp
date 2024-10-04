@@ -21,11 +21,15 @@ HYPaint::HYPaint(SkPaint *ptr)
 };
 
 
-SkPaint *HYPaint::operator->() {
+SkPaint *HYPaint::operator->() const {
   return m_ptr.get();
 };
 
-bool HYPaint::operator!() {
+bool HYPaint::operator==(const nullptr_t &p) const {
+  return m_ptr == p;
+}
+
+bool HYPaint::operator!() const {
   return !m_ptr;
 };
 

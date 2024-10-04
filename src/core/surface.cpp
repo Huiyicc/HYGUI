@@ -20,11 +20,15 @@ HYSurface::HYSurface(SkSurface *ptr)
 
 };
 
-SkSurface *HYSurface::operator->() {
+SkSurface *HYSurface::operator->() const {
   return m_ptr.get();
 };
 
-bool HYSurface::operator!() {
+bool HYSurface::operator==(const nullptr_t &p) const {
+  return m_ptr == p;
+}
+
+bool HYSurface::operator!() const {
   return !m_ptr;
 };
 

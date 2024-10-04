@@ -19,11 +19,15 @@ HYCanvas::HYCanvas(SkCanvas *ptr)
     : m_ptr(ptr) {
       };
 
-SkCanvas *HYCanvas::operator->() {
+SkCanvas *HYCanvas::operator->() const {
   return m_ptr.get();
 };
 
-bool HYCanvas::operator!() {
+bool HYCanvas::operator==(const nullptr_t &p) const {
+  return m_ptr == p;
+}
+
+bool HYCanvas::operator!() const {
   return !m_ptr;
 };
 

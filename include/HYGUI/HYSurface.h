@@ -18,8 +18,9 @@ public:
   explicit HYSurface();
   explicit HYSurface(SkSurface* ptr);
 
-  SkSurface* operator->();
-  bool operator!();
+  SkSurface* operator->() const;
+  bool operator==(const nullptr_t&p) const;
+  bool operator!() const;
 
 private:
   std::shared_ptr<SkSurface> m_ptr;

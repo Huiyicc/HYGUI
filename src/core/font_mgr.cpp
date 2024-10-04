@@ -17,10 +17,15 @@ HYFontMgr::~HYFontMgr() {
 
 };
 
-SkFontMgr *HYFontMgr::operator->() {
+SkFontMgr *HYFontMgr::operator->() const {
   return m_ptr.get();
 };
-bool HYFontMgr::operator!() {
+
+bool HYFontMgr::operator==(const nullptr_t &p) const {
+  return m_ptr == p;
+}
+
+bool HYFontMgr::operator!() const {
   return !m_ptr;
 };
 
