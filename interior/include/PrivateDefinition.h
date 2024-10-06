@@ -37,8 +37,10 @@ extern const std::unordered_map<char32_t, std::tuple<const char *, const char *>
 ////int processing_object_event(HYObjectEventQueue*queue, HYObjectEventInfo&event_info);
 //int _obj_event(HYWindow *window, HYObject *obj, HYObjectEvent event, int64_t param1, int64_t param2);
 //void adjustwindow_by_sdl(HYWindowHandel window , void *newhandel);
-//void adjust_win_tyle(SDL_SysWMinfo* wmInfo);
-//void window_hook_handel(HYWindow *windowPtr);
+void adjust_win_tyle(SDL_SysWMinfo *wmInfo);
+void window_hook_handel(HYWindow *windowPtr);
+
+int _window_event_handel(HYWindow *window, SDL_Event *event);
 
 template<typename T>
 struct HYPtrDeleter {
@@ -66,6 +68,9 @@ struct HYPtrDeleter {
   };                                                     \
   bool CLASSTYPE::operator!() const {                    \
     return !m_ptr;                                       \
-  };
+  };                                                     \
+  CLASSTYPE::operator bool() const {                     \
+    return m_ptr!=nullptr;                                        \
+  }
 
 #endif//HYGUI_PRIVATEDEFINITION_H

@@ -2,21 +2,35 @@
 // Created by 回忆 on 24-10-4.
 //
 
-#ifndef WINDOW_BUILDER_H
-#define WINDOW_BUILDER_H
+#ifndef HYWINDOW_BUILDER_H
+#define HYWINDOW_BUILDER_H
 
+#include <HYGUI/HYDefine.h>
 #include <HYGUI/HYTypeDef.h>
-#include <HYGUI/HYWindow.h>
 
 namespace HYGUI {
+class HYWindow;
 
 class HYWindowBuilder final : public HYClassBase {
-public:
-  HYWindowBuilder();
+  HYWindow m_window;
 
-  HYWindow Build() const;
+public:
+  explicit HYWindowBuilder(const HYString &title = "");
+  ~HYWindowBuilder() override;
+
+  HYWindowBuilder &X(int x);
+  HYWindowBuilder &Y(int y);
+  HYWindowBuilder &Point(int x, int y);
+  HYWindowBuilder &Width(int width);
+  HYWindowBuilder &Height(int height);
+  HYWindowBuilder &Size(int width, int height);
+  HYWindowBuilder &Rect(int x, int y, int width, int height);
+  HYWindowBuilder &Title(const HYString &title);
+
+
+  [[nodiscard]] HYWindow Build() const;
 };
 
-}
+}// namespace HYGUI
 
-#endif //WINDOW_BUILDER_H
+#endif//WINDOW_BUILDER_H

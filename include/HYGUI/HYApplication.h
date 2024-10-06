@@ -15,6 +15,7 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
 
 void HYExit();
 
+int HYRun();
 
 }
 #endif //HYGUI_APP_H

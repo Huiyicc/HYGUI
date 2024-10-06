@@ -11,14 +11,25 @@ class SkCanvas;
 
 namespace HYGUI {
 
-class HYCanvas: private HYClassBase {
+class HYCanvas: public HYClassBase {
 public:
   ~HYCanvas() override;
 
   explicit HYCanvas();
   explicit HYCanvas(SkCanvas* ptr);
+  HYCanvas(const HYCanvas& other);
 
-  HYGUICLASS_HANDER_DEFINE(HYCanvas, SkCanvas);
+private:
+  SkCanvas* m_ptr;
+
+public:
+  [[nodiscard]] SkCanvas *get() const;
+  SkCanvas *operator->() const;
+  bool operator==(const nullptr_t &p) const;
+  bool operator!() const;
+  HYCanvas& operator=(const HYCanvas& other);
+  HYCanvas& operator=(SkCanvas* other);
+  explicit operator bool() const;
 
 };
 

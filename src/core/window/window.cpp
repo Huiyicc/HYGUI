@@ -27,13 +27,18 @@
 #include "include/gpu/gl/GrGLTypes.h"
 
 #include <HYGUI/HYContext.h>
+#include <HYGUI/HYCursor.h>
 #include <HYGUI/HYWindow.h>
+#include <HYGUI/HYColor.h>
 #include <gpu/ganesh/SkSurfaceGanesh.h>
 
 namespace HYGUI {
 
-HYWindow::HYWindow() {
-std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
+HYWindow::HYWindow() : m_Surface(nullptr) {
+  m_paintMutex = std::make_shared<std::mutex>();
+  m_messageMutex = std::make_shared<std::mutex>();
+  m_paintCV = std::make_shared<std::condition_variable>();
+  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   auto dsinfo = SDL_GetDesktopDisplayMode(1);
   if (m_x == WINDOWCREATEPOINT_USEDEFAULT) {
     m_x = (dsinfo->w - m_width) / 2;
@@ -53,34 +58,20 @@ std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   }
 
   SDL_HideWindow(sdl_wind);
-  // HYResourceRegister(ResourceType::ResourceType_Window, sdl_wind, "sdl window", [](void *resource) {
-  //   std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
-  //   SDL_DestroyWindow((SDL_Window *) resource);
-  // });
 
   // 创建OpenGL上下文
   SDL_GLContext glContext = SDL_GL_CreateContext(sdl_wind);
   if (glContext == nullptr) {
-    // HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
     SDL_DestroyWindow(sdl_wind);
     THROW_ERROR("创建OpenGL Context失败");
   }
-  // HYResourceRegisterOther(glContext, "SDL_GLContext", [](void *resource) {
-  //   SDL_GL_DestroyContext((SDL_GLContext) resource);
-  // });
   // 切换到OpenGL上下文
-  int success = SDL_GL_MakeCurrent(sdl_wind, glContext);
-  if (success != 0) {
-    // HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
-    // HYResourceRemove(ResourceType::ResourceType_Other, glContext);
+  auto success = SDL_GL_MakeCurrent(sdl_wind, glContext);
+  if (!success) {
     SDL_DestroyWindow(sdl_wind);
     SDL_GL_DestroyContext(glContext);
     THROW_ERROR("切换OpenGL Context失败");
   }
-  // auto opengl_buffer = SDL_GetProperty(SDL_GetWindowProperties(sdl_wind), SDL_PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER, nullptr);
-  // glEnable(GL_MULTISAMPLE);
-  static const int kMsaaSampleCount = 0;//4;
-
   int contextType;
   SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextType);
   int dw, dh;
@@ -91,49 +82,22 @@ std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // // 准备GrContext
-  // auto skInterface = GrGLMakeNativeInterface();
-  // if (!skInterface) {
-  //   skInterface = GrGLMakeAssembledInterface(
-  //     nullptr, glgetpoc);
-  // }
-  //
-  // if (!skInterface) {
-  //   // HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
-  //   // HYResourceRemove(ResourceType::ResourceType_Other, glContext);
-  //   SDL_DestroyWindow(sdl_wind);
-  //   SDL_GL_DestroyContext(glContext);
-  //   THROW_ERROR("创建Native Interface失败");
-  // }
-  // // 准备contexts
-  // sk_sp<GrDirectContext> grContext(GrDirectContexts::MakeGL(skInterface));
+  // 准备contexts
   m_GrCtx = HYGrDirectContext::MakeFromDefaultInterface();
   if (!m_GrCtx) {
-    // HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
-    // HYResourceRemove(ResourceType::ResourceType_Other, glContext);
     SDL_DestroyWindow(sdl_wind);
     SDL_GL_DestroyContext(glContext);
     THROW_ERROR("创建Direct Context失败");
   }
 
-  // auto grctx = grContext.release();
-  // GrCtx = HYResourceRegisterOther(grctx, "GrDirectContext", [](void *resource) {
-  //   auto ctx = (GrDirectContext *) resource;
-  //   ctx->abandonContext();
-  //   SkSafeUnref(ctx);
-  // });
-  //window->GrCtx = HYResourceRegisterOther(grctx, "GrDirectContext", nullptr);
   m_SDLOpenGl = glContext;
-  m_ID = SDL_GetWindowID(sdl_wind);
+  m_id = SDL_GetWindowID(sdl_wind);
   m_SDLWindow = sdl_wind;
   m_ClientRect = {0, 0, dw, dh};
 
   auto hWnd = GetHandel();
   if (hWnd.handle == nullptr) {
     g_app.LastError = "Create window fail";
-    // HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
-    // HYResourceRemove(ResourceType::ResourceType_Other, glContext);
-    // HYResourceRemove(ResourceType::ResourceType_Other, GrCtx);
     SDL_DestroyWindow(sdl_wind);
     SDL_GL_DestroyContext(glContext);
     THROW_ERROR("创建窗口失败");
@@ -144,24 +108,136 @@ std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
 
   if (g_app.WindowsTable.find(this) != g_app.WindowsTable.end()) {
     // ????什么玩意
-    // HYResourceRemove(ResourceType::ResourceType_Window, sdl_wind);
-    // HYResourceRemove(ResourceType::ResourceType_Other, glContext);
-    // HYResourceRemove(ResourceType::ResourceType_Other, GrCtx);
     SDL_DestroyWindow(sdl_wind);
     SDL_GL_DestroyContext(glContext);
     THROW_ERROR("申请窗口资源冲突");
   }
   g_app.WindowsTable.insert(this);
-  // HYResourceRegister(ResourceType::ResourceType_Window, this, "hywindow", [](void *resource) {
-  //   delete (HYWindow *) resource;
-  // });
-  // HYResourceRemoveClearFunc(ResourceType::ResourceType_Window, sdl_wind);
-  // HYWindowSendEvent(this, HYWindowEvent::HYWindowEvent_Create, 0, 0);
-
+  skinHook();
 }
 
 HYWindow::~HYWindow() {
+  SDL_DestroyWindow(m_SDLWindow);
+  SDL_GL_DestroyContext(m_SDLOpenGl);
+}
 
+void HYWindow::Show() {
+  m_show = true;
+  if (m_isInit) {
+    SDL_ShowWindow(m_SDLWindow);
+  }
+}
+
+uint32_t HYWindow::ID() const {
+  return m_id;
+};
+
+
+void HYWindow::Refresh() const {
+  // 切换到OpenGL上下文
+  SDL_GL_MakeCurrent(m_SDLWindow, m_SDLOpenGl);
+
+  auto canvas = m_Surface->getCanvas();
+  // 透明背景
+  SkRRect roundRect;
+  roundRect.setRectXY(SkRect::MakeXYWH(0, 0, m_width, m_height),
+                      round, round);
+  canvas->clipRRect(roundRect);
+
+  SkPaint bgpaint;
+  bgpaint.setColor(HYColorRGBToARGBInt(m_backGroundColor, 255));
+  // 白色
+  bgpaint.setAntiAlias(true);
+  canvas->drawRect(SkRect::MakeLTRB(0, 0, m_ClientRect.width, m_ClientRect.height),
+                   bgpaint);
+  HYRect bgpaint_rect = {0, 0, m_width,m_height};
+  // for (auto &reiter: EventBackgroundPaintCallbacks) {
+  //   reiter.second(this, canvas, &bgpaint, &bgpaint_rect);
+  // }
+
+  // 子组件绘制
+  canvas->save();
+  // for (auto obj: Children) {
+  //   // 子组件绘制
+  //   HYObjectPushEventCall(this, obj, HYObjectEvent::HYObjectEvent_Paint, 0, 1);
+  // }
+
+  canvas->restore();
+  canvas->resetMatrix();
+
+  m_GrCtx->flush(m_Surface.get());
+
+  // 将绘制的内容显示到窗口
+  SDL_GL_SwapWindow(m_SDLWindow);
+};
+
+void HYWindow::skinHook() {
+  m_cursorMap.clear();
+  static std::vector<HY_SYSTEM_CURSOR> cursors = {
+    HY_SYSTEM_CURSOR_ARROW,
+    HY_SYSTEM_CURSOR_IBEAM,
+    HY_SYSTEM_CURSOR_WAIT,
+    HY_SYSTEM_CURSOR_CROSSHAIR,
+    HY_SYSTEM_CURSOR_WAITARROW,
+    HY_SYSTEM_CURSOR_SIZENWSE,
+    HY_SYSTEM_CURSOR_SIZENESW,
+    HY_SYSTEM_CURSOR_SIZEWE,
+    HY_SYSTEM_CURSOR_SIZENS,
+    HY_SYSTEM_CURSOR_SIZEALL,
+    HY_SYSTEM_CURSOR_NO,
+    HY_SYSTEM_CURSOR_HAND,
+  };
+  for (auto cursor: cursors) {
+    m_cursorMap[cursor] = HYCursor::MakeFromSystemCursor(cursor);
+  }
+  window_hook_handel(this);
+  SDL_SetWindowOpacity(m_SDLWindow, static_cast<float>(m_diaphaneity) / 255.0f);
+  recreate_surface();
+}
+
+void HYWindow::recreate_surface() {
+    // 更新HDC/画笔尺寸
+    if (m_Surface) {
+      // HYResourceRemove(ResourceType::ResourceType_Other, m_Surface);
+    }
+
+    SDL_GL_MakeCurrent(m_SDLWindow, (SDL_GLContext) m_SDLOpenGl);
+
+    // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
+    SDL_GetWindowSizeInPixels(m_SDLWindow, &m_ClientRect.width, &m_ClientRect.height);
+
+    glViewport(0, 0, m_ClientRect.width, m_ClientRect.height);
+    GrGLint buffer;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
+    GrGLFramebufferInfo binfo;
+    binfo.fFBOID = (GrGLuint) buffer;
+  #if defined(_HOST_ANDROID_)
+    binfo.fFormat = GL_RGBA8_OES;
+  #else
+    binfo.fFormat = GL_RGBA8;
+  #endif
+    auto grtarget = GrBackendRenderTargets::MakeGL(m_ClientRect.width,
+                                                   m_ClientRect.height,
+                                                   0, 8,
+                                                   binfo);
+
+    SkSurfaceProps props = {0, kUnknown_SkPixelGeometry};
+
+    sk_sp<SkSurface> surface(SkSurfaces::WrapBackendRenderTarget((m_GrCtx.get()), grtarget,
+                                                                 kBottomLeft_GrSurfaceOrigin,
+                                                                 kRGBA_8888_SkColorType, nullptr, &props));
+    m_Surface = HYSurface(surface.release());
+    if (!m_Surface) {
+      // 硬件加速失败
+      PrintError("Hardware acceleration failed, fallback to software rendering");
+      exit(1);
+    }
+    // HYResourceRegisterOther(m_Surface, "skia surface", [](void *ptr) {
+    //   SkSafeUnref((SkSurface *) ptr);
+    // });
+    m_Canvas = m_Surface->getCanvas();
+
+    HYWindowSendEventRePaint(this);
 }
 
 #if !defined(_HOST_APPLE_)
@@ -203,8 +279,6 @@ WindowHandelInfo HYWindow::GetHandel() const {
 #endif
 }
 #endif
-
-
 
 
 };

@@ -35,6 +35,7 @@
 #include "utils_font_resource.h"
 
 #include <HYGUI/HYMemoryStream.h>
+#include <HYGUI/HYWindow.h>
 
 namespace HYGUI {
 
@@ -43,10 +44,9 @@ ApplicationInfo g_app;
 bool HYInit(HYGlobalFlag DefaultGlobalFlags,
             const HYString &DefaultFont) {
 
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
+  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
     g_app.LastError = SDL_GetError();
     PrintError("{}", g_app.LastError.c_str());
-
     return false;
   };
   HYString DefaultClassName = DEFAULT_CLASS_NAME;
@@ -122,10 +122,10 @@ bool HYInit(HYGlobalFlag DefaultGlobalFlags,
 #ifdef _HOST_WINDOWS_
     // 微软雅黑
     g_app.DefaultTypeface = HYTypeface::MakeFromLegacyName("Microsoft YaHei");
-#elif defined (_HOST_APPLE_)
+#elif defined(_HOST_APPLE_)
     g_app.DefaultTypeface = HYTypeface::MakeFromLegacyName("PingFang SC");
 #else
-    g_app.DefaultTypeface =HYTypeface::MakeFromLegacyName("FangSong");
+    g_app.DefaultTypeface = HYTypeface::MakeFromLegacyName("FangSong");
 #endif
   }
   {
@@ -156,9 +156,51 @@ void HYExit() {
   //  HYResourceRemoveOther(g_app.FontMgr);
   // debug
 
-//  HYResourceDumpDebug();
-
+  //  HYResourceDumpDebug();
 }
 
+int HYRun() {
+  g_app.isRuning = true;
+  const int frameDelay = 1000 / 50;
+
+  Uint32 frameStart;
+  Uint32 frameTime;
+  auto tic_fps_func = [&]() {
+    // 计算帧时间
+    frameTime = SDL_GetTicks() - frameStart;
+
+    // 帧率限制
+    if (frameTime < frameDelay) {
+      SDL_Delay(frameDelay - frameTime);
+    }
+  };
+
+  while (!g_app.WindowsTable.empty()) {
+    // std::lock_guard<std::mutex> lock_win_table(g_app.WindowsTableMutex);
+    std::lock_guard<std::mutex> look_up_lock(g_app.LookupLock);
+    if (!g_app.isRuning) {
+      break;
+    }
+    frameStart = SDL_GetTicks();
+    SDL_Event event;
+    SDL_PollEvent(&event);
+    if (event.type == SDL_EVENT_QUIT) {
+      // 退出事件
+      break;
+    }
+    if (event.window.windowID < 1) {
+      tic_fps_func();
+      continue;
+    }
+    // std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
+    auto window = HYWindowGetFromID(event.window.windowID);
+    if (!window) {
+      tic_fps_func();
+      continue;
+    }
+    _window_event_handel(window, &event);
+  }
+  return 0;
+}
 
 }// namespace HYGUI

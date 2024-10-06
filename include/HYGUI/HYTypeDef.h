@@ -103,7 +103,8 @@ public:                                              \
   PKGTYPE *get() const;                              \
   PKGTYPE *operator->() const;                       \
   bool operator==(const nullptr_t &p) const;\
- bool operator!() const;
+ bool operator!() const;\
+ operator bool() const;
 
 
 

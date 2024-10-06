@@ -5,15 +5,19 @@
 #ifndef HYGUI_DEFINE_H
 #define HYGUI_DEFINE_H
 
-#include <HYGUI/HYTypeDef.h>
+#include "HYCursor.h"
+
+
 #include <HYGUI/HYFontMgr.h>
-#include <HYGUI/HYTypeface.h>
 #include <HYGUI/HYString.h>
+#include <HYGUI/HYTypeDef.h>
+#include <HYGUI/HYTypeface.h>
 #include <cstdint>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <unordered_map>
-#include <memory>
+
 
 namespace HYGUI {
 
@@ -30,7 +34,6 @@ class HYWindow;
 
 typedef void *VOIDPTR;
 typedef intptr_t VOIDPTRT;
-typedef VOIDPTR CursorPtr;
 
 
 struct ApplicationInfo {
@@ -45,7 +48,7 @@ struct ApplicationInfo {
   // 默认类名
   HYString DefaultClassName;
   // 光标
-  CursorPtr Cursor = nullptr;
+  HYCursor Cursor;
   // 默认图标
   VOIDPTR Icon = nullptr;
   // 默认小图标
@@ -62,6 +65,13 @@ struct ApplicationInfo {
   HYTypeface UtilsTypeface; // 特殊符号字体
   std::unordered_map<HYString, HYTypeface> FontTable;
 };
+
+#ifdef _HOST_WINDOWS_
+constexpr int WINDOWCREATEPOINT_USEDEFAULT = CW_USEDEFAULT;
+#elif defined(_HOST_APPLE_) || defined(_HOST_LINUX_)
+#include <limits>
+constexpr int WINDOWCREATEPOINT_USEDEFAULT = std::numeric_limits<int>::max();
+#endif
 
 }// namespace HYGUI
 

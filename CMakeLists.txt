@@ -209,7 +209,6 @@ target_link_libraries(HYGUI PRIVATE SDL3::SDL3-static
     skia skshaper skcms sksg skresources skshaper sksg
     ${BOOST_LIBRARIES})
 if (OS_IS_WINDOWS)
-
   target_link_libraries(HYGUI PRIVATE opengl32.lib legacy_stdio_definitions)
   target_link_libraries(HYGUI PRIVATE Winmm Setupapi Imm32 Version dwmapi FontSub)
 
