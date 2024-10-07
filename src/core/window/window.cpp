@@ -48,7 +48,7 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
   auto sdl_wind = SDL_CreateWindow(m_title.toStdString().c_str(), m_width, m_height,
                                    SDL_WINDOW_OPENGL                // opengl
                                      | SDL_WINDOW_HIGH_PIXEL_DENSITY// 高dpi
-                                     // | SDL_WINDOW_HIDDEN       // 隐藏
+                                     | SDL_WINDOW_HIDDEN       // 隐藏
                                      | SDL_WINDOW_RESIZABLE // 可调整大小
                                      | SDL_WINDOW_BORDERLESS// 无边框
                                      | SDL_WINDOW_TRANSPARENT);
@@ -56,7 +56,7 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
     THROW_ERROR("创建窗口失败");
   }
 
-  SDL_HideWindow(sdl_wind);
+  // SDL_HideWindow(sdl_wind);
 
   // 创建OpenGL上下文
   SDL_GLContext glContext = SDL_GL_CreateContext(sdl_wind);
@@ -165,7 +165,7 @@ void HYWindow::Refresh() const {
   // for (auto &reiter: EventBackgroundPaintCallbacks) {
   //   reiter.second(this, canvas, &bgpaint, &bgpaint_rect);
   // }
-  PrintDebug("f:{}",SDL_GetWindowFlags(m_SDLWindow)&SDL_WINDOW_HIDDEN);
+
   // 子组件绘制
   canvas->save();
   // for (auto obj: Children) {
