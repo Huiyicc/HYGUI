@@ -35,7 +35,6 @@ class HYWindow;
 typedef void *VOIDPTR;
 typedef intptr_t VOIDPTRT;
 
-
 struct ApplicationInfo {
   // 最后错误信息
   HYString LastError;
@@ -54,11 +53,11 @@ struct ApplicationInfo {
   // 默认小图标
   VOIDPTR IconSm = nullptr;
 
-  std::set<HYWindow *> WindowsTable;
+  std::vector<std::shared_ptr<HYWindow>> WindowsTable;
   std::mutex WindowsTableMutex;
   uint32_t EventCustomStart;
-  uint32_t EventWindow;
-  uint32_t EventObject;
+  uint32_t EventWindow;//起始消息号
+  uint32_t EventObject;//起始消息号
   HYFontMgr FontMgr;
   HYTypeface DefaultTypeface;
   HYTypeface EmojiTypeface; // emoji字体

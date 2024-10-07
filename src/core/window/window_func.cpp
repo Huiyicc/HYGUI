@@ -8,11 +8,10 @@ namespace  HYGUI {
 
 HYWindow* HYWindowGetFromID(const uint32_t id) {
   std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
-  auto &debug_app = g_app;
   if (!g_app.WindowsTable.empty()) {
     for (auto &iter: g_app.WindowsTable) {
       if (iter->ID() == id) {
-        return iter;
+        return iter.get();
       }
     }
   }
@@ -39,11 +38,6 @@ uint64_t HYWindowSendEvent(const HYWindow * wind, HYWindowEvent event, uint64_t 
   e.user.data1 = (void *) data1;
   e.user.data2 = (void *) data2;
   return SDL_PushEvent(&e);
-  //  e.window.windowID = wind->ID;
-  //  e.window.reserved = HYWindowEvent_Paint;
-  //  e.window.data1 = 0;
-  //  e.window.data2 = 0;
-  //  SDL_PushEvent(&event);
 }
 
 }

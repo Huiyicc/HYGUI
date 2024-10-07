@@ -5,6 +5,7 @@
 #ifndef HYWINDOW_BUILDER_H
 #define HYWINDOW_BUILDER_H
 
+#include <HYGUI/HYColor.h>
 #include <HYGUI/HYDefine.h>
 #include <HYGUI/HYTypeDef.h>
 
@@ -12,7 +13,7 @@ namespace HYGUI {
 class HYWindow;
 
 class HYWindowBuilder final : public HYClassBase {
-  HYWindow m_window;
+  std::shared_ptr<HYWindow> m_window;
 
 public:
   explicit HYWindowBuilder(const HYString &title = "");
@@ -27,8 +28,10 @@ public:
   HYWindowBuilder &Rect(int x, int y, int width, int height);
   HYWindowBuilder &Title(const HYString &title);
 
+  HYWindowBuilder &BackGroundColor(const HYRGB&color);
 
-  [[nodiscard]] HYWindow Build() const;
+
+  [[nodiscard]] HYWindow* Build() const;
 };
 
 }// namespace HYGUI

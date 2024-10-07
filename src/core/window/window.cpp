@@ -26,10 +26,10 @@
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/gl/GrGLTypes.h"
 
+#include <HYGUI/HYColor.h>
 #include <HYGUI/HYContext.h>
 #include <HYGUI/HYCursor.h>
 #include <HYGUI/HYWindow.h>
-#include <HYGUI/HYColor.h>
 #include <gpu/ganesh/SkSurfaceGanesh.h>
 
 namespace HYGUI {
@@ -38,7 +38,6 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
   m_paintMutex = std::make_shared<std::mutex>();
   m_messageMutex = std::make_shared<std::mutex>();
   m_paintCV = std::make_shared<std::condition_variable>();
-  std::lock_guard<std::mutex> lock(g_app.WindowsTableMutex);
   auto dsinfo = SDL_GetDesktopDisplayMode(1);
   if (m_x == WINDOWCREATEPOINT_USEDEFAULT) {
     m_x = (dsinfo->w - m_width) / 2;
@@ -49,7 +48,7 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
   auto sdl_wind = SDL_CreateWindow(m_title.toStdString().c_str(), m_width, m_height,
                                    SDL_WINDOW_OPENGL                // opengl
                                      | SDL_WINDOW_HIGH_PIXEL_DENSITY// 高dpi
-                                     //                                     | SDL_WINDOW_HIDDEN       // 隐藏
+                                     // | SDL_WINDOW_HIDDEN       // 隐藏
                                      | SDL_WINDOW_RESIZABLE // 可调整大小
                                      | SDL_WINDOW_BORDERLESS// 无边框
                                      | SDL_WINDOW_TRANSPARENT);
@@ -105,15 +104,20 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
   SDL_GetWindowPosition(sdl_wind, &m_x, &m_y);
   SDL_GetWindowSize(sdl_wind, &m_width, &m_height);
   m_ClientRect = {0, 0, m_width, m_height};
-
-  if (g_app.WindowsTable.find(this) != g_app.WindowsTable.end()) {
+  bool oops = false;
+  for (auto &iter: g_app.WindowsTable) {
+    if (iter.get() == this) {
+      oops = true;
+    }
+  }
+  if (oops) {
     // ????什么玩意
     SDL_DestroyWindow(sdl_wind);
     SDL_GL_DestroyContext(glContext);
     THROW_ERROR("申请窗口资源冲突");
   }
-  g_app.WindowsTable.insert(this);
   skinHook();
+  HYWindowSendEvent(this, HYWindowEvent::HYWindowEvent_Create, 0, 0);
 }
 
 HYWindow::~HYWindow() {
@@ -125,6 +129,8 @@ void HYWindow::Show() {
   m_show = true;
   if (m_isInit) {
     SDL_ShowWindow(m_SDLWindow);
+  } else {
+    HYWindowSendEvent(this, HYWindowEvent::HYWindowEvent_Show, 0, 0);
   }
 }
 
@@ -139,22 +145,27 @@ void HYWindow::Refresh() const {
 
   auto canvas = m_Surface->getCanvas();
   // 透明背景
-  SkRRect roundRect;
-  roundRect.setRectXY(SkRect::MakeXYWH(0, 0, m_width, m_height),
-                      round, round);
-  canvas->clipRRect(roundRect);
+  if (round > 0) {
+    // 圆角
+    SkRRect roundRect;
+    roundRect.setRectXY(SkRect::MakeXYWH(0, 0, m_width, m_height),
+                        round, round);
+    canvas->clipRRect(roundRect);
+  }
+
 
   SkPaint bgpaint;
-  bgpaint.setColor(HYColorRGBToARGBInt(m_backGroundColor, 255));
+  // bgpaint.setColor(HYColorRGBToARGBInt(m_backGroundColor, 255));
+  bgpaint.setColor(HYColorARGBToInt({255, 255, 255, 255}));
   // 白色
   bgpaint.setAntiAlias(true);
   canvas->drawRect(SkRect::MakeLTRB(0, 0, m_ClientRect.width, m_ClientRect.height),
                    bgpaint);
-  HYRect bgpaint_rect = {0, 0, m_width,m_height};
+  HYRect bgpaint_rect = {0, 0, m_width, m_height};
   // for (auto &reiter: EventBackgroundPaintCallbacks) {
   //   reiter.second(this, canvas, &bgpaint, &bgpaint_rect);
   // }
-
+  PrintDebug("f:{}",SDL_GetWindowFlags(m_SDLWindow)&SDL_WINDOW_HIDDEN);
   // 子组件绘制
   canvas->save();
   // for (auto obj: Children) {
@@ -196,48 +207,48 @@ void HYWindow::skinHook() {
 }
 
 void HYWindow::recreate_surface() {
-    // 更新HDC/画笔尺寸
-    if (m_Surface) {
-      // HYResourceRemove(ResourceType::ResourceType_Other, m_Surface);
-    }
+  // 更新HDC/画笔尺寸
+  if (m_Surface) {
+    // HYResourceRemove(ResourceType::ResourceType_Other, m_Surface);
+  }
 
-    SDL_GL_MakeCurrent(m_SDLWindow, (SDL_GLContext) m_SDLOpenGl);
+  SDL_GL_MakeCurrent(m_SDLWindow, (SDL_GLContext) m_SDLOpenGl);
 
-    // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
-    SDL_GetWindowSizeInPixels(m_SDLWindow, &m_ClientRect.width, &m_ClientRect.height);
+  // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
+  SDL_GetWindowSizeInPixels(m_SDLWindow, &m_ClientRect.width, &m_ClientRect.height);
 
-    glViewport(0, 0, m_ClientRect.width, m_ClientRect.height);
-    GrGLint buffer;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
-    GrGLFramebufferInfo binfo;
-    binfo.fFBOID = (GrGLuint) buffer;
-  #if defined(_HOST_ANDROID_)
-    binfo.fFormat = GL_RGBA8_OES;
-  #else
-    binfo.fFormat = GL_RGBA8;
-  #endif
-    auto grtarget = GrBackendRenderTargets::MakeGL(m_ClientRect.width,
-                                                   m_ClientRect.height,
-                                                   0, 8,
-                                                   binfo);
+  glViewport(0, 0, m_ClientRect.width, m_ClientRect.height);
+  GrGLint buffer;
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
+  GrGLFramebufferInfo binfo;
+  binfo.fFBOID = (GrGLuint) buffer;
+#if defined(_HOST_ANDROID_)
+  binfo.fFormat = GL_RGBA8_OES;
+#else
+  binfo.fFormat = GL_RGBA8;
+#endif
+  auto grtarget = GrBackendRenderTargets::MakeGL(m_ClientRect.width,
+                                                 m_ClientRect.height,
+                                                 0, 8,
+                                                 binfo);
 
-    SkSurfaceProps props = {0, kUnknown_SkPixelGeometry};
+  SkSurfaceProps props = {0, kUnknown_SkPixelGeometry};
 
-    sk_sp<SkSurface> surface(SkSurfaces::WrapBackendRenderTarget((m_GrCtx.get()), grtarget,
-                                                                 kBottomLeft_GrSurfaceOrigin,
-                                                                 kRGBA_8888_SkColorType, nullptr, &props));
-    m_Surface = HYSurface(surface.release());
-    if (!m_Surface) {
-      // 硬件加速失败
-      PrintError("Hardware acceleration failed, fallback to software rendering");
-      exit(1);
-    }
-    // HYResourceRegisterOther(m_Surface, "skia surface", [](void *ptr) {
-    //   SkSafeUnref((SkSurface *) ptr);
-    // });
-    m_Canvas = m_Surface->getCanvas();
+  sk_sp<SkSurface> surface(SkSurfaces::WrapBackendRenderTarget((m_GrCtx.get()), grtarget,
+                                                               kBottomLeft_GrSurfaceOrigin,
+                                                               kRGBA_8888_SkColorType, nullptr, &props));
+  m_Surface = HYSurface(surface.release());
+  if (!m_Surface) {
+    // 硬件加速失败
+    PrintError("Hardware acceleration failed, fallback to software rendering");
+    exit(1);
+  }
+  // HYResourceRegisterOther(m_Surface, "skia surface", [](void *ptr) {
+  //   SkSafeUnref((SkSurface *) ptr);
+  // });
+  m_Canvas = m_Surface->getCanvas();
 
-    HYWindowSendEventRePaint(this);
+  // HYWindowSendEventRePaint(this);
 }
 
 #if !defined(_HOST_APPLE_)

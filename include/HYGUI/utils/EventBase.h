@@ -17,47 +17,15 @@ class HYRect;
 class HYPoint;
 class HYPointf;
 
-// // 函数指针版本
-// template<typename Ret, typename... Args>
-// class HYEventRegistry<Ret (*)(Args...)> {
-// public:
-//   void connect(Ret (*callFunc)(Args...)) {
-//     callbacks.insert(callFunc);
-//   }
-//
-//   void operator()(Args... args) {
-//     for (auto &cb: callbacks) {
-//       cb(args...);
-//     }
-//   }
-//
-// private:
-//   std::set<Ret (*)(Args...)> callbacks;
-// };
-//
-// // std::function 版本
-// template<typename Ret, typename... Args>
-// class HYEventRegistry<std::function<Ret(Args...)>> {
-// public:
-//   void connect(const std::function<Ret(Args...)> &callFunc) {
-//     callbacks.insert(callFunc);
-//   }
-//
-//   void operator()(Args... args) {
-//     for (auto &cb: callbacks) {
-//       cb(args...);
-//     }
-//   }
-//
-// private:
-//   std::set<std::function<Ret(Args...)>> callbacks;
-// };
 
-template<typename FUNCALL>
+template<typename CALLTYPE,typename CALLTYPEPTR>
 class HYEventRegistry {
 public:
-  void connect(const FUNCALL &callFunc) {
-    callbacks.insert(callFunc);
+  void connect(const CALLTYPEPTR &callFunc) {
+    callbacks.push_back(callFunc);
+  }
+ void connect(const std::function<CALLTYPE> &callFunc) {
+   callbacks.push_back(callFunc);
   }
 
  template<typename... Args>
@@ -68,7 +36,7 @@ public:
  }
 
 private:
-  std::vector<FUNCALL> callbacks;
+  std::vector<CALLTYPE> callbacks;
 };
 
 
@@ -138,13 +106,14 @@ enum HYWindowEvent:uint32_t {
 
 };
 
-
+typedef void(*HYWindowEventCreateHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_创建完毕
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventCreateHandel;
 
+typedef void(*HYWindowEventBackgroundPaintHandelCall)(HYWindow *, void *, void *, HYRect *);
 /**
  * @brief 窗口事件_背景重绘
  * @param HYWindow*: 窗口句柄
@@ -155,6 +124,7 @@ typedef std::function<void(HYWindow *)> HYWindowEventCreateHandel;
 typedef std::function<void(HYWindow *, void *, void *, HYRect *)> HYWindowEventBackgroundPaintHandel;
 // typedef std::function<void(HYWindow *,CanvasPtr ,PaintPtr, HYRect*)> HYWindowEventBackgroundPaintHandel;
 
+typedef void(*HYWindowEventRefreshHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_刷新
  * @param HYWindow*: 窗口句柄
@@ -163,6 +133,7 @@ typedef std::function<void(HYWindow *, void *, void *, HYRect *)> HYWindowEventB
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventRefreshHandel;
 
+typedef bool(*HYWindowEventBeforeCloseHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_可否被关闭
  *
@@ -173,12 +144,14 @@ typedef std::function<void(HYWindow *)> HYWindowEventRefreshHandel;
  * */
 typedef std::function<bool(HYWindow *)> HYWindowEventBeforeCloseHandel;
 
+typedef void(*HYWindowEventWillDestroyHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_即将销毁
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventWillDestroyHandel;
 
+typedef void(*HYWindowEventMoveHandelCall)(HYWindow *, HYPoint *);
 /**
  * @brief 窗口事件_位置改变
  * @param HYWindow*: 窗口句柄
@@ -186,6 +159,7 @@ typedef std::function<void(HYWindow *)> HYWindowEventWillDestroyHandel;
  * */
 typedef std::function<void(HYWindow *, HYPoint *)> HYWindowEventMoveHandel;
 
+typedef void(*HYWindowEventResizeHandelCall)(HYWindow *, HYRect *);
 /**
  * @brief 窗口事件_尺寸改变
  * @param HYWindow*: 窗口句柄
@@ -193,30 +167,35 @@ typedef std::function<void(HYWindow *, HYPoint *)> HYWindowEventMoveHandel;
  * */
 typedef std::function<void(HYWindow *, HYRect *)> HYWindowEventResizeHandel;
 
+typedef void(*HYWindowEventFirstActivateHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_首次激活
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventFirstActivateHandel;
 
+typedef void(*HYWindowEventTrayHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_托盘事件
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventTrayHandel;
 
+typedef void(*HYWindowEventShowHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_被显示
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventShowHandel;
 
+typedef void(*HYWindowEventHideHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_被隐藏
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventHideHandel;
 
+typedef void(*HYWindowEventLeftDownHandelCall)(HYWindow *, int, int, HYKeymod);
 /**
  * @brief 窗口事件_鼠标左键按下
  * @param HYWindow*: 窗口句柄
@@ -226,6 +205,7 @@ typedef std::function<void(HYWindow *)> HYWindowEventHideHandel;
  * */
 typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventLeftDownHandel;
 
+typedef void(*HYWindowEventLeftUpHandelCall)(HYWindow *, int, int, HYKeymod);
 /**
  * @brief 窗口事件_鼠标左键放开
  * @param HYWindow*: 窗口句柄
@@ -235,6 +215,7 @@ typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventLeftDow
  * */
 typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventLeftUpHandel;
 
+typedef void(*HYWindowEventRightUpHandelCall)(HYWindow *, int, int, HYKeymod);
 /**
  * @brief 窗口事件_鼠标右键放开
  * @param HYWindow*: 窗口句柄
@@ -244,6 +225,7 @@ typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventLeftUpH
  * */
 typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventRightUpHandel;
 
+typedef void(*HYWindowEventRightDownHandelCall)(HYWindow *, int, int, HYKeymod);
 /**
  * @brief 窗口事件_鼠标右键按下
  * @param HYWindow*: 窗口句柄
@@ -253,6 +235,7 @@ typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventRightUp
  * */
 typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventRightDownHandel;
 
+typedef void(*HYWindowEventMiddleUpHandelCall)(HYWindow *, int, int, HYKeymod);
 /**
  * @brief 窗口事件_鼠标中键放开
  * @param HYWindow*: 窗口句柄
@@ -262,6 +245,7 @@ typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventRightDo
  * */
 typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventMiddleUpHandel;
 
+typedef void(*HYWindowEventMiddleDownHandelCall)(HYWindow *, int, int, HYKeymod);
 /**
  * @brief 窗口事件_鼠标中键按下
  * @param HYWindow*: 窗口句柄
@@ -271,6 +255,7 @@ typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventMiddleU
  * */
 typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventMiddleDownHandel;
 
+typedef void(*HYWindowEventMouseMoveHandelCall)(HYWindow *, int, int, HYKeymod);
 /**
  * @brief 窗口事件_鼠标移动
  * @param HYWindow*: 窗口句柄
@@ -280,18 +265,21 @@ typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventMiddleD
  * */
 typedef std::function<void(HYWindow *, int, int, HYKeymod)> HYWindowEventMouseMoveHandel;
 
+typedef void(*HYWindowEventMouseEnterHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_鼠标进入
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventMouseEnterHandel;
 
+typedef void(*HYWindowEventMouseLeaveHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_鼠标退出
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventMouseLeaveHandel;
 
+typedef int(*HYWindowEventKeyDownHandelCall)(HYWindow *, HYKeyboardID, HYScancode, HYKeyCode, HYKeymod);
 /**
  * @brief 窗口事件_按下某键
  * @param HYWindow*: 窗口句柄
@@ -303,6 +291,7 @@ typedef std::function<void(HYWindow *)> HYWindowEventMouseLeaveHandel;
  * */
 typedef std::function<int(HYWindow *, HYKeyboardID, HYScancode, HYKeyCode, HYKeymod)> HYWindowEventKeyDownHandel;
 
+typedef int(*HYWindowEventKeyUpHandelCall)(HYWindow *, HYKeyboardID, HYScancode, HYKeyCode, HYKeymod);
 /**
  * @brief 窗口事件_放开某键
  * @param HYWindow*: 窗口句柄
@@ -314,6 +303,7 @@ typedef std::function<int(HYWindow *, HYKeyboardID, HYScancode, HYKeyCode, HYKey
  * */
 typedef std::function<int(HYWindow *, HYKeyboardID, HYScancode, HYKeyCode, HYKeymod)> HYWindowEventKeyUpHandel;
 
+typedef void(*HYWindowEventMouseWheelHandelCall)(HYWindow *, float, float, HYKeymod);
 /**
  * @brief 窗口事件_滚轮被滚动
  * @param HYWindow*: 窗口句柄
@@ -323,6 +313,7 @@ typedef std::function<int(HYWindow *, HYKeyboardID, HYScancode, HYKeyCode, HYKey
  * */
 typedef std::function<void(HYWindow *, float, float, HYKeymod)> HYWindowEventMouseWheelHandel;
 
+typedef void(*HYWindowEventCharInputHandelCall)(HYWindow *, HYKeyCode, HYKeymod);
 /**
  * @brief 窗口事件_字符输入
  * @param HYWindow*: 窗口句柄
@@ -331,12 +322,14 @@ typedef std::function<void(HYWindow *, float, float, HYKeymod)> HYWindowEventMou
  * */
 typedef std::function<void(HYWindow *, HYKeyCode, HYKeymod)> HYWindowEventCharInputHandel;
 
+typedef void(*HYWindowEventFocusGainedHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_获取焦点
  * @param HYWindow*: 窗口句柄
  * */
 typedef std::function<void(HYWindow *)> HYWindowEventFocusGainedHandel;
 
+typedef void(*HYWindowEventFocusLostHandelCall)(HYWindow *);
 /**
  * @brief 窗口事件_丢失焦点
  * @param HYWindow*: 窗口句柄
@@ -350,132 +343,132 @@ public:
     /**
      * @brief  窗口事件_创建完毕
      */
-    HYEventRegistry<HYWindowEventCreateHandel> Create;
+    HYEventRegistry<HYWindowEventCreateHandel,HYWindowEventCreateHandelCall> Create;
 
     /**
     * @brief  窗口事件_背景重绘
     */
-    HYEventRegistry<HYWindowEventBackgroundPaintHandel> BackgroundPaint;
+    HYEventRegistry<HYWindowEventBackgroundPaintHandel,HYWindowEventBackgroundPaintHandelCall> BackgroundPaint;
 
    /**
     * @brief  窗口事件_刷新
     */
-   HYEventRegistry<HYWindowEventRefreshHandel> Refresh;
+   HYEventRegistry<HYWindowEventRefreshHandel,HYWindowEventRefreshHandelCall> Refresh;
 
    /**
     * @brief 窗口事件_可否被关闭
     */
-   HYEventRegistry<HYWindowEventBeforeCloseHandel> BeforeClose;
+   HYEventRegistry<HYWindowEventBeforeCloseHandel,HYWindowEventBeforeCloseHandelCall> BeforeClose;
 
    /**
     * @brief 窗口事件_即将销毁
     */
-   HYEventRegistry<HYWindowEventWillDestroyHandel> WillDestroy;
+   HYEventRegistry<HYWindowEventWillDestroyHandel,HYWindowEventWillDestroyHandelCall> WillDestroy;
 
    /**
     * @brief 窗口事件_位置改变
     */
-   HYEventRegistry<HYWindowEventMoveHandel> Move;
+   HYEventRegistry<HYWindowEventMoveHandel,HYWindowEventMoveHandelCall> Move;
 
    /**
     * @brief 窗口事件_尺寸改变
     */
-   HYEventRegistry<HYWindowEventResizeHandel> Resize;
+   HYEventRegistry<HYWindowEventResizeHandel,HYWindowEventResizeHandelCall> Resize;
 
    /**
     * @brief 窗口事件_首次激活
     */
-   HYEventRegistry<HYWindowEventFirstActivateHandel> FirstActivate;
+   HYEventRegistry<HYWindowEventFirstActivateHandel,HYWindowEventFirstActivateHandelCall> FirstActivate;
 
    /**
     * @brief 窗口事件_托盘事件
     */
-   HYEventRegistry<HYWindowEventTrayHandel> Tray;
+   HYEventRegistry<HYWindowEventTrayHandel,HYWindowEventTrayHandelCall> Tray;
 
    /**
     * @brief 窗口事件_被显示
     */
-   HYEventRegistry<HYWindowEventShowHandel> Shown;
+   HYEventRegistry<HYWindowEventShowHandel,HYWindowEventShowHandelCall> Shown;
 
    /**
     * @brief 窗口事件_被隐藏
     */
-   HYEventRegistry<HYWindowEventShowHandel> Hidden;
+   HYEventRegistry<HYWindowEventShowHandel,HYWindowEventShowHandelCall> Hidden;
 
    /**
     * @brief 窗口事件_鼠标左键按下
     */
-   HYEventRegistry<HYWindowEventLeftDownHandel> LeftDown;
+   HYEventRegistry<HYWindowEventLeftDownHandel,HYWindowEventLeftDownHandelCall> LeftDown;
 
    /**
     * @brief 窗口事件_鼠标左键放开
     */
-   HYEventRegistry<HYWindowEventLeftUpHandel> LeftUp;
+   HYEventRegistry<HYWindowEventLeftUpHandel,HYWindowEventLeftUpHandelCall> LeftUp;
 
    /**
     * @brief 窗口事件_鼠标右键放开
     */
-   HYEventRegistry<HYWindowEventRightUpHandel> RightUp;
+   HYEventRegistry<HYWindowEventRightUpHandel,HYWindowEventRightUpHandelCall> RightUp;
 
    /**
     * @brief 窗口事件_鼠标右键按下
     */
-   HYEventRegistry<HYWindowEventRightDownHandel> RightDown;
+   HYEventRegistry<HYWindowEventRightDownHandel,HYWindowEventRightDownHandelCall> RightDown;
 
    /**
     * @brief 窗口事件_鼠标中键放开
     */
-   HYEventRegistry<HYWindowEventMiddleUpHandel> MiddleUp;
+   HYEventRegistry<HYWindowEventMiddleUpHandel,HYWindowEventMiddleUpHandelCall> MiddleUp;
 
    /**
     * @brief 窗口事件_鼠标中键按下
     */
-   HYEventRegistry<HYWindowEventMiddleDownHandel> MiddleDown;
+   HYEventRegistry<HYWindowEventMiddleDownHandel,HYWindowEventMiddleDownHandelCall> MiddleDown;
 
    /**
     * @brief 窗口事件_鼠标移动
     */
-   HYEventRegistry<HYWindowEventMouseMoveHandel> MouseMove;
+   HYEventRegistry<HYWindowEventMouseMoveHandel,HYWindowEventMouseMoveHandelCall> MouseMove;
 
    /**
     * @brief 窗口事件_鼠标进入
     */
-   HYEventRegistry<HYWindowEventMouseEnterHandel> MouseEnter;
+   HYEventRegistry<HYWindowEventMouseEnterHandel,HYWindowEventMouseEnterHandelCall> MouseEnter;
 
    /**
     * @brief 窗口事件_鼠标退出
     */
-   HYEventRegistry<HYWindowEventMouseLeaveHandel> MouseLeave;
+   HYEventRegistry<HYWindowEventMouseLeaveHandel,HYWindowEventMouseLeaveHandelCall> MouseLeave;
 
    /**
     * @brief 窗口事件_按下某键
     */
-   HYEventRegistry<HYWindowEventKeyDownHandel> KeyDown;
+   HYEventRegistry<HYWindowEventKeyDownHandel,HYWindowEventKeyDownHandelCall> KeyDown;
 
    /**
     * @brief 窗口事件_放开某键
     */
-   HYEventRegistry<HYWindowEventKeyUpHandel> KeyUp;
+   HYEventRegistry<HYWindowEventKeyUpHandel,HYWindowEventKeyUpHandelCall> KeyUp;
 
    /**
     * @brief 窗口事件_滚轮被滚动
     */
-   HYEventRegistry<HYWindowEventMouseWheelHandel> MouseWheel;
+   HYEventRegistry<HYWindowEventMouseWheelHandel,HYWindowEventMouseWheelHandelCall> MouseWheel;
 
    /**
     * @brief 窗口事件_字符输入
     */
-   HYEventRegistry<HYWindowEventCharInputHandel> CharInput;
+   HYEventRegistry<HYWindowEventCharInputHandel,HYWindowEventCharInputHandelCall> CharInput;
 
    /**
     * @brief 窗口事件_获取焦点
     */
-   HYEventRegistry<HYWindowEventFocusGainedHandel> FocusGained;
+   HYEventRegistry<HYWindowEventFocusGainedHandel,HYWindowEventFocusGainedHandelCall> FocusGained;
 
    /**
     * @brief 窗口事件_丢失焦点
     */
-   HYEventRegistry<HYWindowEventFocusLostHandel> FocusLost;
+   HYEventRegistry<HYWindowEventFocusLostHandel,HYWindowEventFocusLostHandelCall> FocusLost;
 
   } Events;
 };

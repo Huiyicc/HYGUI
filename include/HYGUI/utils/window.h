@@ -65,12 +65,14 @@ private:
 
   friend class HYWindowBuilder;
   friend int _window_event_handel(HYWindow *window, SDL_Event *event);
+  friend void window_create(HYWindow *window, void *);
+  friend void window_resend_message(HYWindow *window, void *eventPtr);
 
   void skinHook();
   void recreate_surface();
 
 private:
-  int m_id = 0;
+  uint32_t m_id = 0;
   int m_x = WINDOWCREATEPOINT_USEDEFAULT;
   int m_y = WINDOWCREATEPOINT_USEDEFAULT;
   int m_width = 800;
@@ -86,7 +88,7 @@ private:
   float ry = 0;   // y轴圆角半径
 
   int m_titleBarHeight = 30;  // 标题栏高度
-  int m_backGroundColor = {0};// 背景颜色
+  int m_backGroundColor = {0};// 背景颜色,rgb
   int m_diaphaneity = 255;    // 透明度
   HYString m_title;           // 窗口标题
 

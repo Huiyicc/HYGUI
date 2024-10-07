@@ -233,9 +233,9 @@ if (NOT DEFINED NO_EXAMPLES)
   # helloworld
   add_executable(HelloWorld examples/helloworld/helloworld.cpp)
   target_link_libraries(HelloWorld PRIVATE HYGUI)
-  # event
-#  add_executable(EventTest examples/event/events.cpp)
-#  target_link_libraries(EventTest PRIVATE HYGUI)
+#   event
+  add_executable(EventTest examples/event/events.cpp)
+  target_link_libraries(EventTest PRIVATE HYGUI)
 #  # cloud_music
 #  add_executable(CloudMusic examples/CloudMusic/main_window.cpp examples/CloudMusic/layout.cpp)
 #  target_link_libraries(CloudMusic PRIVATE HYGUI)

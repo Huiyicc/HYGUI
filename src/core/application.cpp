@@ -160,6 +160,9 @@ void HYExit() {
 }
 
 int HYRun() {
+  if (g_app.isRuning) {
+    return 0;
+  }
   g_app.isRuning = true;
   const int frameDelay = 1000 / 50;
 

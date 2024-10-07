@@ -14,17 +14,17 @@ bool random_bool() {
   std::uniform_int_distribution<> dis(0, 1);
   return dis(gen) == 1;
 }
+class HYObject;
 
-
-int event(HYWindow *window, HYObject *obj, HYObjectEvent event, uint64_t p1, uint32_t p2) {
-  // std::cout << std::format("wind:{},obj:{},event:{},p1:{},p2:{}",(uintptr_t )window,(uintptr_t )obj,(int32_t )event,p1,p2) << std::endl;
-  if (event == HYObjectEvent::HYObjectEvent_Create) {
-    // 由于架构设计原因,创建事件只能由此派发
-    std::cout << "组件创建" << std::endl;
-  }
-  // std::cout << std::format("event:{}",(int)event) << std::endl;
-  return 0;
-}
+// int event(HYWindow *window, HYObject *obj, HYObjectEvent event, uint64_t p1, uint32_t p2) {
+//   // std::cout << std::format("wind:{},obj:{},event:{},p1:{},p2:{}",(uintptr_t )window,(uintptr_t )obj,(int32_t )event,p1,p2) << std::endl;
+//   if (event == HYObjectEvent::HYObjectEvent_Create) {
+//     // 由于架构设计原因,创建事件只能由此派发
+//     std::cout << "组件创建" << std::endl;
+//   }
+//   // std::cout << std::format("event:{}",(int)event) << std::endl;
+//   return 0;
+// }
 
 void onCreate(HYWindow *, HYObject *) {
   std::cout << "创建事件" << std::endl;
@@ -45,7 +45,7 @@ int onLeftDown3(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
 
 int onLeftUp(HYWindow *w, HYObject *, int, int, HYKeymod keymode) {
   std::cout << "左键弹起" << std::endl;
-  HYWindowDestroy(w);
+  // HYWindowDestroy(w);
   return 0;
 }
 
@@ -115,12 +115,12 @@ void windowCreate(HYWindow *) {
   std::cout << "窗口创建" << std::endl;
 }
 
-void windowPaint(HYWindow *, CanvasPtr canvas, PaintPtr paint, HYRect *) {
-  std::cout << "窗口背景重绘" << std::endl;
-  HYPaintSetColor(paint, HYARGB{255, 190, 249, 129});
-  HYRect r = {10, 50, 30, 30};
-  HYPaintDrawRect(canvas, paint, &r);
-}
+// void windowPaint(HYWindow *, CanvasPtr canvas, PaintPtr paint, HYRect *) {
+//   std::cout << "窗口背景重绘" << std::endl;
+//   HYPaintSetColor(paint, HYARGB{255, 190, 249, 129});
+//   HYRect r = {10, 50, 30, 30};
+//   HYPaintDrawRect(canvas, paint, &r);
+// }
 
 bool beforeClose(HYWindow *) {
   auto c = random_bool();
@@ -231,67 +231,68 @@ int main() {
   system("chcp 65001");
 #endif
 
-  HYString aa("好好21");
-  aa.forEachUtf8CharBoundary([](const char8_t *data,size_t start,size_t len, char32_t c) {
-    HYString a(c);
-    std::cout << std::format("start:{},len:{},c:{}", start, len,a.c_str()) << std::endl;
-    return 0;
-  });
-
   HYInit(HYGlobalFlag::HYGlobalFlagGraphicDefault);
-  auto wind = HYWindowCreate(nullptr, "Hello World");
-  HYWindowSkinHook(wind, HYRGB{255, 255, 255}, 210);
 
-  wind->RegisterEventCreateCallback(windowCreate);
-  wind->RegisterEventBackgroundPaintCallback(windowPaint);
-  wind->RegisterEventBeforeCloseCallback(beforeClose);
-  wind->RegisterEventWillDestroyCallback(willDestroy);
-  wind->RegisterEventMoveCallback(windowMove);
-  wind->RegisterEventResizeCallback(windowResize);
-  wind->RegisterEventFirstActivateCallback(windowFirstActivate);
-  wind->RegisterEventFocusGainedCallback(windowFocusGained);
-  wind->RegisterEventFocusLostCallback(windowFocusLost);
-  wind->RegisterEventShowCallback(windowShow);
-  wind->RegisterEventHideCallback(windowHide);
-  wind->RegisterEventLeftUpCallback(windowLeftUp);
-  wind->RegisterEventLeftDownCallback(windowLeftDown);
-  wind->RegisterEventMiddleUpCallback(windowMiddleUp);
-  wind->RegisterEventMiddleDownCallback(windowMiddleDown);
-  wind->RegisterEventRightUpCallback(windowRightUp);
-  wind->RegisterEventRightDownCallback(windowRightDown);
-  wind->RegisterEventMouseLeaveCallback(windowMouseLeave);
-  wind->RegisterEventMouseEnterCallback(windowMouseEnter);
-  wind->RegisterEventMouseMoveCallback(windowMouseMove);
-  wind->RegisterEventMouseWheelCallback(windowMouseWheel);
-  wind->RegisterEventKeyUpCallback(windowKeyUp);
-  wind->RegisterEventKeyDownCallback(windowKeyDown);
+  auto wind = HYWindowBuilder()
+                .Size(800, 600)
+                .BackGroundColor({255, 255, 255})
+                .Title("event test")
+                .Build();
+  wind->Events.Create.connect(windowCreate);
 
-  auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, true, event);
-  HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
-                       HYGradientDirection::HYGradientDirectionTopToBottom,
-                       {HYARGB{255, 0, 255, 0}, HYARGB{255, 0, 0, 255}},
-                       HYARGB{255, 255, 255, 255},
-                       HYARGB{255, 0, 0, 255}, 2);
-  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label), "标签1 g");
-
-  label->RegisterEventCreateCallback(onCreate);
-  label->RegisterEventLeftDownCallback(onLeftDown1);
-  label->RegisterEventLeftDownCallback(onLeftDown2);
-  label->RegisterEventLeftDownCallback(onLeftDown3);
-  label->RegisterEventLeftUpCallback(onLeftUp);
-  label->RegisterEventRightDownCallback(onRightDown);
-  label->RegisterEventRightUpCallback(onRightUp);
-  label->RegisterEventMiddleDownCallback(onMiddleDown);
-  label->RegisterEventMiddleUpCallback(onMiddleUp);
-  label->RegisterEventMouseMoveCallback(mouseMove);
-  label->RegisterEventShowCallback(isShow);
-  label->RegisterEventMouseEnterCallback(mouseEnter);
-  label->RegisterEventMouseLeaveCallback(mouseLeave);
-  label->RegisterEventMouseWheelCallback(mouseWheel);
-  label->RegisterEventFocusGainedCallback(focusGained);
-  label->RegisterEventFocusLostCallback(focusLost);
-  label->RegisterEventKeyDownCallback(keyDown);
-  label->RegisterEventKeyUpCallback(keyUp);
+  wind->Show();
+  HYRun();
+  HYExit();
+  // wind->RegisterEventCreateCallback(windowCreate);
+  // wind->RegisterEventBackgroundPaintCallback(windowPaint);
+  // wind->RegisterEventBeforeCloseCallback(beforeClose);
+  // wind->RegisterEventWillDestroyCallback(willDestroy);
+  // wind->RegisterEventMoveCallback(windowMove);
+  // wind->RegisterEventResizeCallback(windowResize);
+  // wind->RegisterEventFirstActivateCallback(windowFirstActivate);
+  // wind->RegisterEventFocusGainedCallback(windowFocusGained);
+  // wind->RegisterEventFocusLostCallback(windowFocusLost);
+  // wind->RegisterEventShowCallback(windowShow);
+  // wind->RegisterEventHideCallback(windowHide);
+  // wind->RegisterEventLeftUpCallback(windowLeftUp);
+  // wind->RegisterEventLeftDownCallback(windowLeftDown);
+  // wind->RegisterEventMiddleUpCallback(windowMiddleUp);
+  // wind->RegisterEventMiddleDownCallback(windowMiddleDown);
+  // wind->RegisterEventRightUpCallback(windowRightUp);
+  // wind->RegisterEventRightDownCallback(windowRightDown);
+  // wind->RegisterEventMouseLeaveCallback(windowMouseLeave);
+  // wind->RegisterEventMouseEnterCallback(windowMouseEnter);
+  // wind->RegisterEventMouseMoveCallback(windowMouseMove);
+  // wind->RegisterEventMouseWheelCallback(windowMouseWheel);
+  // wind->RegisterEventKeyUpCallback(windowKeyUp);
+  // wind->RegisterEventKeyDownCallback(windowKeyDown);
+  //
+  // auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, true, event);
+  // HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
+  //                      HYGradientDirection::HYGradientDirectionTopToBottom,
+  //                      {HYARGB{255, 0, 255, 0}, HYARGB{255, 0, 0, 255}},
+  //                      HYARGB{255, 255, 255, 255},
+  //                      HYARGB{255, 0, 0, 255}, 2);
+  // HYObjectSetName(reinterpret_cast<HYObjectHandle>(label), "标签1 g");
+  //
+  // label->RegisterEventCreateCallback(onCreate);
+  // label->RegisterEventLeftDownCallback(onLeftDown1);
+  // label->RegisterEventLeftDownCallback(onLeftDown2);
+  // label->RegisterEventLeftDownCallback(onLeftDown3);
+  // label->RegisterEventLeftUpCallback(onLeftUp);
+  // label->RegisterEventRightDownCallback(onRightDown);
+  // label->RegisterEventRightUpCallback(onRightUp);
+  // label->RegisterEventMiddleDownCallback(onMiddleDown);
+  // label->RegisterEventMiddleUpCallback(onMiddleUp);
+  // label->RegisterEventMouseMoveCallback(mouseMove);
+  // label->RegisterEventShowCallback(isShow);
+  // label->RegisterEventMouseEnterCallback(mouseEnter);
+  // label->RegisterEventMouseLeaveCallback(mouseLeave);
+  // label->RegisterEventMouseWheelCallback(mouseWheel);
+  // label->RegisterEventFocusGainedCallback(focusGained);
+  // label->RegisterEventFocusLostCallback(focusLost);
+  // label->RegisterEventKeyDownCallback(keyDown);
+  // label->RegisterEventKeyUpCallback(keyUp);
 
 //  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
 //  HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,
@@ -301,9 +302,9 @@ int main() {
 //                       HYARGB{255, 255, 0, 0}, 2);
 //  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label1), "标签2 b");
 
-  HYWindowShow(wind);
-  HYWindowMessageLoop();
-  HYExit();
+  // HYWindowShow(wind);
+  // HYWindowMessageLoop();
+  // HYExit();
 
   return 0;
 }
