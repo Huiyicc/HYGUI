@@ -48,9 +48,9 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
   auto sdl_wind = SDL_CreateWindow(m_title.toStdString().c_str(), m_width, m_height,
                                    SDL_WINDOW_OPENGL                // opengl
                                      | SDL_WINDOW_HIGH_PIXEL_DENSITY// 高dpi
-                                     | SDL_WINDOW_HIDDEN       // 隐藏
-                                     | SDL_WINDOW_RESIZABLE // 可调整大小
-                                     | SDL_WINDOW_BORDERLESS// 无边框
+                                     | SDL_WINDOW_HIDDEN            // 隐藏
+                                     | SDL_WINDOW_RESIZABLE         // 可调整大小
+                                     | SDL_WINDOW_BORDERLESS        // 无边框
                                      | SDL_WINDOW_TRANSPARENT);
   if (sdl_wind == nullptr) {
     THROW_ERROR("创建窗口失败");
@@ -69,7 +69,7 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
   if (!success) {
     SDL_DestroyWindow(sdl_wind);
     SDL_GL_DestroyContext(glContext);
-    THROW_ERROR("切换OpenGL Context失败");
+    THROW_ERROR("切换OpenGL Context失败,error:{}", SDL_GetError());
   }
   int contextType;
   SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &contextType);
@@ -292,5 +292,4 @@ WindowHandelInfo HYWindow::GetHandel() const {
 #endif
 
 
-};
-
+};// namespace HYGUI

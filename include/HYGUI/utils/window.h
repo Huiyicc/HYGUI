@@ -40,7 +40,7 @@ struct WindowHandelInfo {
   /**
   * 窗口句柄
   */
-  HWND handle = nullptr;
+  VOIDPTR handle = nullptr;
 #elif defined(_HOST_APPLE_)
   // NSWindow*
   VOIDPTR handle = nullptr;

@@ -35,6 +35,16 @@ public:
     callbacks.push_back(callFunc);
   }
 
+  HYEventRegistry& operator+=(const CALLTYPE &callFunc) {
+    connect(callFunc);
+    return *this;
+  }
+
+  HYEventRegistry& operator+=(const CALLTYPEPTR &callFunc) {
+    connect(callFunc);
+    return *this;
+  }
+
   template<typename... Args>
   int operator()(Args &&...args) {
     for (auto &cb: callbacks) {
@@ -364,132 +374,132 @@ public:
     /**
      * @brief  窗口事件_创建完毕
      */
-    HYEventRegistry<HYWindowEventCreateHandel, HYWindowEventCreateHandelCall> Create;
+    HYEventRegistry<HYWindowEventCreateHandel, HYWindowEventCreateHandelCall> OnCreate;
 
     /**
     * @brief  窗口事件_背景重绘
     */
-    HYEventRegistry<HYWindowEventBackgroundPaintHandel, HYWindowEventBackgroundPaintHandelCall> BackgroundPaint;
+    HYEventRegistry<HYWindowEventBackgroundPaintHandel, HYWindowEventBackgroundPaintHandelCall> OnBackgroundPaint;
 
     /**
     * @brief  窗口事件_刷新
     */
-    HYEventRegistry<HYWindowEventRefreshHandel, HYWindowEventRefreshHandelCall> Refresh;
+    HYEventRegistry<HYWindowEventRefreshHandel, HYWindowEventRefreshHandelCall> OnRefreshc;
 
     /**
     * @brief 窗口事件_可否被关闭
     */
-    HYEventRegistry<HYWindowEventBeforeCloseHandel, HYWindowEventBeforeCloseHandelCall> BeforeClose;
+    HYEventRegistry<HYWindowEventBeforeCloseHandel, HYWindowEventBeforeCloseHandelCall> OnBeforeClose;
 
     /**
     * @brief 窗口事件_即将销毁
     */
-    HYEventRegistry<HYWindowEventWillDestroyHandel, HYWindowEventWillDestroyHandelCall> WillDestroy;
+    HYEventRegistry<HYWindowEventWillDestroyHandel, HYWindowEventWillDestroyHandelCall> OnWillDestroy;
 
     /**
     * @brief 窗口事件_位置改变
     */
-    HYEventRegistry<HYWindowEventMoveHandel, HYWindowEventMoveHandelCall> Move;
+    HYEventRegistry<HYWindowEventMoveHandel, HYWindowEventMoveHandelCall> OnMove;
 
     /**
     * @brief 窗口事件_尺寸改变
     */
-    HYEventRegistry<HYWindowEventResizeHandel, HYWindowEventResizeHandelCall> Resize;
+    HYEventRegistry<HYWindowEventResizeHandel, HYWindowEventResizeHandelCall> OnResize;
 
     /**
     * @brief 窗口事件_首次激活
     */
-    HYEventRegistry<HYWindowEventFirstActivateHandel, HYWindowEventFirstActivateHandelCall> FirstActivate;
+    HYEventRegistry<HYWindowEventFirstActivateHandel, HYWindowEventFirstActivateHandelCall> OnFirstActivate;
 
     /**
     * @brief 窗口事件_托盘事件
     */
-    HYEventRegistry<HYWindowEventTrayHandel, HYWindowEventTrayHandelCall> Tray;
+    HYEventRegistry<HYWindowEventTrayHandel, HYWindowEventTrayHandelCall> OnTrayAction;
 
     /**
     * @brief 窗口事件_被显示
     */
-    HYEventRegistry<HYWindowEventShowHandel, HYWindowEventShowHandelCall> Shown;
+    HYEventRegistry<HYWindowEventShowHandel, HYWindowEventShowHandelCall> OnShown;
 
     /**
     * @brief 窗口事件_被隐藏
     */
-    HYEventRegistry<HYWindowEventShowHandel, HYWindowEventShowHandelCall> Hidden;
+    HYEventRegistry<HYWindowEventHideHandel, HYWindowEventHideHandelCall> OnHidden;
 
     /**
     * @brief 窗口事件_鼠标左键按下
     */
-    HYEventRegistry<HYWindowEventLeftDownHandel, HYWindowEventLeftDownHandelCall> LeftDown;
+    HYEventRegistry<HYWindowEventLeftDownHandel, HYWindowEventLeftDownHandelCall> OnLeftClickStart;
 
     /**
     * @brief 窗口事件_鼠标左键放开
     */
-    HYEventRegistry<HYWindowEventLeftUpHandel, HYWindowEventLeftUpHandelCall> LeftUp;
+    HYEventRegistry<HYWindowEventLeftUpHandel, HYWindowEventLeftUpHandelCall> OnLeftClickEnd;
 
     /**
     * @brief 窗口事件_鼠标右键放开
     */
-   HYEventRegistry<HYWindowEventRightUpHandel,HYWindowEventRightUpHandelCall> RightUp;
+   HYEventRegistry<HYWindowEventRightUpHandel,HYWindowEventRightUpHandelCall> OnRightClickEnd;
 
    /**
     * @brief 窗口事件_鼠标右键按下
     */
-   HYEventRegistry<HYWindowEventRightDownHandel,HYWindowEventRightDownHandelCall> RightDown;
+   HYEventRegistry<HYWindowEventRightDownHandel,HYWindowEventRightDownHandelCall> OnRightClickStart;
 
    /**
     * @brief 窗口事件_鼠标中键放开
     */
-   HYEventRegistry<HYWindowEventMiddleUpHandel,HYWindowEventMiddleUpHandelCall> MiddleUp;
+   HYEventRegistry<HYWindowEventMiddleUpHandel,HYWindowEventMiddleUpHandelCall> OnMiddleClickEnd;
 
    /**
     * @brief 窗口事件_鼠标中键按下
     */
-   HYEventRegistry<HYWindowEventMiddleDownHandel,HYWindowEventMiddleDownHandelCall> MiddleDown;
+   HYEventRegistry<HYWindowEventMiddleDownHandel,HYWindowEventMiddleDownHandelCall> OnMiddleClickStart;
 
    /**
     * @brief 窗口事件_鼠标移动
     */
-   HYEventRegistry<HYWindowEventMouseMoveHandel,HYWindowEventMouseMoveHandelCall> MouseMove;
+   HYEventRegistry<HYWindowEventMouseMoveHandel,HYWindowEventMouseMoveHandelCall> OnMouseMove;
 
    /**
     * @brief 窗口事件_鼠标进入
     */
-   HYEventRegistry<HYWindowEventMouseEnterHandel,HYWindowEventMouseEnterHandelCall> MouseEnter;
+   HYEventRegistry<HYWindowEventMouseEnterHandel,HYWindowEventMouseEnterHandelCall> OnMouseEnter;
 
    /**
     * @brief 窗口事件_鼠标退出
     */
-   HYEventRegistry<HYWindowEventMouseLeaveHandel,HYWindowEventMouseLeaveHandelCall> MouseLeave;
+   HYEventRegistry<HYWindowEventMouseLeaveHandel,HYWindowEventMouseLeaveHandelCall> OnMouseLeave;
 
    /**
     * @brief 窗口事件_按下某键
     */
-   HYEventRegistry<HYWindowEventKeyDownHandel,HYWindowEventKeyDownHandelCall> KeyDown;
+   HYEventRegistry<HYWindowEventKeyDownHandel,HYWindowEventKeyDownHandelCall> OnKeyPress;
 
    /**
     * @brief 窗口事件_放开某键
     */
-   HYEventRegistry<HYWindowEventKeyUpHandel,HYWindowEventKeyUpHandelCall> KeyUp;
+   HYEventRegistry<HYWindowEventKeyUpHandel,HYWindowEventKeyUpHandelCall> OnKeyRelease;
 
    /**
     * @brief 窗口事件_滚轮被滚动
     */
-   HYEventRegistry<HYWindowEventMouseWheelHandel,HYWindowEventMouseWheelHandelCall> MouseWheel;
+   HYEventRegistry<HYWindowEventMouseWheelHandel,HYWindowEventMouseWheelHandelCall> OnMouseScroll;
 
    /**
     * @brief 窗口事件_字符输入
     */
-   HYEventRegistry<HYWindowEventCharInputHandel,HYWindowEventCharInputHandelCall> CharInput;
+   HYEventRegistry<HYWindowEventCharInputHandel,HYWindowEventCharInputHandelCall> OnCharInput;
 
    /**
     * @brief 窗口事件_获取焦点
     */
-   HYEventRegistry<HYWindowEventFocusGainedHandel,HYWindowEventFocusGainedHandelCall> FocusGained;
+   HYEventRegistry<HYWindowEventFocusGainedHandel,HYWindowEventFocusGainedHandelCall> OnFocusGained;
 
    /**
     * @brief 窗口事件_丢失焦点
     */
-   HYEventRegistry<HYWindowEventFocusLostHandel,HYWindowEventFocusLostHandelCall> FocusLost;
+   HYEventRegistry<HYWindowEventFocusLostHandel,HYWindowEventFocusLostHandelCall> OnFocusLost;
 
   } Events;
 };

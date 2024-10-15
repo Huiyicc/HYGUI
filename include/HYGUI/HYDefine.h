@@ -21,7 +21,7 @@
 
 namespace HYGUI {
 
-constexpr const char* EMOJI_NAME = "_default_emoji_";
+constexpr const char *EMOJI_NAME = "_default_emoji_";
 
 enum class HYGlobalFlag : uint32_t {
   HYGlobalFlagGraphicNone = 0,
@@ -60,17 +60,13 @@ struct ApplicationInfo {
   uint32_t EventObject;//起始消息号
   HYFontMgr FontMgr;
   HYTypeface DefaultTypeface;
-  HYTypeface EmojiTypeface; // emoji字体
-  HYTypeface UtilsTypeface; // 特殊符号字体
+  HYTypeface EmojiTypeface;// emoji字体
+  HYTypeface UtilsTypeface;// 特殊符号字体
   std::unordered_map<HYString, HYTypeface> FontTable;
 };
 
-#ifdef _HOST_WINDOWS_
-constexpr int WINDOWCREATEPOINT_USEDEFAULT = CW_USEDEFAULT;
-#elif defined(_HOST_APPLE_) || defined(_HOST_LINUX_)
 #include <limits>
 constexpr int WINDOWCREATEPOINT_USEDEFAULT = std::numeric_limits<int>::max();
-#endif
 
 }// namespace HYGUI
 

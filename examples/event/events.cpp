@@ -125,9 +125,9 @@ void windowCreate(HYWindow *) {
 bool beforeClose(HYWindow *) {
   auto c = random_bool();
   if (c) {
-    std::cout << "窗口允许关闭" << std::endl;
-  } else {
     std::cout << "窗口不允许关闭" << std::endl;
+  } else {
+    std::cout << "窗口允许关闭" << std::endl;
   }
   return c;
 }
@@ -235,10 +235,17 @@ int main() {
 
   auto wind = HYWindowBuilder()
                 .Size(800, 600)
-                .BackGroundColor({255, 255, 255})
+                .BackGroundColor({255, 255, 0})
                 .Title("event test")
                 .Build();
-  wind->Events.Create.connect(windowCreate);
+  /*
+   wind->Events.OnCreate += windowCreate;
+   wind->Events.OnCreate.connect(windowCreate);
+   * */
+  wind->Events.OnCreate.connect(windowCreate);
+//  wind->Events.OnBackgroundPaint.connect(windowPaint);
+  wind->Events.OnBeforeClose.connect(beforeClose);
+  wind->Events.OnWillDestroy.connect(willDestroy);
 
   wind->Show();
   HYRun();
