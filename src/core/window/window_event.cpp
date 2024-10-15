@@ -20,7 +20,7 @@ void window_create(HYWindow *window, void *) {
   // if (window->m_show) {
   //   SDL_ShowWindow(window->m_SDLWindow);
   // }
-  window->Events.Create(window);
+  window->Events.OnCreate(window);
 }
 
 void window_will_destroy(HYWindow *, void *) {
