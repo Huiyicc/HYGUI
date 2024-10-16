@@ -19,6 +19,9 @@ public:
   explicit HYSurface(SkSurface* ptr);
 
   HYGUICLASS_HANDER_DEFINE(HYSurface, SkSurface);
+public:
+
+  HYCanvas GetCanvas();
 
 };
 

@@ -2,6 +2,7 @@
 // Created by 回忆 on 24-10-4.
 //
 #include <HYGUI/HYContext.h>
+#include <HYGUI/HYSurface.h>
 #include <PrivateDefinition.h>
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
@@ -55,6 +56,10 @@ HYGrDirectContext HYGrDirectContext::MakeFromDefaultInterface() {
   }
   sk_sp<GrDirectContext> grContext(GrDirectContexts::MakeGL(skInterface));
   return HYGrDirectContext(grContext.release());
+};
+
+void HYGrDirectContext::Flush(HYSurface& surface) {
+  m_ptr->flush(surface.get());
 };
 
 }

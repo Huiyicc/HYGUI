@@ -22,6 +22,8 @@ public:
   HYGUICLASS_HANDER_DEFINE(HYGrDirectContext, GrDirectContext);
 
   static HYGrDirectContext MakeFromDefaultInterface();
+public:
+  void Flush(HYSurface& surface);
 
 };
 

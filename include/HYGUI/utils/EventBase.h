@@ -152,8 +152,7 @@ typedef void (*HYWindowEventBackgroundPaintHandelCall)(HYWindow *, void *, void 
  * @param PaintPtr: 背景画笔指针
  * @param HYRect*: 背景区域
  * */
-typedef std::function<void(HYWindow *, void *, void *, HYRect *)> HYWindowEventBackgroundPaintHandel;
-// typedef std::function<void(HYWindow *,CanvasPtr ,PaintPtr, HYRect*)> HYWindowEventBackgroundPaintHandel;
+ typedef std::function<void(HYWindow *,HYCanvas* ,HYPaint*, HYRect*)> HYWindowEventBackgroundPaintHandel;
 
 typedef void (*HYWindowEventRefreshHandelCall)(HYWindow *);
 /**

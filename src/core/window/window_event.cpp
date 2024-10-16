@@ -21,6 +21,7 @@ void window_create(HYWindow *window, void *) {
   //   SDL_ShowWindow(window->m_SDLWindow);
   // }
   window->Events.OnCreate(window);
+
 }
 
 void window_will_destroy(HYWindow *, void *) {
@@ -151,8 +152,8 @@ int _window_event_handel(HYWindow *window, SDL_Event *event) {
     //   if (object) {
     //     _obj_event(window, object, (HYObjectEvent) event.user.code, param1, param2);
     //   }
-    }
+  }
   return 0;
 };
 
-}
+}// namespace HYGUI

@@ -11,6 +11,7 @@
 #include <HYGUI/HYDefine.h>
 #include <HYGUI/HYPoint.h>
 #include <HYGUI/HYRect.h>
+#include <HYGUI/HYColor.h>
 #include <HYGUI/HYString.h>
 #include <HYGUI/HYSurface.h>
 #include <HYGUI/HYTypeDef.h>
@@ -57,7 +58,7 @@ public:
 
   void Show();
 
-  void Refresh()const;
+  void Refresh();
 
 
 private:
@@ -88,7 +89,7 @@ private:
   float ry = 0;   // y轴圆角半径
 
   int m_titleBarHeight = 30;  // 标题栏高度
-  int m_backGroundColor = {0};// 背景颜色,rgb
+  HYRGB m_backGroundColor = {255,255,255}; // 背景颜色,rgb
   int m_diaphaneity = 255;    // 透明度
   HYString m_title;           // 窗口标题
 

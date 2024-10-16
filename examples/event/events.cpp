@@ -115,12 +115,11 @@ void windowCreate(HYWindow *) {
   std::cout << "窗口创建" << std::endl;
 }
 
-// void windowPaint(HYWindow *, CanvasPtr canvas, PaintPtr paint, HYRect *) {
-//   std::cout << "窗口背景重绘" << std::endl;
-//   HYPaintSetColor(paint, HYARGB{255, 190, 249, 129});
-//   HYRect r = {10, 50, 30, 30};
-//   HYPaintDrawRect(canvas, paint, &r);
-// }
+void windowPaint(HYWindow *, HYCanvas *canvas, HYPaint *paint, HYRect *) {
+  std::cout << "窗口背景重绘" << std::endl;
+  paint->SetColor({255, 190, 249, 129});
+  canvas->DrawRect(*paint, {10, 50, 30, 30});
+}
 
 bool beforeClose(HYWindow *) {
   auto c = random_bool();
@@ -235,7 +234,6 @@ int main() {
 
   auto wind = HYWindowBuilder()
                 .Size(800, 600)
-                .BackGroundColor({255, 255, 0})
                 .Title("event test")
                 .Build();
   /*
@@ -243,7 +241,7 @@ int main() {
    wind->Events.OnCreate.connect(windowCreate);
    * */
   wind->Events.OnCreate.connect(windowCreate);
-//  wind->Events.OnBackgroundPaint.connect(windowPaint);
+  wind->Events.OnBackgroundPaint.connect(windowPaint);
   wind->Events.OnBeforeClose.connect(beforeClose);
   wind->Events.OnWillDestroy.connect(willDestroy);
 
@@ -301,13 +299,13 @@ int main() {
   // label->RegisterEventKeyDownCallback(keyDown);
   // label->RegisterEventKeyUpCallback(keyUp);
 
-//  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
-//  HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,
-//                       HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
-//                       {HYARGB{255, 0, 0, 255}, HYARGB{255, 255, 0, 0}},
-//                       HYARGB{255, 255, 255, 255},
-//                       HYARGB{255, 255, 0, 0}, 2);
-//  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label1), "标签2 b");
+  //  auto label1 = HYLabelCreate(wind, label, u8"标签2\n\n2132", 200, 160, 300, 250, true);
+  //  HYLabelSetColorStyle(label1, HYGradientMode::HYGradientModeRadial,
+  //                       HYGradientDirection::HYGradientDirectionTopLeftToBottomRight,
+  //                       {HYARGB{255, 0, 0, 255}, HYARGB{255, 255, 0, 0}},
+  //                       HYARGB{255, 255, 255, 255},
+  //                       HYARGB{255, 255, 0, 0}, 2);
+  //  HYObjectSetName(reinterpret_cast<HYObjectHandle>(label1), "标签2 b");
 
   // HYWindowShow(wind);
   // HYWindowMessageLoop();

@@ -52,7 +52,7 @@ HYWindowBuilder &HYWindowBuilder::Title(const HYString &title) {
 };
 
 HYWindowBuilder &HYWindowBuilder::BackGroundColor(const HYRGB &color) {
-  m_window->m_backGroundColor = HYColorRGBToInt(color);
+  m_window->m_backGroundColor = color;
   return *this;
 };
 

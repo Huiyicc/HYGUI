@@ -73,4 +73,5 @@ struct HYPtrDeleter {
     return m_ptr!=nullptr;                                        \
   }
 
+
 #endif//HYGUI_PRIVATEDEFINITION_H

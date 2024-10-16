@@ -19,6 +19,7 @@
 
 #endif
 
+#include "HYGUI/HYPaint.h"
 #include "SDL3/SDL.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColorSpace.h"
@@ -139,44 +140,36 @@ uint32_t HYWindow::ID() const {
 };
 
 
-void HYWindow::Refresh() const {
+void HYWindow::Refresh() {
   // 切换到OpenGL上下文
   SDL_GL_MakeCurrent(m_SDLWindow, m_SDLOpenGl);
 
-  auto canvas = m_Surface->getCanvas();
+  m_Canvas = m_Surface.GetCanvas();
   // 透明背景
   if (round > 0) {
     // 圆角
-    SkRRect roundRect;
-    roundRect.setRectXY(SkRect::MakeXYWH(0, 0, m_width, m_height),
-                        round, round);
-    canvas->clipRRect(roundRect);
+    m_Canvas.ClipRRect({0, 0, static_cast<float>(m_width), static_cast<float>(m_height),round, round});
   }
 
-
-  SkPaint bgpaint;
-  // bgpaint.setColor(HYColorRGBToARGBInt(m_backGroundColor, 255));
-  bgpaint.setColor(HYColorARGBToInt({255, 255, 255, 255}));
+  HYPaint bgpaint;
+  bgpaint.SetARGB(HYColorRGBToARGB(m_backGroundColor,255));
   // 白色
-  bgpaint.setAntiAlias(true);
-  canvas->drawRect(SkRect::MakeLTRB(0, 0, m_ClientRect.width, m_ClientRect.height),
-                   bgpaint);
+  bgpaint.SetAntiAlias(true);
+  m_Canvas.DrawRect(bgpaint,{0, 0, m_ClientRect.width, m_ClientRect.height});
   HYRect bgpaint_rect = {0, 0, m_width, m_height};
-  // for (auto &reiter: EventBackgroundPaintCallbacks) {
-  //   reiter.second(this, canvas, &bgpaint, &bgpaint_rect);
-  // }
+  Events.OnBackgroundPaint(this, &m_Canvas, &bgpaint, &bgpaint_rect);
 
   // 子组件绘制
-  canvas->save();
+  m_Canvas.Save();
   // for (auto obj: Children) {
   //   // 子组件绘制
   //   HYObjectPushEventCall(this, obj, HYObjectEvent::HYObjectEvent_Paint, 0, 1);
   // }
 
-  canvas->restore();
-  canvas->resetMatrix();
+  m_Canvas.Restore();
+  m_Canvas.ResetMatrix();
 
-  m_GrCtx->flush(m_Surface.get());
+  m_GrCtx.Flush(m_Surface);
 
   // 将绘制的内容显示到窗口
   SDL_GL_SwapWindow(m_SDLWindow);
