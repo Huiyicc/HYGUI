@@ -16,6 +16,7 @@
 #include <HYGUI/HYFontStyle.h>
 #include <HYGUI/HYImage.h>
 #include <HYGUI/HYMemoryStream.h>
+#include <HYGUI/HYPoint.h>
 #include <HYGUI/HYPaint.h>
 #include <HYGUI/HYPoint.h>
 #include <HYGUI/HYRect.h>

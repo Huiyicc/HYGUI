@@ -135,10 +135,12 @@ void HYWindow::Show() {
   }
 }
 
-uint32_t HYWindow::ID() const {
-  return m_id;
-};
-
+uint32_t HYWindow::ID() const { return m_id; };
+SDL_Window *HYWindow::SDLWindow() const { return m_SDLWindow; };
+int32_t HYWindow::X() const { return m_x; };
+int32_t HYWindow::Y() const { return m_y; };
+int32_t HYWindow::Height() const { return m_height; };
+int32_t HYWindow::Width() const { return m_width; };
 
 void HYWindow::Refresh() {
   // 切换到OpenGL上下文
@@ -148,14 +150,14 @@ void HYWindow::Refresh() {
   // 透明背景
   if (round > 0) {
     // 圆角
-    m_Canvas.ClipRRect({0, 0, static_cast<float>(m_width), static_cast<float>(m_height),round, round});
+    m_Canvas.ClipRRect({0, 0, static_cast<float>(m_width), static_cast<float>(m_height), round, round});
   }
 
   HYPaint bgpaint;
-  bgpaint.SetARGB(HYColorRGBToARGB(m_backGroundColor,255));
+  bgpaint.SetARGB(HYColorRGBToARGB(m_backGroundColor, 255));
   // 白色
   bgpaint.SetAntiAlias(true);
-  m_Canvas.DrawRect(bgpaint,{0, 0, m_ClientRect.width, m_ClientRect.height});
+  m_Canvas.DrawRect(bgpaint, {0, 0, m_ClientRect.width, m_ClientRect.height});
   HYRect bgpaint_rect = {0, 0, m_width, m_height};
   Events.OnBackgroundPaint(this, &m_Canvas, &bgpaint, &bgpaint_rect);
 

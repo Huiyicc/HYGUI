@@ -51,10 +51,16 @@ struct WindowHandelInfo {
 
 class HYWindow : public HYWindowEventBase {
 public:
-  [[nodiscard]] WindowHandelInfo GetHandel() const;
+
   ~HYWindow() override;
 
-  uint32_t ID() const;
+  [[nodiscard]] uint32_t ID() const;
+  [[nodiscard]] int32_t X() const;
+  [[nodiscard]] int32_t Y() const;
+  [[nodiscard]] int32_t Height() const;
+  [[nodiscard]] int32_t Width() const;
+  [[nodiscard]] SDL_Window * SDLWindow() const;
+  [[nodiscard]] WindowHandelInfo GetHandel() const;
 
   void Show();
 
@@ -68,6 +74,10 @@ private:
   friend int _window_event_handel(HYWindow *window, SDL_Event *event);
   friend void window_create(HYWindow *window, void *);
   friend void window_resend_message(HYWindow *window, void *eventPtr);
+  friend int handleMouseButtonDown(SDL_Event *event, HYWindow *window);
+  friend int handleMouseButtonUp(SDL_Event *event, HYWindow *window);
+  friend int handleMouseMotion(SDL_Event *event, HYWindow *window) ;
+  friend int getMouseCursorType(HYWindow *window, int x, int y, int edge);
 
   void skinHook();
   void recreate_surface();

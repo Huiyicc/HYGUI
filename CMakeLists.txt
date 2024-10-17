@@ -117,7 +117,7 @@ include_directories(${SKIA_PATH}/third_party/externals/freetype/include)
 include_directories(include)
 
 add_library(HYGUI STATIC ${LIB_SRC})
-
+target_compile_definitions(HYGUI PRIVATE -D_HYGUI_MODULE_)
 # ===========
 
 #  bin2c

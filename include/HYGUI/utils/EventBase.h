@@ -45,6 +45,12 @@ public:
     return *this;
   }
 
+#ifdef _HYGUI_MODULE_
+public:
+#else
+private:
+#endif
+
   template<typename... Args>
   int operator()(Args &&...args) {
     for (auto &cb: callbacks) {

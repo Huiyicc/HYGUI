@@ -136,11 +136,11 @@ void willDestroy(HYWindow *) {
 }
 
 void windowMove(HYWindow *, HYPoint *pNew) {
-  // std::cout << std::format("窗口移动,新:[{},{}]",  pNew->x, pNew->y) << std::endl;
+  std::cout << std::format("窗口移动,新:[{},{}]",  pNew->x, pNew->y) << std::endl;
 }
 
 void windowResize(HYWindow *, HYRect *pNew) {
-  // std::cout << std::format("窗口大小改变,新:[{},{}]",  pNew->width, pNew->height) << std::endl;
+  std::cout << std::format("窗口大小改变,新:[{},{}]",  pNew->width, pNew->height) << std::endl;
 }
 
 void windowActivate(HYWindow *) {
@@ -243,7 +243,9 @@ int main() {
   wind->Events.OnCreate.connect(windowCreate);
   wind->Events.OnBackgroundPaint.connect(windowPaint);
   wind->Events.OnBeforeClose.connect(beforeClose);
-  wind->Events.OnWillDestroy.connect(willDestroy);
+//  wind->Events.OnWillDestroy.connect(willDestroy);
+  wind->Events.OnMove.connect(windowMove);
+  wind->Events.OnResize.connect(windowResize);
 
   wind->Show();
   HYRun();
