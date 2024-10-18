@@ -5,12 +5,8 @@
 #ifndef HYWIDGET_H
 #define HYWIDGET_H
 
-namespace HYGUI {
+#include <HYGUI/HYTypeDef.h>
+#include <HYGUI/utils/widget.h>
+//#include <HYGUI/utils/widget_builder.h>
 
-//class HYWidget : public HYClassBase {
-//public:
-//};
-
-}
-
-#endif //HYWIDGET_H
+#endif//HYWIDGET_H

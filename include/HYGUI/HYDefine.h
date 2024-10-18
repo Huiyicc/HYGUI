@@ -22,6 +22,7 @@
 namespace HYGUI {
 
 constexpr const char *EMOJI_NAME = "_default_emoji_";
+constexpr const char *WIGDET_DEFAULT_CLASS_NAME = "widget_default";
 
 enum class HYGlobalFlag : uint32_t {
   HYGlobalFlagGraphicNone = 0,

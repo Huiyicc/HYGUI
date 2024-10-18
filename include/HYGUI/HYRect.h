@@ -19,6 +19,15 @@ struct HYRectf {
   float y = 0.0f;
   float width = 0.0f;
   float height = 0.0f;
+
+  HYRectf() = default;
+  explicit HYRectf(const HYRect& rect) {
+    x = static_cast<float>(rect.x);
+    y = static_cast<float>(rect.y);
+    width = static_cast<float>(rect.width);
+    height = static_cast<float>(rect.height);
+  }
+
 };
 
 struct HYRRect {

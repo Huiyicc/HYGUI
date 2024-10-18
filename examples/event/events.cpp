@@ -250,12 +250,6 @@ int main() {
   wind->Show();
   HYRun();
   HYExit();
-  // wind->RegisterEventCreateCallback(windowCreate);
-  // wind->RegisterEventBackgroundPaintCallback(windowPaint);
-  // wind->RegisterEventBeforeCloseCallback(beforeClose);
-  // wind->RegisterEventWillDestroyCallback(willDestroy);
-  // wind->RegisterEventMoveCallback(windowMove);
-  // wind->RegisterEventResizeCallback(windowResize);
   // wind->RegisterEventFirstActivateCallback(windowFirstActivate);
   // wind->RegisterEventFocusGainedCallback(windowFocusGained);
   // wind->RegisterEventFocusLostCallback(windowFocusLost);

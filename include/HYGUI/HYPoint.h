@@ -26,6 +26,17 @@ struct HYPointf {
   float x = 0.0f;
   float y = 0.0f;
 
+  HYPointf() = default;
+  HYPointf(float X, float Y) {
+    x = X;
+    y = Y;
+  };
+
+  explicit HYPointf(const HYPoint &point) {
+    x = point.x;
+    y = point.y;
+  }
+
   explicit operator HYPoint() const {
     return {static_cast<int>(x), static_cast<int>(y)};
   }
@@ -62,7 +73,7 @@ HYPoint HYPointFromWParam(uint32_t lParam);
  * @param rectangle 检测用的矩形，由HYRect结构体表示。
  * @return 如果点位于矩形内部，返回true；否则返回false。
  */
-bool HYPointIsInsideRectangle(const HYPoint& point, const HYRect& rectangle);
+bool HYPointIsInsideRectangle(const HYPoint &point, const HYRect &rectangle);
 
 /**
  * 从长整型参数(wParam)中解析出二维坐标点(float)。
@@ -81,6 +92,6 @@ HYPointf HYPointfFromWParam(int64_t wParam);
  */
 int64_t HYPointfGenWParam(float x, float y);
 
-}
+}// namespace HYGUI
 
-#endif //HYPOINT_H
+#endif//HYPOINT_H

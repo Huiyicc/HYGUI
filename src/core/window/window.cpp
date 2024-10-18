@@ -13,6 +13,7 @@
 #include <include/gpu/gl/GrGLAssembleInterface.h>
 #include <map>
 #include <mutex>
+#include <HYGUI/HYWidget.h>
 #ifdef _HOST_LINUX_
 #include <X11/Xlib.h>
 #elif defined(_HOST_APPLE_)
@@ -35,7 +36,7 @@
 
 namespace HYGUI {
 
-HYWindow::HYWindow() : m_Surface(nullptr) {
+HYWindow::HYWindow() : m_surface(nullptr) {
   m_paintMutex = std::make_shared<std::mutex>();
   m_messageMutex = std::make_shared<std::mutex>();
   m_paintCV = std::make_shared<std::condition_variable>();
@@ -93,7 +94,7 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
   m_SDLOpenGl = glContext;
   m_id = SDL_GetWindowID(sdl_wind);
   m_SDLWindow = sdl_wind;
-  m_ClientRect = {0, 0, dw, dh};
+  m_clientRect = {0, 0, dw, dh};
 
   auto hWnd = GetHandel();
   if (hWnd.handle == nullptr) {
@@ -104,7 +105,7 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
   }
   SDL_GetWindowPosition(sdl_wind, &m_x, &m_y);
   SDL_GetWindowSize(sdl_wind, &m_width, &m_height);
-  m_ClientRect = {0, 0, m_width, m_height};
+  m_clientRect = {0, 0, m_width, m_height};
   bool oops = false;
   for (auto &iter: g_app.WindowsTable) {
     if (iter.get() == this) {
@@ -122,6 +123,9 @@ HYWindow::HYWindow() : m_Surface(nullptr) {
 }
 
 HYWindow::~HYWindow() {
+  for (auto w: m_children) {
+    delete w;
+  }
   SDL_DestroyWindow(m_SDLWindow);
   SDL_GL_DestroyContext(m_SDLOpenGl);
 }
@@ -146,32 +150,32 @@ void HYWindow::Refresh() {
   // 切换到OpenGL上下文
   SDL_GL_MakeCurrent(m_SDLWindow, m_SDLOpenGl);
 
-  m_Canvas = m_Surface.GetCanvas();
+  m_canvas = m_surface.GetCanvas();
   // 透明背景
   if (round > 0) {
     // 圆角
-    m_Canvas.ClipRRect({0, 0, static_cast<float>(m_width), static_cast<float>(m_height), round, round});
+    m_canvas.ClipRRect({0, 0, static_cast<float>(m_width), static_cast<float>(m_height), round, round});
   }
 
   HYPaint bgpaint;
   bgpaint.SetARGB(HYColorRGBToARGB(m_backGroundColor, 255));
   // 白色
   bgpaint.SetAntiAlias(true);
-  m_Canvas.DrawRect(bgpaint, {0, 0, m_ClientRect.width, m_ClientRect.height});
+  m_canvas.DrawRect(bgpaint, {0, 0, m_clientRect.width, m_clientRect.height});
   HYRect bgpaint_rect = {0, 0, m_width, m_height};
-  Events.OnBackgroundPaint(this, &m_Canvas, &bgpaint, &bgpaint_rect);
+  Events.OnBackgroundPaint(this, &m_canvas, &bgpaint, &bgpaint_rect);
 
   // 子组件绘制
-  m_Canvas.Save();
+  m_canvas.Save();
   // for (auto obj: Children) {
   //   // 子组件绘制
   //   HYObjectPushEventCall(this, obj, HYObjectEvent::HYObjectEvent_Paint, 0, 1);
   // }
 
-  m_Canvas.Restore();
-  m_Canvas.ResetMatrix();
+  m_canvas.Restore();
+  m_canvas.ResetMatrix();
 
-  m_GrCtx.Flush(m_Surface);
+  m_GrCtx.Flush(m_surface);
 
   // 将绘制的内容显示到窗口
   SDL_GL_SwapWindow(m_SDLWindow);
@@ -203,16 +207,16 @@ void HYWindow::skinHook() {
 
 void HYWindow::recreate_surface() {
   // 更新HDC/画笔尺寸
-  if (m_Surface) {
+  if (m_surface) {
     // HYResourceRemove(ResourceType::ResourceType_Other, m_Surface);
   }
 
   SDL_GL_MakeCurrent(m_SDLWindow, (SDL_GLContext) m_SDLOpenGl);
 
   // 将附加到屏幕上的帧缓冲对象包装在Skia渲染目标中，以便Skia可以对其进行渲染
-  SDL_GetWindowSizeInPixels(m_SDLWindow, &m_ClientRect.width, &m_ClientRect.height);
+  SDL_GetWindowSizeInPixels(m_SDLWindow, &m_clientRect.width, &m_clientRect.height);
 
-  glViewport(0, 0, m_ClientRect.width, m_ClientRect.height);
+  glViewport(0, 0, m_clientRect.width, m_clientRect.height);
   GrGLint buffer;
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
   GrGLFramebufferInfo binfo;
@@ -222,8 +226,8 @@ void HYWindow::recreate_surface() {
 #else
   binfo.fFormat = GL_RGBA8;
 #endif
-  auto grtarget = GrBackendRenderTargets::MakeGL(m_ClientRect.width,
-                                                 m_ClientRect.height,
+  auto grtarget = GrBackendRenderTargets::MakeGL(m_clientRect.width,
+                                                 m_clientRect.height,
                                                  0, 8,
                                                  binfo);
 
@@ -232,8 +236,8 @@ void HYWindow::recreate_surface() {
   sk_sp<SkSurface> surface(SkSurfaces::WrapBackendRenderTarget((m_GrCtx.get()), grtarget,
                                                                kBottomLeft_GrSurfaceOrigin,
                                                                kRGBA_8888_SkColorType, nullptr, &props));
-  m_Surface = HYSurface(surface.release());
-  if (!m_Surface) {
+  m_surface = HYSurface(surface.release());
+  if (!m_surface) {
     // 硬件加速失败
     PrintError("Hardware acceleration failed, fallback to software rendering");
     exit(1);
@@ -241,7 +245,7 @@ void HYWindow::recreate_surface() {
   // HYResourceRegisterOther(m_Surface, "skia surface", [](void *ptr) {
   //   SkSafeUnref((SkSurface *) ptr);
   // });
-  m_Canvas = m_Surface->getCanvas();
+  m_canvas = m_surface->getCanvas();
 
   // HYWindowSendEventRePaint(this);
 }

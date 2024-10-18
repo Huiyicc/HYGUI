@@ -25,6 +25,6 @@
 #include <HYGUI/HYSurface.h>
 #include <HYGUI/HYTypeface.h>
 #include <HYGUI/HYWindow.h>
-
+#include <HYGUI/HYWidget.h>
 
 #endif//HYGUI_ALL_IN_ONE_

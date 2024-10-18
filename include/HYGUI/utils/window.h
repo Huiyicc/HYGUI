@@ -20,7 +20,7 @@
 union SDL_Event;
 
 namespace HYGUI {
-
+class HYWidget;
 
 struct WindowHandelInfo {
 #ifdef _HOST_LINUX_
@@ -110,7 +110,7 @@ private:
   HYPoint m_oldMouseMovePoint = {0, 0};// 旧鼠标移动位置 (win下有可能无限触发移动事件)
   HYRect m_oldWinRect = {0, 0, 0, 0};  // 旧窗口位置
 
-  HYRect m_ClientRect = {0};
+  HYRect m_clientRect = {0};
 
   // HYObject *CurrentEventObject = nullptr;// 当前事件对象
   // uint64_t CurrentEventObjectTime = 0;   // 当前对象事件触发时间戳
@@ -122,8 +122,8 @@ private:
   HYGrDirectContext m_GrCtx;          // 渲染上下文
   SDL_GLContext m_SDLOpenGl = nullptr;// SDL OpenGL上下文
   SDL_Window *m_SDLWindow = nullptr;  // SDL窗口
-  HYSurface m_Surface; // 窗口Surface
-  HYCanvas m_Canvas; // 窗口画布
+  HYSurface m_surface; // 窗口Surface
+  HYCanvas m_canvas; // 窗口画布
 
   // HYObjectEventQueue EventQueue;
 
@@ -132,7 +132,7 @@ private:
   std::shared_ptr<std::mutex> m_messageMutex;                          // 消息锁
   std::unordered_map<intptr_t, intptr_t> m_userData;  // 用户数据
   std::unordered_map<intptr_t, HYCursor> m_cursorMap;// 光标映射
-  // std::set<HYObject *> Children;                    // 组件树
+  std::set<HYWidget*> m_children;                    // 组件树
 };
 
 }// namespace HYGUI
