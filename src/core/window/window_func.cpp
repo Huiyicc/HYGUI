@@ -23,7 +23,7 @@ void HYWindowSendEventRePaint(const HYWindow *wind) {
   SDL_Event event;
   event.type = g_app.EventWindow;
   event.user.windowID = wind->ID();
-  event.user.code = HYWindowEvent_Refresh;
+  event.user.code = (int32_t)HYWindowEvent::HYWindowEvent_Refresh;
   event.user.data1 = nullptr;
   event.user.data2 = nullptr;
   SDL_PushEvent(&event);
@@ -32,7 +32,7 @@ void HYWindowSendEventRePaint(const HYWindow *wind) {
 uint64_t HYWindowSendEvent(const HYWindow * wind, HYWindowEvent event, uint64_t data1, uint64_t data2) {
   SDL_Event e;
   e.type = g_app.EventWindow;
-  e.user.code = event;
+  e.user.code = (int32_t)event;
   e.user.windowID = wind->ID();
   e.user.timestamp = SDL_GetTicksNS();
   e.user.data1 = (void *) data1;

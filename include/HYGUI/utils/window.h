@@ -5,16 +5,17 @@
 #ifndef HY__WINDOW_H
 #define HY__WINDOW_H
 
-#include "./EventBase.h"
+#include "./window_event.h"
 #include <HYGUI/HYCanvas.h>
+#include <HYGUI/HYColor.h>
 #include <HYGUI/HYContext.h>
 #include <HYGUI/HYDefine.h>
 #include <HYGUI/HYPoint.h>
 #include <HYGUI/HYRect.h>
-#include <HYGUI/HYColor.h>
 #include <HYGUI/HYString.h>
 #include <HYGUI/HYSurface.h>
 #include <HYGUI/HYTypeDef.h>
+#include <HYGUI/utils/widget_event.h>
 #include <mutex>
 
 union SDL_Event;
@@ -51,7 +52,6 @@ struct WindowHandelInfo {
 
 class HYWindow : public HYWindowEventBase {
 public:
-
   ~HYWindow() override;
 
   [[nodiscard]] uint32_t ID() const;
@@ -59,25 +59,22 @@ public:
   [[nodiscard]] int32_t Y() const;
   [[nodiscard]] int32_t Height() const;
   [[nodiscard]] int32_t Width() const;
-  [[nodiscard]] SDL_Window * SDLWindow() const;
+  [[nodiscard]] SDL_Window *SDLWindow() const;
   [[nodiscard]] WindowHandelInfo GetHandel() const;
 
   void Show();
 
-  void Refresh();
+  void Refresh() const;
 
+  HYWindow *AddWidget(HYWidget *child);
+  HYWindow *AddWidget(std::vector<HYWidget *> &child);
 
 private:
   HYWindow();
 
   friend class HYWindowBuilder;
-  friend int _window_event_handel(HYWindow *window, SDL_Event *event);
-  friend void window_create(HYWindow *window, void *);
-  friend void window_resend_message(HYWindow *window, void *eventPtr);
-  friend int handleMouseButtonDown(SDL_Event *event, HYWindow *window);
-  friend int handleMouseButtonUp(SDL_Event *event, HYWindow *window);
-  friend int handleMouseMotion(SDL_Event *event, HYWindow *window) ;
-  friend int getMouseCursorType(HYWindow *window, int x, int y, int edge);
+  friend class HYWindowHelpers;
+  friend void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2);
 
   void skinHook();
   void recreate_surface();
@@ -89,19 +86,20 @@ private:
   int m_width = 800;
   int m_height = 600;
 
-  bool m_isInit = false;   // 是否已经初始化过
-  bool m_show = false;     // 当前是否显示
-  bool m_firstFocus = true;// 是否首次获取焦点
+  bool m_isInit = false;     // 是否已经初始化过
+  bool m_show = false;       // 当前是否显示
+  bool m_firstFocus = true;  // 是否首次获取焦点
+  bool m_focusStatus = false;// 当前是否有焦点
 
   bool m_isReady = false;// 是否已经就绪
 
-  float round = 0;// 窗口圆角度
-  float ry = 0;   // y轴圆角半径
+  float m_round = 0;// 窗口圆角度
+  float m_ry = 0;   // y轴圆角半径
 
-  int m_titleBarHeight = 30;  // 标题栏高度
-  HYRGB m_backGroundColor = {255,255,255}; // 背景颜色,rgb
-  int m_diaphaneity = 255;    // 透明度
-  HYString m_title;           // 窗口标题
+  int m_titleBarHeight = 30;                // 标题栏高度
+  HYRGB m_backGroundColor = {255, 255, 255};// 背景颜色,rgb
+  int m_diaphaneity = 255;                  // 透明度
+  HYString m_title;                         // 窗口标题
 
   bool m_drag = false;                 // 是否拖动
   int m_dragType = 0;                  // 拖动类型
@@ -122,17 +120,17 @@ private:
   HYGrDirectContext m_GrCtx;          // 渲染上下文
   SDL_GLContext m_SDLOpenGl = nullptr;// SDL OpenGL上下文
   SDL_Window *m_SDLWindow = nullptr;  // SDL窗口
-  HYSurface m_surface; // 窗口Surface
-  HYCanvas m_canvas; // 窗口画布
+  HYSurface m_surface;                // 窗口Surface
+  HYCanvas m_canvas;                  // 窗口画布
 
   // HYObjectEventQueue EventQueue;
 
-  std::shared_ptr<std::mutex> m_paintMutex;                            // 绘制锁
-  std::shared_ptr<std::condition_variable> m_paintCV;                  // 绘制条件变量
-  std::shared_ptr<std::mutex> m_messageMutex;                          // 消息锁
-  std::unordered_map<intptr_t, intptr_t> m_userData;  // 用户数据
+  std::shared_ptr<std::mutex> m_paintMutex;          // 绘制锁
+  std::shared_ptr<std::condition_variable> m_paintCV;// 绘制条件变量
+  std::shared_ptr<std::mutex> m_messageMutex;        // 消息锁
+  std::unordered_map<intptr_t, intptr_t> m_userData; // 用户数据
   std::unordered_map<intptr_t, HYCursor> m_cursorMap;// 光标映射
-  std::set<HYWidget*> m_children;                    // 组件树
+  std::vector<HYWidget *> m_children;                // 组件树
 };
 
 }// namespace HYGUI

@@ -2,8 +2,8 @@
 // Created by 19254 on 24-7-17.
 //
 
-#ifndef HYGUI_KEYCODE_H
-#define HYGUI_KEYCODE_H
+#ifndef HYGUI_HYKEYCODE_H
+#define HYGUI_HYKEYCODE_H
 
 #include <cstdint>
 
@@ -1737,4 +1737,4 @@ constexpr const HYKeymod HY_KMOD_GUI = (HY_KMOD_LGUI | HY_KMOD_RGUI);
 
 }// namespace HYGUI
 
-#endif//HYGUI_KEYCODE_H
+#endif//HYGUI_HYKEYCODE_H

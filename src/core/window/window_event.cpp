@@ -2,6 +2,8 @@
 // Created by 回忆 on 24-10-6.
 //
 #include "HYGUI/HYMouse.h"
+#include "HYGUI/HYPaint.h"
+#include "HYGUI/HYWidget.h"
 #include "HYGUI/HYWindow.h"
 #include "PrivateDefinition.h"
 #include <functional>
@@ -9,11 +11,10 @@
 
 namespace HYGUI {
 
-void window_refresh(HYWindow *w, void *) {
-  w->Refresh();
-}
+extern std::map<HYWindowEvent, std::function<void(HYWindow *, void *)>> g_win_event_map;
 
-void window_create(HYWindow *window, void *) {
+
+void HYWindowHelpers::window_create(HYWindow *window, void *) {
   if (window->m_isInit) {
     return;
   }
@@ -24,10 +25,10 @@ void window_create(HYWindow *window, void *) {
   window->Events.OnCreate(window);
 }
 
-void window_will_destroy(HYWindow *, void *) {
+void HYWindowHelpers::window_will_destroy(HYWindow *, void *) {
 }
 
-void window_resend_message(HYWindow *window, void *eventPtr) {
+void HYWindowHelpers::window_resend_message(HYWindow *window, void *eventPtr) {
   auto event = static_cast<SDL_Event *>(eventPtr);
   int end = 0;
   SDL_Event e;
@@ -36,7 +37,7 @@ void window_resend_message(HYWindow *window, void *eventPtr) {
   e.window.reserved = event->user.reserved;
   e.window.data1 = (Sint32) (intptr_t) (event->user.data1);
   e.window.data2 = (Sint32) (intptr_t) (event->user.data2);
-  if (event->user.code == HYWindowEvent::HYWindowEvent_Show) {
+  if (event->user.code == (uint32_t) HYWindowEvent::HYWindowEvent_Show) {
     e.type = SDL_EVENT_WINDOW_SHOWN;
     if (!window->m_isInit) {
       // 窗口刚创建的时候会有一个show事件，需要初始化
@@ -47,7 +48,7 @@ void window_resend_message(HYWindow *window, void *eventPtr) {
   }
   SDL_PushEvent(&e);
   if (end != 0) {
-    if (event->user.code == HYWindowEvent::HYWindowEvent_Show) {
+    if (event->user.code == (uint32_t) HYWindowEvent::HYWindowEvent_Show) {
       // 第一次创建需要先显示然后重画
       SDL_ShowWindow(window->m_SDLWindow);
       HYWindowSendEventRePaint(window);
@@ -55,14 +56,42 @@ void window_resend_message(HYWindow *window, void *eventPtr) {
   }
 }
 
-std::map<uint32_t, std::function<void(HYWindow *, void *)>> g_win_event_map = {
-  {HYWindowEvent::HYWindowEvent_Refresh, window_refresh},
-  {HYWindowEvent::HYWindowEvent_Create, window_create},
-  {HYWindowEvent::HYWindowEvent_WillDestroy, window_will_destroy},
-  {HYWindowEvent::HYWindowEvent_Show, window_resend_message},
-};
 
-int getMouseCursorType(HYWindow *window, int x, int y, int edge = 5) {
+void HYWindowHelpers::window_refresh(HYWindow *w, void *) {
+  // 切换到OpenGL上下文
+  SDL_GL_MakeCurrent(w->m_SDLWindow, w->m_SDLOpenGl);
+
+  w->m_canvas = w->m_surface.GetCanvas();
+  // 透明背景
+  if (w->m_round > 0) {
+    // 圆角
+    w->m_canvas.ClipRRect({0, 0, static_cast<float>(w->m_width), static_cast<float>(w->m_height), w->m_round, w->m_round});
+  }
+
+  HYPaint bgpaint;
+  bgpaint.SetARGB(HYColorRGBToARGB(w->m_backGroundColor, 255));
+  // 白色
+  bgpaint.SetAntiAlias(true);
+  w->m_canvas.DrawRect(bgpaint, {0, 0, w->m_clientRect.width, w->m_clientRect.height});
+  HYRect bgpaint_rect = {0, 0, w->m_width, w->m_height};
+  w->Events.OnBackgroundPaint(w, &w->m_canvas, &bgpaint, &bgpaint_rect);
+
+  // 子组件绘制
+  //  w->m_canvas.Save();
+  //  for (auto widget: w->m_children) {
+  //    _widget_call_(w,widget, HYWidgetEvent::HYWidgetEvent_Paint, 0, 1);
+  //  }
+
+  w->m_canvas.Restore();
+  w->m_canvas.ResetMatrix();
+
+  w->m_GrCtx.Flush(w->m_surface);
+
+  // 将绘制的内容显示到窗口
+  SDL_GL_SwapWindow(w->m_SDLWindow);
+}
+
+int HYWindowHelpers::getMouseCursorType(HYWindow *window, int x, int y, int edge) {
   int dragType = HY_SYSTEM_CURSOR_ARROW;
   if (x <= edge) {
     if (y <= edge) {
@@ -104,7 +133,8 @@ int getMouseCursorType(HYWindow *window, int x, int y, int edge = 5) {
   return dragType;
 }
 
-int handleWindowsClose(SDL_Event *event, HYWindow *window) {
+
+int HYWindowHelpers::handleWindowsClose(SDL_Event *event, HYWindow *window) {
   std::lock_guard<std::mutex> lock_table(g_app.WindowsTableMutex);
   window->Events.OnBeforeClose(window);
   for (auto iter = g_app.WindowsTable.begin(); iter != g_app.WindowsTable.end();) {
@@ -120,23 +150,23 @@ int handleWindowsClose(SDL_Event *event, HYWindow *window) {
   return 0;
 }
 
-int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
+int HYWindowHelpers::handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
   // 鼠标按键按下事件
   //    auto push_event = HYObjectEvent::HYObjectEvent_LeftDown;
-  std::map<uint32_t, std::function<void(HYWindow *, int, int, HYKeymod)>> *spr = nullptr;
-  //    if (event->button.button == SDL_BUTTON_LEFT) {
-  //      // 左键被按下
-  //      push_event = HYObjectEvent::HYObjectEvent_LeftDown;
-  //      spr = &window->EventLeftDownCallbacks;
-  //    } else if (event->button.button == SDL_BUTTON_RIGHT) {
-  //      // 右键被按下
-  //      push_event = HYObjectEvent::HYObjectEvent_RightDown;
-  //      spr = &window->EventRightDownCallbacks;
-  //    } else if (event->button.button == SDL_BUTTON_MIDDLE) {
-  //      // 中键被按下
-  //      push_event = HYObjectEvent::HYObjectEvent_MiddleDown;
-  //      spr = &window->EventMiddleDownCallbacks;
-  //    }
+  HYEventRegistry<std::function<void(HYGUI::HYWindow *, int, int, HYGUI::HYKeymod)>, void (*)(HYWindow *, int, int, HYKeymod)> *spr = nullptr;
+  if (event->button.button == SDL_BUTTON_LEFT) {
+    // 左键被按下
+    //        push_event = HYObjectEvent::HYObjectEvent_LeftDown;
+    spr = &window->Events.OnLeftClickStart;
+  } else if (event->button.button == SDL_BUTTON_RIGHT) {
+    // 右键被按下
+    //    push_event = HYObjectEvent::HYObjectEvent_RightDown;
+    spr = &window->Events.OnRightClickStart;
+  } else if (event->button.button == SDL_BUTTON_MIDDLE) {
+    // 中键被按下
+    //    push_event = HYObjectEvent::HYObjectEvent_MiddleDown;
+    spr = &window->Events.OnMiddleClickStart;
+  }
   auto dragType = getMouseCursorType(window, event->button.x, event->button.y);
   if ((event->button.y < window->m_titleBarHeight && event->button.y > 0) || dragType != HY_SYSTEM_CURSOR_ARROW) {
     // 准备移动窗口
@@ -164,40 +194,38 @@ int handleMouseButtonDown(SDL_Event *event, HYWindow *window) {
     //        auto [x1, y1] = HYObjectGetRelativePoint(act_obj, event->button.x, event->button.y);
     //        HYObjectPushEventCall(window, act_obj, push_event, 0, HYPointGenWParam(x1, y1));
     //      } else {
-    //        if (window->FocusObject) {
-    //          // 释放焦点
-    //          HYObjectSetFocus(window->FocusObject, false);
-    //        }
-    //        // 为窗口
-    //        if (spr) {
-    //          auto p = HYMouseGetPositionFromWindow(window);
-    //          auto mod = HYKeyboardGetMods();
-    //          for (auto &iter: (*spr)) {
-    //            iter.second(window, static_cast<int>(p.x), static_cast<int>(p.y), mod);
-    //          }
-    //        }
+    //            if (window->FocusObject) {
+    //              // 组件释放焦点
+    //              HYObjectSetFocus(window->FocusObject, false);
+    //            }
+    // 为窗口
+    if (spr) {
+      auto p = HYMouseGetPositionFromWindow(window);
+      auto mod = HYKeyboardGetMods();
+      (*spr)(window, static_cast<int>(p.x), static_cast<int>(p.y), mod);
+    }
     //      }
   }
   return 0;
 }
 
-int handleMouseButtonUp(SDL_Event *event, HYWindow *window) {
+int HYWindowHelpers::handleMouseButtonUp(SDL_Event *event, HYWindow *window) {
   // 鼠标按键放开
   //  auto push_event = HYObjectEvent::HYObjectEvent_LeftUp;
-  //  std::map<uint32_t, std::function<void(HYWindow *, int, int, HYKeymod)>> *spr = nullptr;
-  //  if (event->button.button == SDL_BUTTON_LEFT) {
-  //    // 左键被按下
-  //    push_event = HYObjectEvent::HYObjectEvent_LeftUp;
-  //    spr = &window->EventLeftUpCallbacks;
-  //  } else if (event->button.button == SDL_BUTTON_RIGHT) {
-  //    // 右键被按下
-  //    push_event = HYObjectEvent::HYObjectEvent_RightUp;
-  //    spr = &window->EventRightUpCallbacks;
-  //  } else if (event->button.button == SDL_BUTTON_MIDDLE) {
-  //    // 中键被按下
-  //    push_event = HYObjectEvent::HYObjectEvent_MiddleUp;
-  //    spr = &window->EventMiddleUpCallbacks;
-  //  }
+  HYEventRegistry<std::function<void(HYGUI::HYWindow *, int, int, HYGUI::HYKeymod)>, void (*)(HYWindow *, int, int, HYKeymod)> *spr = nullptr;
+  if (event->button.button == SDL_BUTTON_LEFT) {
+    // 左键被放开
+    //      push_event = HYObjectEvent::HYObjectEvent_LeftUp;
+    spr = &window->Events.OnLeftClickEnd;
+  } else if (event->button.button == SDL_BUTTON_RIGHT) {
+    // 右键被放开
+    //      push_event = HYObjectEvent::HYObjectEvent_RightUp;
+    spr = &window->Events.OnRightClickEnd;
+  } else if (event->button.button == SDL_BUTTON_MIDDLE) {
+    // 中键被放开
+    //      push_event = HYObjectEvent::HYObjectEvent_MiddleUp;
+    spr = &window->Events.OnRightClickEnd;
+  }
   auto dragType = getMouseCursorType(window, event->button.x, event->button.y);
   if ((event->button.y < window->m_titleBarHeight && event->button.y > 0) || dragType != HY_SYSTEM_CURSOR_ARROW) {
     // 准备移动窗口
@@ -219,17 +247,18 @@ int handleMouseButtonUp(SDL_Event *event, HYWindow *window) {
     //    }
     //    // 为窗口
     //    if (spr) {
-    //      auto p = HYMouseGetPositionFromWindow(window);
-    //      auto mod = HYKeyboardGetMods();
-    //      for (auto &iter: (*spr)) {
-    //        iter.second(window, static_cast<int>(p.x), static_cast<int>(p.y), mod);
-    //      }
+    if (spr) {
+      auto p = HYMouseGetPositionFromWindow(window);
+      auto mod = HYKeyboardGetMods();
+      (*spr)(window, static_cast<int>(p.x), static_cast<int>(p.y), mod);
+    }
+
     //    }
   }
   return 0;
 }
 
-int handleMouseMotion(SDL_Event *event, HYWindow *window) {
+int HYWindowHelpers::handleMouseMotion(SDL_Event *event, HYWindow *window) {
   // 鼠标移动事件
   if (window->m_drag) {
     if (window->m_dragType == 0) {
@@ -238,8 +267,8 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
       window->m_x = window->m_oldWinRect.x + wp.x - window->m_oldMousePoint.x;
       window->m_y = window->m_oldWinRect.y + wp.y - window->m_oldMousePoint.y;
       SDL_SetWindowPosition(window->m_SDLWindow, window->m_x, window->m_y);
-      HYPoint newPorint{window->m_x, window->m_y};
-      window->Events.OnMove(window, &newPorint);
+      //      HYPoint newPorint{window->m_x, window->m_y};
+      //      window->Events.OnMove(window, &newPorint);
     } else if (window->m_dragType == HY_SYSTEM_CURSOR_SIZENWSE) {
       // 处于左上/右下角调整窗口尺寸
       auto wp = HYMouseGetPosition();
@@ -314,8 +343,8 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
     } else {
       return 1;
     }
-    HYRect newRect{window->m_x, window->m_y, window->m_width, window->m_height};
-    window->Events.OnResize(window, &newRect);
+    //    HYRect newRect{window->m_x, window->m_y, window->m_width, window->m_height};
+    //    window->Events.OnResize(window, &newRect);
     return 1;
   } else {
     int x = event->motion.x;
@@ -324,7 +353,7 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
     SDL_SetCursor(window->m_cursorMap[dragType].get());
     window->m_dragType = dragType;
 
-    //    auto obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
+    //        auto obj = HYObjectGetFromMousePos(window, event->button.x, event->button.y);
     //    if (obj) {
     //      if (window->CurrentEventObject != obj) {
     //        if (window->CurrentEventObject) {
@@ -339,28 +368,119 @@ int handleMouseMotion(SDL_Event *event, HYWindow *window) {
     //      auto [x1, y1] = HYObjectGetRelativePoint(obj, event->button.x, event->button.y);
     //      HYObjectPushEventCall(window, obj, HYObjectEvent_MouseMove, 0, HYPointGenWParam(x1, y1));
     //    } else {
-    //      if (window->CurrentEventObject && window->HoverObject) {
-    //        // 退出事件
-    //        auto hoverObj = window->HoverObject;
-    //        window->HoverObject = nullptr;
-    //        HYObjectPushEventCall(window, hoverObj, HYObjectEvent::HYObjectEvent_MouseLeave, 0, 0);
-    //        window->LastEventObject = window->CurrentEventObject;
-    //        window->LastEventObjectTime = window->CurrentEventObjectTime;
-    //        window->CurrentEventObject = nullptr;
-    //        window->CurrentEventObjectTime = SDL_GetTicksNS();
-    //      }
-    //      auto p = HYMouseGetPositionFromWindow(window);
-    //      auto mod = HYKeyboardGetMods();
-    //      for (auto &iter: window->EventMouseMoveCallbacks) {
-    //        iter.second(window, static_cast<int>(p.x), static_cast<int>(p.y), mod);
-    //      }
+    //          if (window->CurrentEventObject && window->HoverObject) {
+    //            // 退出事件
+    //            auto hoverObj = window->HoverObject;
+    //            window->HoverObject = nullptr;
+    //            HYObjectPushEventCall(window, hoverObj, HYObjectEvent::HYObjectEvent_MouseLeave, 0, 0);
+    //            window->LastEventObject = window->CurrentEventObject;
+    //            window->LastEventObjectTime = window->CurrentEventObjectTime;
+    //            window->CurrentEventObject = nullptr;
+    //            window->CurrentEventObjectTime = SDL_GetTicksNS();
+    //          }
+    auto p = HYMouseGetPositionFromWindow(window);
+    auto mod = HYKeyboardGetMods();
+    window->Events.OnMouseMove(window, static_cast<int>(p.x), static_cast<int>(p.y), mod);
+
     //    }
   }
   return 0;
 }
 
+int HYWindowHelpers::handleFocusGained(SDL_Event *event, HYWindow *window) {
+  if (window->m_firstFocus) {
+    // 首次激活
+    window->m_firstFocus = false;
+    window->Events.OnFirstActivate(window);
+  }
+  window->m_focusStatus = true;
+  window->Events.OnFocusGained(window);
+  return 0;
+}
 
-int _window_event_handel(HYWindow *window, SDL_Event *event) {
+int HYWindowHelpers::handleFocusLost(SDL_Event *event, HYWindow *window) {
+  window->m_focusStatus = false;
+  window->Events.OnFocusLost(window);
+  return 0;
+}
+
+int HYWindowHelpers::handleShown(SDL_Event *event, HYWindow *window) {
+  window->m_show = true;
+  window->Events.OnShown(window);
+  return 0;
+}
+
+int HYWindowHelpers::handleHidden(SDL_Event *event, HYWindow *window) {
+  window->m_show = false;
+  window->Events.OnHidden(window);
+  return 0;
+}
+
+int HYWindowHelpers::handleMove(SDL_Event *event, HYWindow *window) {
+  window->m_x = event->window.data1;
+  window->m_y = event->window.data2;
+  HYPoint pNew{event->window.data1, event->window.data2};
+  window->Events.OnMove(window, &pNew);
+  return 0;
+}
+
+int HYWindowHelpers::handleSizeChanged(SDL_Event *event, HYWindow *window) {
+  window->m_width = event->window.data1;
+  window->m_height = event->window.data2;
+  HYRect nRect{window->m_x, window->m_y, window->m_width, window->m_height};
+  window->Events.OnResize(window, &nRect);
+  HYWindowSendEventRePaint(window);
+  return 0;
+}
+
+int HYWindowHelpers::handleKeyDown(SDL_Event *event, HYWindow *window) {
+//  if (!window->FocusObject) {
+    // 窗口
+    window->Events.OnKeyPress(window,
+                              static_cast<HYKeyboardID>(event->key.which),
+                              static_cast<HYScancode>(event->key.scancode),
+                              static_cast<HYKeyCode>(event->key.key),
+                              static_cast<HYKeymod>(event->key.mod));
+//  } else {
+//    auto p1 = HYCombineUint32(event->key.which, event->key.scancode);
+//    auto p2 = HYCombineUint32(event->key.key, event->key.mod);
+//    HYObjectPushEventCall(window, window->FocusObject, HYObjectEvent_KeyDown, p1, p2);
+//  }
+  return 0;
+}
+
+int HYWindowHelpers::handleKeyUp(SDL_Event *event, HYWindow *window) {
+//  if (!window->FocusObject) {
+    // 窗口
+    window->Events.OnKeyRelease(window,
+                                static_cast<HYKeyboardID>(event->key.which),
+                                static_cast<HYScancode>(event->key.scancode),
+                                static_cast<HYKeyCode>(event->key.key),
+                                static_cast<HYKeymod>(event->key.mod));
+//  } else {
+//    auto p1 = HYCombineUint32(event->key.which, event->key.scancode);
+//    auto p2 = HYCombineUint32(event->key.key, event->key.mod);
+//    HYObjectPushEventCall(window, window->FocusObject, HYObjectEvent_KeyUp, p1, p2);
+//  }
+  return 0;
+}
+
+int HYWindowHelpers::handleMouseWheel(SDL_Event *event, HYWindow *window) {
+  // 屏幕坐标转窗口坐标
+  // auto [bx, by] = HYMouseGetPositionFromWindow(window);
+//  auto obj = HYObjectGetFromMousePos(window, bx, by);
+//  if (obj) {
+//    auto lp = HYPointfGenWParam(event->wheel.x, event->wheel.y);
+//    HYObjectPushEventCall(window, obj, HYObjectEvent::HYObjectEvent_MouseWheel, 0, lp);
+//  } else {
+    // 窗口
+    auto mod = HYKeyboardGetMods();
+    window->Events.OnMouseScroll(window, event->wheel.x, event->wheel.y, mod);
+//  }
+  return 0;
+}
+
+int HYWindowHelpers::_window_event_handel(HYWindow *window, SDL_Event *event) {
   if (event->type != g_app.EventWindow) {
     if (!window->m_isInit) {
       return 0;
@@ -373,7 +493,7 @@ int _window_event_handel(HYWindow *window, SDL_Event *event) {
     handleWindowsClose(event, window);
   } else if (event->type == SDL_EventType::SDL_EVENT_WINDOW_MOVED) {
     // 窗口移动
-    // handleMove(&event, window);
+    handleMove(event, window);
   } else if (event->type == SDL_EventType::SDL_EVENT_WINDOW_MOUSE_LEAVE) {
     // 鼠标进入
     // handleMouseLeave(&event, window);
@@ -382,19 +502,19 @@ int _window_event_handel(HYWindow *window, SDL_Event *event) {
     // handleMouseEnter(&event, window);
   } else if (event->type == SDL_EventType::SDL_EVENT_WINDOW_FOCUS_GAINED) {
     // 窗口获得焦点
-    // handleFocusGained(&event, window);
+    handleFocusGained(event, window);
   } else if (event->type == SDL_EventType::SDL_EVENT_WINDOW_FOCUS_LOST) {
     // 窗口失去焦点
-    // handleFocusLost(&event, window);
+    handleFocusLost(event, window);
   } else if (event->type == SDL_EventType::SDL_EVENT_WINDOW_SHOWN) {
     // 窗口显示
-    // handleShown(&event, window);
+    handleShown(event, window);
   } else if (event->type == SDL_EventType::SDL_EVENT_WINDOW_HIDDEN) {
     // 窗口隐藏
-    // handleHidden(&event, window);
+    handleHidden(event, window);
   } else if (event->type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
     // 窗口大小/位置改变
-    // handleSizeChanged(&event, window);
+    handleSizeChanged(event, window);
   } else if (event->type == SDL_EventType::SDL_EVENT_MOUSE_BUTTON_DOWN) {
     // 鼠标按键按下事件
     if (handleMouseButtonDown(event, window) != 0) {
@@ -407,9 +527,9 @@ int _window_event_handel(HYWindow *window, SDL_Event *event) {
     }
   } else if (event->type == SDL_EventType::SDL_EVENT_MOUSE_WHEEL) {
     // 鼠标滚轮事件
-    // if (handleMouseWheel(&event, window) != 0) {
-    // continue;
-    // }
+    if (handleMouseWheel(event, window) != 0) {
+      return 0;
+    }
   } else if (event->type == SDL_EventType::SDL_EVENT_MOUSE_MOTION) {
     // 鼠标移动事件
     if (handleMouseMotion(event, window) != 0) {
@@ -417,14 +537,14 @@ int _window_event_handel(HYWindow *window, SDL_Event *event) {
     }
   } else if (event->type == SDL_EventType::SDL_EVENT_KEY_DOWN) {
     // 键盘按键按下事件
-    // if (handleKeyDown(&event, window) != 0) {
-    // continue;
-    // }
+     if (handleKeyDown(event, window) != 0) {
+       return 0;
+     }
   } else if (event->type == SDL_EventType::SDL_EVENT_KEY_UP) {
     // 键盘按键抬起事件
-    // if (handleKeyUp(&event, window) != 0) {
-    // continue;
-    // }
+     if (handleKeyUp(event, window) != 0) {
+       return 0;
+     }
   } else if (event->type == SDL_EventType::SDL_EVENT_TEXT_INPUT) {
     // 输入文本
     // if (handleTextInput(&event, window) != 0) {
@@ -436,22 +556,33 @@ int _window_event_handel(HYWindow *window, SDL_Event *event) {
     // 输入候选词
   } else if (event->type == g_app.EventWindow) {
     // 自定义窗口事件
-    auto iter = g_win_event_map.find(event->user.code);
+    auto iter = g_win_event_map.find((HYWindowEvent) event->user.code);
     if (iter != g_win_event_map.end()) {
       iter->second(window, &event->window);
     }
   } else if (event->type == g_app.EventObject) {
     // 自定义组件事件
-    // auto ts = (uint64_t *) event.user.data1;
-    // auto object = (HYObjectHandle) ts;
-    // auto param1 = *(uint64_t *) ((uintptr_t(ts) + sizeof(uint64_t *)));
-    // auto param2 = *(uint64_t *) ((uintptr_t(ts) + sizeof(uint64_t *) + sizeof(uint64_t *)));
-    //   free(ts);
-    //   if (object) {
-    //     _obj_event(window, object, (HYObjectEvent) event.user.code, param1, param2);
-    //   }
+    auto ts = (uint64_t *) event->user.data1;
+    if (!ts) {
+      return 0;
+    }
+    auto object = (HYWidget *) ts;
+    DEFER(free(ts));
+    auto param1 = *(uint64_t *) ((uintptr_t(ts) + sizeof(uint64_t *)));
+    auto param2 = *(uint64_t *) ((uintptr_t(ts) + sizeof(uint64_t *) + sizeof(uint64_t *)));
+    if (object) {
+      _widget_call_(window, object, (HYWidgetEvent) event->user.code, param1, param2);
+    }
   }
   return 0;
+};
+
+
+std::map<HYWindowEvent, std::function<void(HYWindow *, void *)>> g_win_event_map = {
+  {HYWindowEvent::HYWindowEvent_Refresh, HYWindowHelpers::window_refresh},
+  {HYWindowEvent::HYWindowEvent_Create, HYWindowHelpers::window_create},
+  {HYWindowEvent::HYWindowEvent_WillDestroy, HYWindowHelpers::window_will_destroy},
+  {HYWindowEvent::HYWindowEvent_Show, HYWindowHelpers::window_resend_message},
 };
 
 }// namespace HYGUI

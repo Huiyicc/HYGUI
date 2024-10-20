@@ -201,7 +201,7 @@ int HYRun() {
       tic_fps_func();
       continue;
     }
-    _window_event_handel(window, &event);
+    HYWindowHelpers::_window_event_handel(window, &event);
   }
   return 0;
 }

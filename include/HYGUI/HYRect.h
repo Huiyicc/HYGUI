@@ -5,7 +5,7 @@
 #ifndef HYRECT_H
 #define HYRECT_H
 
-namespace  HYGUI {
+namespace HYGUI {
 
 struct HYRect {
   int x = 0;
@@ -21,13 +21,14 @@ struct HYRectf {
   float height = 0.0f;
 
   HYRectf() = default;
-  explicit HYRectf(const HYRect& rect) {
+  HYRectf(float X, float Y, float Width, float Height) : x(X), y(Y), width(Width), height(Height) {};
+
+  explicit HYRectf(const HYRect &rect) {
     x = static_cast<float>(rect.x);
     y = static_cast<float>(rect.y);
     width = static_cast<float>(rect.width);
     height = static_cast<float>(rect.height);
   }
-
 };
 
 struct HYRRect {
@@ -37,10 +38,9 @@ struct HYRRect {
   float height = 0.0f;
   float xRad = 0.0f;
   float yRad = 0.0f;
-
 };
 
 
-};
+};// namespace HYGUI
 
-#endif //HYRECT_H
+#endif//HYRECT_H

@@ -6,6 +6,7 @@
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
 #include "include/gpu/gl/GrGLInterface.h"
+#include <HYGUI/HYWidget.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
 #include <SDL3/SDL_system.h>
@@ -13,7 +14,7 @@
 #include <include/gpu/gl/GrGLAssembleInterface.h>
 #include <map>
 #include <mutex>
-#include <HYGUI/HYWidget.h>
+#include <ranges>
 #ifdef _HOST_LINUX_
 #include <X11/Xlib.h>
 #elif defined(_HOST_APPLE_)
@@ -146,39 +147,8 @@ int32_t HYWindow::Y() const { return m_y; };
 int32_t HYWindow::Height() const { return m_height; };
 int32_t HYWindow::Width() const { return m_width; };
 
-void HYWindow::Refresh() {
-  // 切换到OpenGL上下文
-  SDL_GL_MakeCurrent(m_SDLWindow, m_SDLOpenGl);
-
-  m_canvas = m_surface.GetCanvas();
-  // 透明背景
-  if (round > 0) {
-    // 圆角
-    m_canvas.ClipRRect({0, 0, static_cast<float>(m_width), static_cast<float>(m_height), round, round});
-  }
-
-  HYPaint bgpaint;
-  bgpaint.SetARGB(HYColorRGBToARGB(m_backGroundColor, 255));
-  // 白色
-  bgpaint.SetAntiAlias(true);
-  m_canvas.DrawRect(bgpaint, {0, 0, m_clientRect.width, m_clientRect.height});
-  HYRect bgpaint_rect = {0, 0, m_width, m_height};
-  Events.OnBackgroundPaint(this, &m_canvas, &bgpaint, &bgpaint_rect);
-
-  // 子组件绘制
-  m_canvas.Save();
-  // for (auto obj: Children) {
-  //   // 子组件绘制
-  //   HYObjectPushEventCall(this, obj, HYObjectEvent::HYObjectEvent_Paint, 0, 1);
-  // }
-
-  m_canvas.Restore();
-  m_canvas.ResetMatrix();
-
-  m_GrCtx.Flush(m_surface);
-
-  // 将绘制的内容显示到窗口
-  SDL_GL_SwapWindow(m_SDLWindow);
+void HYWindow::Refresh() const {
+  HYWindowSendEventRePaint(this);
 };
 
 void HYWindow::skinHook() {
@@ -204,6 +174,26 @@ void HYWindow::skinHook() {
   SDL_SetWindowOpacity(m_SDLWindow, static_cast<float>(m_diaphaneity) / 255.0f);
   recreate_surface();
 }
+
+HYWindow *HYWindow::AddWidget(HYWidget *child) {
+  if (child->m_window != nullptr || child == nullptr) {
+    // 已经有主
+    return this;
+  }
+  m_children.emplace_back(child);
+  child->m_window = this;
+  child->updateDrawRect();
+  return this;
+};
+
+HYWindow *HYWindow::AddWidget(std::vector<HYWidget *> &children) {
+  for (HYWidget *child: children | std::views::filter([](HYWidget *w) { return w != nullptr && w->m_window == nullptr; })) {
+    m_children.emplace_back(child);
+    child->m_window = this;
+    child->updateDrawRect();
+  }
+  return this;
+};
 
 void HYWindow::recreate_surface() {
   // 更新HDC/画笔尺寸

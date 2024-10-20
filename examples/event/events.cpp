@@ -16,15 +16,15 @@ bool random_bool() {
 }
 class HYObject;
 
-// int event(HYWindow *window, HYObject *obj, HYObjectEvent event, uint64_t p1, uint32_t p2) {
-//   // std::cout << std::format("wind:{},obj:{},event:{},p1:{},p2:{}",(uintptr_t )window,(uintptr_t )obj,(int32_t )event,p1,p2) << std::endl;
-//   if (event == HYObjectEvent::HYObjectEvent_Create) {
-//     // 由于架构设计原因,创建事件只能由此派发
-//     std::cout << "组件创建" << std::endl;
-//   }
-//   // std::cout << std::format("event:{}",(int)event) << std::endl;
-//   return 0;
-// }
+ int event(HYWindow *window, HYWidget *obj, HYWidgetEvent event, uint64_t p1, uint32_t p2) {
+   // std::cout << std::format("wind:{},obj:{},event:{},p1:{},p2:{}",(uintptr_t )window,(uintptr_t )obj,(int32_t )event,p1,p2) << std::endl;
+   if (event == HYWidgetEvent::HYWidgetEvent_Create) {
+     // 由于架构设计原因,创建事件只能由此派发
+     std::cout << "组件创建" << std::endl;
+   }
+   // std::cout << std::format("event:{}",(int)event) << std::endl;
+   return 0;
+ }
 
 void onCreate(HYWindow *, HYObject *) {
   std::cout << "创建事件" << std::endl;
@@ -136,11 +136,11 @@ void willDestroy(HYWindow *) {
 }
 
 void windowMove(HYWindow *, HYPoint *pNew) {
-  std::cout << std::format("窗口移动,新:[{},{}]",  pNew->x, pNew->y) << std::endl;
+  std::cout << std::format("窗口移动,新:[{},{}]", pNew->x, pNew->y) << std::endl;
 }
 
 void windowResize(HYWindow *, HYRect *pNew) {
-  std::cout << std::format("窗口大小改变,新:[{},{}]",  pNew->width, pNew->height) << std::endl;
+  std::cout << std::format("窗口大小改变,新:[{},{}]", pNew->width, pNew->height) << std::endl;
 }
 
 void windowActivate(HYWindow *) {
@@ -204,7 +204,7 @@ void windowRightDown(HYWindow *, int, int, HYKeymod keymode) {
 }
 
 void windowMouseMove(HYWindow *, int x, int y, HYKeymod keymode) {
-  // std::cout << "窗口鼠标移动" << std::endl;
+//   std::cout << "窗口鼠标移动" << std::endl;
 }
 
 void windowMouseWheel(HYWindow *, float x, float y, HYKeymod keymode) {
@@ -238,35 +238,52 @@ int main() {
                 .Build();
   /*
    wind->Events.OnCreate += windowCreate;
+   wind->Events.OnCreate = windowCreate;
    wind->Events.OnCreate.connect(windowCreate);
    * */
   wind->Events.OnCreate.connect(windowCreate);
   wind->Events.OnBackgroundPaint.connect(windowPaint);
   wind->Events.OnBeforeClose.connect(beforeClose);
-//  wind->Events.OnWillDestroy.connect(willDestroy);
+  //  wind->Events.OnWillDestroy.connect(willDestroy);
   wind->Events.OnMove.connect(windowMove);
   wind->Events.OnResize.connect(windowResize);
+  wind->Events.OnFirstActivate.connect(windowFirstActivate);
+  wind->Events.OnFocusGained.connect(windowFocusGained);
+  wind->Events.OnFocusLost.connect(windowFocusLost);
+  wind->Events.OnShown.connect(windowShow);
+  wind->Events.OnHidden.connect(windowHide);
+  wind->Events.OnLeftClickStart.connect(windowLeftDown);
+  wind->Events.OnLeftClickEnd.connect(windowLeftUp);
+  wind->Events.OnMiddleClickStart.connect(windowMiddleDown);
+  wind->Events.OnMiddleClickEnd.connect(windowMiddleUp);
+  wind->Events.OnRightClickStart.connect(windowRightDown);
+  wind->Events.OnRightClickEnd.connect(windowRightUp);
+  wind->Events.OnMouseLeave.connect(windowMouseLeave);
+  wind->Events.OnMouseEnter.connect(windowMouseEnter);
+  wind->Events.OnMouseMove.connect(windowMouseMove);
+  wind->Events.OnMouseScroll.connect(windowMouseWheel);
+  wind->Events.OnKeyPress.connect(windowKeyDown);
+  wind->Events.OnKeyRelease.connect(windowKeyUp);
+
+
+  auto obj1 = HYWidget::Make()
+                ->Point(10, 10)
+                ->Size(100, 100);
+  obj1->Events.OnEvent.connect(event);
+
+  obj1->AddWidget(
+    HYWidget::Make()
+      ->Point(10, 10)
+      ->Size(100, 100)
+    );
+
+  wind->AddWidget(obj1);
 
   wind->Show();
   HYRun();
   HYExit();
-  // wind->RegisterEventFirstActivateCallback(windowFirstActivate);
-  // wind->RegisterEventFocusGainedCallback(windowFocusGained);
-  // wind->RegisterEventFocusLostCallback(windowFocusLost);
-  // wind->RegisterEventShowCallback(windowShow);
-  // wind->RegisterEventHideCallback(windowHide);
-  // wind->RegisterEventLeftUpCallback(windowLeftUp);
-  // wind->RegisterEventLeftDownCallback(windowLeftDown);
-  // wind->RegisterEventMiddleUpCallback(windowMiddleUp);
-  // wind->RegisterEventMiddleDownCallback(windowMiddleDown);
-  // wind->RegisterEventRightUpCallback(windowRightUp);
-  // wind->RegisterEventRightDownCallback(windowRightDown);
-  // wind->RegisterEventMouseLeaveCallback(windowMouseLeave);
-  // wind->RegisterEventMouseEnterCallback(windowMouseEnter);
-  // wind->RegisterEventMouseMoveCallback(windowMouseMove);
-  // wind->RegisterEventMouseWheelCallback(windowMouseWheel);
-  // wind->RegisterEventKeyUpCallback(windowKeyUp);
-  // wind->RegisterEventKeyDownCallback(windowKeyDown);
+
+
   //
   // auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, true, event);
   // HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,

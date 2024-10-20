@@ -2,10 +2,10 @@
 // Created by 19254 on 24-7-26.
 //
 
-#ifndef HYGUI_KEYBOARD_H
-#define HYGUI_KEYBOARD_H
+#ifndef HYGUI_HYKEYBOARD_H
+#define HYGUI_HYKEYBOARD_H
 
-#include "KeyCode.h"
+#include "HYKeyCode.h"
 
 namespace HYGUI {
 
@@ -22,4 +22,4 @@ HYKeymod HYKeyboardGetMods();
 
 };
 
-#endif//HYGUI_KEYBOARD_H
+#endif//HYGUI_HYKEYBOARD_H
