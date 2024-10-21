@@ -77,10 +77,10 @@ void HYWindowHelpers::window_refresh(HYWindow *w, void *) {
   w->Events.OnBackgroundPaint(w, &w->m_canvas, &bgpaint, &bgpaint_rect);
 
   // 子组件绘制
-  //  w->m_canvas.Save();
-  //  for (auto widget: w->m_children) {
-  //    _widget_call_(w,widget, HYWidgetEvent::HYWidgetEvent_Paint, 0, 1);
-  //  }
+  w->m_canvas.Save();
+  for (auto widget: w->m_children) {
+    _widget_call_(w,widget, HYWidgetEvent::HYWidgetEvent_Paint, 0, 1);
+  }
 
   w->m_canvas.Restore();
   w->m_canvas.ResetMatrix();

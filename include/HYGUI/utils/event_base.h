@@ -36,16 +36,16 @@ public:
     return *this;
   }
 
-  HYEventRegistry& operator=(const CALLTYPE &callFunc) {
-    callbacks.clear();
-    callbacks.emplace_back(callFunc);
-    return *this;
-  }
-  HYEventRegistry& operator=(const CALLTYPEPTR &callFunc) {
-    callbacks.clear();
-    callbacks.emplace_back(callFunc);
-    return *this;
-  }
+//  HYEventRegistry& operator=(const CALLTYPE &callFunc) {
+//    callbacks.clear();
+//    callbacks.emplace_back(callFunc);
+//    return *this;
+//  }
+//  HYEventRegistry& operator=(const CALLTYPEPTR &callFunc) {
+//    callbacks.clear();
+//    callbacks.emplace_back(callFunc);
+//    return *this;
+//  }
 
 #ifdef _HYGUI_MODULE_
 public:

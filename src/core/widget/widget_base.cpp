@@ -7,6 +7,7 @@
 #include <HYGUI/HYString.h>
 #include <HYGUI/HYWidget.h>
 #include <SDL3/SDL.h>
+#include <map>
 #include <ranges>
 
 
@@ -46,18 +47,13 @@ void HYWidget::updateDrawRect() {
 
     m_visibleRect = {visibleX, visibleY, visibleWidth, visibleHeight};
   }
-  Refresh();
+  //  Refresh();
 };
 
-void HYWidget::eventHandle(HYWindow *window, HYWidget *widget, HYWidgetEvent event, uint64_t p1, uint32_t p2) {
-  if (!m_init) {
-    m_init = true;
-    if (Events.OnEvent(m_window, m_parent, HYWidgetEvent::HYWidgetEvent_Create, 0, 0) == 0) {
-      Events.OnCreate(m_window, m_parent);
-    }
-  }
+extern std::map<HYWidgetEvent, std::function<int(HYWindow *, HYWidget *, HYWidgetEvent, int64_t, int32_t)>> g_widget_event;
 
-
+void HYWidget::eventHandle(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t p1, int32_t p2) {
+  _widget_call_(window, widget, event, p1, p2);
 }
 
 HYWidget::~HYWidget() {
@@ -70,7 +66,7 @@ void HYWidget::Refresh() {
   if (!m_init) {
     return;
   }
-  HYObjectPushEvent(m_window,m_parent,HYWidgetEvent_Paint,0,0);
+  HYObjectPushEvent(m_window, m_parent, HYWidgetEvent::HYWidgetEvent_Paint, 0, 0);
 }
 
 HYWidget *HYWidget::AddWidget(HYWidget *child) {
@@ -108,7 +104,7 @@ float HYWidget::Y() const {
   return m_y;
 };
 
-HYWidget *HYWidget::Point(float x, float y) {
+HYWidget * HYWidget::Point(float x, float y) {
   m_x = x;
   m_y = y;
   updateDrawRect();

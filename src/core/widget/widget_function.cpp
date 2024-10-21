@@ -5,25 +5,41 @@
 #include <HYGUI/HYWidget.h>
 #include <HYGUI/HYWindow.h>
 #include <SDL3/SDL.h>
+#include <map>
 
 namespace HYGUI {
+extern std::map<HYWidgetEvent, std::function<int(HYWindow *, HYWidget *, HYWidgetEvent, uint64_t, uint32_t)>> g_widget_event;
 
 void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2) {
+  auto fcall = [](HYWindow *_window, HYWidget *_widget, HYWidgetEvent _event, int64_t _param1, int64_t _param2) {
+    if (!_widget->m_init) {
+      _widget->m_init = true;
+      if (_widget->Events.OnEvent(_widget->m_window, _widget->m_parent, HYWidgetEvent::HYWidgetEvent_Create, 0, 0) == 0) {
+        _widget->Events.OnCreate(_widget->m_window, _widget->m_parent);
+      }
+    }
+    if (_window) {
+      auto iter = g_widget_event.find(_event);
+      if (iter != g_widget_event.end()) {
+        iter->second(_window, _widget, _event, _param1, _param2);
+      }
+    }
+  };
   if (window) {
     for (auto w: window->m_children) {
       if (w == widget) {
-        w->eventHandle(window, widget, event, param1, param2);
+        fcall(window, widget, event, param1, param2);
         return;
       }
     }
   }
   for (auto w: widget->m_children) {
     if (w == widget) {
-      w->eventHandle(window == nullptr ? widget->m_window : window, widget, event, param1, param2);
+      fcall(window == nullptr ? widget->m_window : window, widget, event, param1, param2);
       return;
     }
     for (auto wc: widget->m_children) {
-      _widget_call_(nullptr, widget, event, param1, param2);
+      _widget_call_(nullptr, wc, event, param1, param2);
     }
   }
 }

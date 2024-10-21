@@ -35,7 +35,7 @@ private:
 
   void updateDrawRect();
 
-  void eventHandle(HYWindow *, HYWidget *, HYWidgetEvent, uint64_t, uint32_t);
+  void eventHandle(HYWindow *, HYWidget *, HYWidgetEvent, int64_t, int32_t);
 
 protected:
   HYWidget();
@@ -43,12 +43,19 @@ protected:
   friend void _widget_call_(HYWindow *window, HYWidget* widget, HYWidgetEvent event, int64_t param1, int64_t param2);
 
 public:
+
   [[nodiscard]] static HYWidget *Make();
+
+  template<class T>
+  [[nodiscard]] static T *Make() {
+    return new T{};
+  };
 
   ~HYWidget() override;
 
-  HYWidget *X(float x);
   [[nodiscard]] float X() const;
+  HYWidget * X(float x);
+
   HYWidget *Y(float y);
   [[nodiscard]] float Y() const;
   HYWidget *Point(float x, float y);

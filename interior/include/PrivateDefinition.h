@@ -39,7 +39,7 @@ extern const std::unordered_map<char32_t, std::tuple<const char *, const char *>
 //void adjustwindow_by_sdl(HYWindowHandel window , void *newhandel);
 void adjust_win_tyle(SDL_SysWMinfo *wmInfo);
 void window_hook_handel(HYWindow *windowPtr);
-void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2);
+//void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2);
 
 class HYWindowHelpers {
 public:
@@ -62,6 +62,11 @@ public:
   static int handleKeyDown(SDL_Event *event, HYWindow *window);
   static int handleKeyUp(SDL_Event *event, HYWindow *window);
   static int _window_event_handel(HYWindow *window, SDL_Event *event);
+};
+
+class HYWidgetHelpers {
+public:
+  static int repaint(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t p1, int32_t p2);
 };
 
 template<typename T>

@@ -2,6 +2,7 @@
 // Created by 19254 on 24-7-20.
 //
 #include <HYGUI/HYGUI.h>
+#include <HYGUI/Widgets/HYLabel.h>
 #include <format>
 #include <iostream>
 #include <random>
@@ -16,15 +17,15 @@ bool random_bool() {
 }
 class HYObject;
 
- int event(HYWindow *window, HYWidget *obj, HYWidgetEvent event, uint64_t p1, uint32_t p2) {
-   // std::cout << std::format("wind:{},obj:{},event:{},p1:{},p2:{}",(uintptr_t )window,(uintptr_t )obj,(int32_t )event,p1,p2) << std::endl;
-   if (event == HYWidgetEvent::HYWidgetEvent_Create) {
-     // 由于架构设计原因,创建事件只能由此派发
-     std::cout << "组件创建" << std::endl;
-   }
-   // std::cout << std::format("event:{}",(int)event) << std::endl;
-   return 0;
- }
+int event(HYWindow *window, HYWidget *obj, HYWidgetEvent event, uint64_t p1, uint32_t p2) {
+  // std::cout << std::format("wind:{},obj:{},event:{},p1:{},p2:{}",(uintptr_t )window,(uintptr_t )obj,(int32_t )event,p1,p2) << std::endl;
+  if (event == HYWidgetEvent::HYWidgetEvent_Create) {
+    // 由于架构设计原因,创建事件只能由此派发
+    std::cout << "组件创建" << std::endl;
+  }
+  // std::cout << std::format("event:{}",(int)event) << std::endl;
+  return 0;
+}
 
 void onCreate(HYWindow *, HYObject *) {
   std::cout << "创建事件" << std::endl;
@@ -204,7 +205,7 @@ void windowRightDown(HYWindow *, int, int, HYKeymod keymode) {
 }
 
 void windowMouseMove(HYWindow *, int x, int y, HYKeymod keymode) {
-//   std::cout << "窗口鼠标移动" << std::endl;
+  //   std::cout << "窗口鼠标移动" << std::endl;
 }
 
 void windowMouseWheel(HYWindow *, float x, float y, HYKeymod keymode) {
@@ -237,9 +238,8 @@ int main() {
                 .Title("event test")
                 .Build();
   /*
-   wind->Events.OnCreate += windowCreate;
-   wind->Events.OnCreate = windowCreate;
-   wind->Events.OnCreate.connect(windowCreate);
+   wind->Events.OnCreate += windowCreate; √
+   wind->Events.OnCreate.connect(windowCreate); √
    * */
   wind->Events.OnCreate.connect(windowCreate);
   wind->Events.OnBackgroundPaint.connect(windowPaint);
@@ -266,7 +266,7 @@ int main() {
   wind->Events.OnKeyRelease.connect(windowKeyUp);
 
 
-  auto obj1 = HYWidget::Make()
+  HYLabel* obj1 = HYLabel::Make<HYLabel>()
                 ->Point(10, 10)
                 ->Size(100, 100);
   obj1->Events.OnEvent.connect(event);
@@ -274,8 +274,7 @@ int main() {
   obj1->AddWidget(
     HYWidget::Make()
       ->Point(10, 10)
-      ->Size(100, 100)
-    );
+      ->Size(100, 100));
 
   wind->AddWidget(obj1);
 

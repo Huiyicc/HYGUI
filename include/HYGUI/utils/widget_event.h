@@ -20,7 +20,7 @@ struct HYRect;
 /**
  * @brief 对象事件
  * */
-enum HYWidgetEvent {
+enum class HYWidgetEvent : int32_t {
   // ...
   // 预留事件
   // ...
@@ -99,13 +99,15 @@ typedef void(*HYWidgetEventCreateHandelCall)(HYWindow *, HYWidget *);
  * */
 typedef std::function<void(HYWindow *, HYWidget *)> HYWidgetEventCreateHandel;
 
-/**
+typedef void (*HYWidgetEventDestroyHandelCall)(HYWindow *, HYWidget *);
+  /**
  * @brief 组件事件_销毁
  * @param HYWindow*: 窗口句柄
  * @param HYWidget*: 组件句柄
  * */
 typedef std::function<void(HYWindow *, HYWidget *)> HYWidgetEventDestroyHandel;
 
+typedef int (*HYWidgetEventPaintHandelCall)(HYWindow *, HYWidget *);
 /**
  * @brief 组件事件_绘制
  * @param HYWindow*: 窗口句柄
@@ -320,6 +322,13 @@ public:
      * @param HYWidget* widget_handle: 组件句柄，指向当前组件的实例。
      */
     HYEventRegistry<HYWidgetEventCreateHandel, HYWidgetEventCreateHandelCall> OnCreate;
+
+
+    HYEventRegistry<HYWidgetEventDestroyHandel, HYWidgetEventDestroyHandelCall> OnDestroy;
+
+    HYEventRegistry<HYWidgetEventPaintHandel, HYWidgetEventPaintHandelCall> OnPaint;
+
+
 
   } Events;
 
