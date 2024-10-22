@@ -8,20 +8,23 @@
 #include <map>
 
 namespace HYGUI {
-extern std::map<HYWidgetEvent, std::function<int(HYWindow *, HYWidget *, HYWidgetEvent, uint64_t, uint32_t)>> g_widget_event;
 
 void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2) {
   auto fcall = [](HYWindow *_window, HYWidget *_widget, HYWidgetEvent _event, int64_t _param1, int64_t _param2) {
     if (!_widget->m_init) {
       _widget->m_init = true;
-      if (_widget->Events.OnEvent(_widget->m_window, _widget->m_parent, HYWidgetEvent::HYWidgetEvent_Create, 0, 0) == 0) {
-        _widget->Events.OnCreate(_widget->m_window, _widget->m_parent);
+      if (_widget->_event_handel(HYWidgetEvent::HYWidgetEvent_Create, 0, 0) == 0) {
+        if (_widget->Events.OnEvent(_widget->m_window, _widget->m_parent, HYWidgetEvent::HYWidgetEvent_Create, 0, 0) == 0) {
+          _widget->Events.OnCreate(_widget->m_window, _widget->m_parent);
+        }
       }
     }
     if (_window) {
       auto iter = g_widget_event.find(_event);
       if (iter != g_widget_event.end()) {
-        iter->second(_window, _widget, _event, _param1, _param2);
+        if (_widget->_event_handel(_event, _param1, _param2) == 0) {
+          iter->second(_window, _widget, _event, _param1, _param2);
+        }
       }
     }
   };
@@ -46,7 +49,7 @@ void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int6
 
 void HYObjectPushEvent(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2) {
   SDL_Event e;
-  auto &l = g_app;
+  //  auto &l = g_app;
   e.type = g_app.EventObject;
   e.user.windowID = window->ID();
   e.user.code = (SDL_EventType) event;

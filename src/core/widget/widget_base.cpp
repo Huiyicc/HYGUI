@@ -47,14 +47,14 @@ void HYWidget::updateDrawRect() {
 
     m_visibleRect = {visibleX, visibleY, visibleWidth, visibleHeight};
   }
-  //  Refresh();
 };
 
-extern std::map<HYWidgetEvent, std::function<int(HYWindow *, HYWidget *, HYWidgetEvent, int64_t, int32_t)>> g_widget_event;
+extern std::map<HYWidgetEvent, std::function<int(HYWindow *, HYWidget *, HYWidgetEvent, int64_t, int64_t)>> g_widget_event;
 
-void HYWidget::eventHandle(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t p1, int32_t p2) {
-  _widget_call_(window, widget, event, p1, p2);
-}
+int HYWidget::_event_handel(HYWidgetEvent event, int64_t p1, int64_t p2) {
+  // 事件传播
+  return MessageEvent(event, p1, p2);
+};
 
 HYWidget::~HYWidget() {
   for (auto w: m_children) {
@@ -104,7 +104,7 @@ float HYWidget::Y() const {
   return m_y;
 };
 
-HYWidget * HYWidget::Point(float x, float y) {
+HYWidget *HYWidget::Point(float x, float y) {
   m_x = x;
   m_y = y;
   updateDrawRect();
@@ -171,5 +171,9 @@ HYWidget *HYWidget::ClassName(const HYString &className) {
   updateDrawRect();
   return this;
 };
+
+int HYWidget::MessageEvent(HYWidgetEvent, int64_t param1, int64_t param2) {
+  return 0;
+}
 
 };// namespace HYGUI

@@ -9,12 +9,6 @@ union SDL_Event;
 
 namespace HYGUI {
 
-#ifdef _HYGUI_MODULE_
-
-void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2);
-
-#endif
-
 void HYObjectPushEvent(HYWindow *window, HYWidget* widget, HYWidgetEvent event, int64_t param1, int64_t param2);
 
 }

@@ -266,15 +266,10 @@ int main() {
   wind->Events.OnKeyRelease.connect(windowKeyUp);
 
 
-  HYLabel* obj1 = HYLabel::Make<HYLabel>()
+  auto obj1 = HYLabel::Make<HYLabel>()
                 ->Point(10, 10)
                 ->Size(100, 100);
   obj1->Events.OnEvent.connect(event);
-
-  obj1->AddWidget(
-    HYWidget::Make()
-      ->Point(10, 10)
-      ->Size(100, 100));
 
   wind->AddWidget(obj1);
 
@@ -283,7 +278,7 @@ int main() {
   HYExit();
 
 
-  //
+
   // auto label = HYLabelCreate(wind, nullptr, "标签1\n\ncascas", 50, 50, 700, 500, true, event);
   // HYLabelSetColorStyle(label, HYGradientMode::HYGradientModeRadial,
   //                      HYGradientDirection::HYGradientDirectionTopToBottom,

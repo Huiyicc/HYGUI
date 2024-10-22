@@ -20,6 +20,8 @@
 #endif
 #include "Defer.h"
 #include "SDL3/SDL.h"
+#include <functional>
+#include <map>
 #include <HYGUI/HYApplication.h>
 #include <HYGUI/HYWidget.h>
 
@@ -31,7 +33,7 @@ extern ApplicationInfo g_app;
 
 constexpr const char *const DEFAULT_CLASS_NAME = "HYGUI";
 extern const std::unordered_map<char32_t, std::tuple<const char *, const char *>> g_emoji_map;
-
+extern std::map<HYWidgetEvent, std::function<int(HYWindow *, HYWidget *, HYWidgetEvent, int64_t, int64_t)>> g_widget_event;
 //void window_paint(HYWindow *, void *) ;
 //void window_recreate_surface(HYWindow *windowPtr);
 ////int processing_object_event(HYObjectEventQueue*queue, HYObjectEventInfo&event_info);
@@ -39,7 +41,7 @@ extern const std::unordered_map<char32_t, std::tuple<const char *, const char *>
 //void adjustwindow_by_sdl(HYWindowHandel window , void *newhandel);
 void adjust_win_tyle(SDL_SysWMinfo *wmInfo);
 void window_hook_handel(HYWindow *windowPtr);
-//void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2);
+void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2);
 
 class HYWindowHelpers {
 public:
@@ -66,7 +68,8 @@ public:
 
 class HYWidgetHelpers {
 public:
-  static int repaint(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t p1, int32_t p2);
+  static int repaint(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t p1, int64_t p2);
+  static int eventHandel(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t p1, int64_t p2);
 };
 
 template<typename T>

@@ -10,10 +10,15 @@
 namespace HYGUI {
 
 class HYLabel : public HYWidget {
+private:
+  int MessageEvent(HYWidgetEvent, int64_t param1, int64_t param2) override;
+
 public:
+  HYWIDGET_BASEDEFINE_OVERRIDE(HYLabel);
+
 
 };
 
-}
+}// namespace HYGUI
 
 #endif//HYGUI_HYLABEL_H

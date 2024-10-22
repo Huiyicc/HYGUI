@@ -25,8 +25,10 @@ enum class HYWidgetEvent : int32_t {
   // 预留事件
   // ...
 
+  // 组件消息
+  HYWidgetEvent_Event  = 100,
   // 对象创建
-  HYWidgetEvent_Create = 100,
+  HYWidgetEvent_Create,
   // 对象销毁
   HYWidgetEvent_Destroy,
   // 对象重绘
