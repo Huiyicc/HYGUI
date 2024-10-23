@@ -79,6 +79,8 @@ void HYWindowHelpers::window_refresh(HYWindow *w, void *) {
   // 子组件绘制
   w->m_canvas.Save();
   for (auto widget: w->m_children) {
+    widget->m_canvas = w->m_canvas;
+    DEFER(widget->m_canvas = nullptr;);
     _widget_call_(w,widget, HYWidgetEvent::HYWidgetEvent_Paint, 0, 1);
   }
 

@@ -15,100 +15,105 @@ bool random_bool() {
   std::uniform_int_distribution<> dis(0, 1);
   return dis(gen) == 1;
 }
-class HYObject;
+
 
 int event(HYWindow *window, HYWidget *obj, HYWidgetEvent event, uint64_t p1, uint32_t p2) {
   // std::cout << std::format("wind:{},obj:{},event:{},p1:{},p2:{}",(uintptr_t )window,(uintptr_t )obj,(int32_t )event,p1,p2) << std::endl;
   if (event == HYWidgetEvent::HYWidgetEvent_Create) {
-    // 由于架构设计原因,创建事件只能由此派发
-    std::cout << "组件创建" << std::endl;
+    // std::cout << "组件创建" << std::endl;
   }
-  // std::cout << std::format("event:{}",(int)event) << std::endl;
+  // std::cout << std::format("组件事件:{}",(int)event) << std::endl;
   return 0;
 }
 
-void onCreate(HYWindow *, HYObject *) {
-  std::cout << "创建事件" << std::endl;
+void onCreate(HYWindow *, HYWidget *) {
+  std::cout << "组件创建事件" << std::endl;
 }
-int onLeftDown1(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+
+int onPaint(HYWindow *, HYWidget *,HYCanvas* canvas,HYPaint* paint) {
+  std::cout << "组件绘制事件" << std::endl;
+  return 0;
+}
+
+int onLeftDown1(HYWindow *, HYWidget *, int, int, HYKeymod keymode) {
   std::cout << std::format("左键按下1(键状态:{})", (int) keymode) << std::endl;
   return 0;
 }
-int onLeftDown2(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+int onLeftDown2(HYWindow *, HYWidget *, int, int, HYKeymod keymode) {
   std::cout << "左键按下2 - 拦截后续" << std::endl;
   return 1;
 }
 
-int onLeftDown3(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+int onLeftDown3(HYWindow *, HYWidget *, int, int, HYKeymod keymode) {
   std::cout << "左键按下3 - 无效" << std::endl;
   return 0;
 }
 
-int onLeftUp(HYWindow *w, HYObject *, int, int, HYKeymod keymode) {
+int onLeftUp(HYWindow *w, HYWidget *, int, int, HYKeymod keymode) {
   std::cout << "左键弹起" << std::endl;
   // HYWindowDestroy(w);
   return 0;
 }
 
-int onRightDown(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+int onRightDown(HYWindow *, HYWidget *, int, int, HYKeymod keymode) {
   std::cout << "右键按下" << std::endl;
   return 0;
 }
 
-int onRightUp(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+int onRightUp(HYWindow *, HYWidget *, int, int, HYKeymod keymode) {
   std::cout << "右键弹起" << std::endl;
   return 0;
 }
 
-int onMiddleDown(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+int onMiddleDown(HYWindow *, HYWidget *, int, int, HYKeymod keymode) {
   std::cout << "中键按下" << std::endl;
   return 0;
 }
 
-int onMiddleUp(HYWindow *, HYObject *, int, int, HYKeymod keymode) {
+int onMiddleUp(HYWindow *, HYWidget *, int, int, HYKeymod keymode) {
   std::cout << "中键弹起" << std::endl;
   return 0;
 }
 
-int mouseMove(HYWindow *, HYObject *, int x, int y, HYKeymod keymode) {
+int mouseMove(HYWindow *, HYWidget *, int x, int y, HYKeymod keymode) {
   // std::cout << std::format("鼠标移动:[{},{}]({})",x,y,status) << std::endl;
   return 0;
 }
 
-int mouseEnter(HYWindow *, HYObject *) {
+int mouseEnter(HYWindow *, HYWidget *) {
   std::cout << std::format("鼠标进入") << std::endl;
   return 0;
 }
 
-int mouseLeave(HYWindow *, HYObject *) {
+int mouseLeave(HYWindow *, HYWidget *) {
   std::cout << std::format("鼠标退出") << std::endl;
   return 0;
 }
 
-int mouseWheel(HYWindow *, HYObject *, float x, float y, HYKeymod keymode) {
+int mouseWheel(HYWindow *, HYWidget *, float x, float y, HYKeymod keymode) {
   std::cout << std::format("鼠标滚轮移动:[{},{}]({})", x, y, keymode) << std::endl;
   return 0;
 }
 
-int keyDown(HYWindow *, HYObject *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyCode KeyCode, HYKeymod Keymod) {
+int keyDown(HYWindow *, HYWidget *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyCode KeyCode, HYKeymod Keymod) {
   std::cout << std::format("键盘按下: 键盘ID:{} 扫描码:{} 键代码:{} 修饰键:{}", KeyboardID, (uint32_t) Scancode, KeyCode, Keymod) << std::endl;
   return 0;
 }
 
-int keyUp(HYWindow *, HYObject *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyCode KeyCode, HYKeymod Keymod) {
+int keyUp(HYWindow *, HYWidget *, HYKeyboardID KeyboardID, HYScancode Scancode, HYKeyCode KeyCode, HYKeymod Keymod) {
   std::cout << std::format("键盘抬起: 键盘ID:{} 扫描码:{} 键代码:{} 修饰键:{}", KeyboardID, (uint32_t) Scancode, KeyCode, Keymod) << std::endl;
   return 0;
 }
 
-void isShow(HYWindow *, HYObject *) {
+void isShow(HYWindow *, HYWidget *) {
   std::cout << "显示事件" << std::endl;
 }
 
-void focusGained(HYWindow *, HYObject *) {
+void focusGained(HYWindow *, HYWidget *) {
   std::cout << "获得焦点" << std::endl;
 }
 
-void focusLost(HYWindow *, HYObject *) {
+void focusLost(HYWindow *, HYWidget *) {
   std::cout << "失去焦点" << std::endl;
 }
 
@@ -270,6 +275,10 @@ int main() {
                 ->Point(10, 10)
                 ->Size(100, 100);
   obj1->Events.OnEvent.connect(event);
+  obj1->Events.OnCreate.connect(onCreate);
+
+  obj1->Events.OnPaint.connect(onPaint);
+
 
   wind->AddWidget(obj1);
 
@@ -287,7 +296,6 @@ int main() {
   //                      HYARGB{255, 0, 0, 255}, 2);
   // HYObjectSetName(reinterpret_cast<HYObjectHandle>(label), "标签1 g");
   //
-  // label->RegisterEventCreateCallback(onCreate);
   // label->RegisterEventLeftDownCallback(onLeftDown1);
   // label->RegisterEventLeftDownCallback(onLeftDown2);
   // label->RegisterEventLeftDownCallback(onLeftDown3);

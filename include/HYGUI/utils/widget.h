@@ -7,6 +7,8 @@
 
 #include <HYGUI/HYDefine.h>
 #include <HYGUI/HYRect.h>
+#include <HYGUI/HYCanvas.h>
+#include <HYGUI/HYPaint.h>
 #include <HYGUI/utils/widget_event.h>
 #include <memory>
 
@@ -83,6 +85,9 @@ private:
   HYWidget *m_parent = nullptr;// 父组件
   HYRectf m_rawRect;           // 原始区域(相对于窗口的坐标)
   HYRectf m_visibleRect;       // 实际显示(绘制)区域(相对于窗口的坐标)
+  HYCanvas m_canvas;
+  HYPaint m_paint;
+
 
   std::vector<HYWidget *> m_children;
 
@@ -93,6 +98,8 @@ private:
 protected:
   HYWidget();
   friend class HYWindow;
+  friend class HYWindowHelpers;
+  friend class HYWidgetHelpers;
   friend void _widget_call_(HYWindow *window, HYWidget *widget, HYWidgetEvent event, int64_t param1, int64_t param2);
 
 public:

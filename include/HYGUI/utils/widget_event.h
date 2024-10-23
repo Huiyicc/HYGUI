@@ -26,7 +26,7 @@ enum class HYWidgetEvent : int32_t {
   // ...
 
   // 组件消息
-  HYWidgetEvent_Event  = 100,
+  HYWidgetEvent_Event = 100,
   // 对象创建
   HYWidgetEvent_Create,
   // 对象销毁
@@ -93,7 +93,7 @@ typedef int (*HYWidgetEventMessageHandelCall)(HYWindow *, HYWidget *, HYWidgetEv
  * */
 typedef std::function<int(HYWindow *, HYWidget *, HYWidgetEvent, uint64_t, uint32_t)> HYWidgetEventMessageHandel;
 
-typedef void(*HYWidgetEventCreateHandelCall)(HYWindow *, HYWidget *);
+typedef void (*HYWidgetEventCreateHandelCall)(HYWindow *, HYWidget *);
 /**
  * @brief 组件事件_创建
  * @param HYWindow*: 窗口句柄
@@ -102,7 +102,7 @@ typedef void(*HYWidgetEventCreateHandelCall)(HYWindow *, HYWidget *);
 typedef std::function<void(HYWindow *, HYWidget *)> HYWidgetEventCreateHandel;
 
 typedef void (*HYWidgetEventDestroyHandelCall)(HYWindow *, HYWidget *);
-  /**
+/**
  * @brief 组件事件_销毁
  * @param HYWindow*: 窗口句柄
  * @param HYWidget*: 组件句柄
@@ -114,9 +114,11 @@ typedef int (*HYWidgetEventPaintHandelCall)(HYWindow *, HYWidget *);
  * @brief 组件事件_绘制
  * @param HYWindow*: 窗口句柄
  * @param HYWidget*: 组件句柄
+ * @param HYCanvas*: 画布指针
+ * @param HYPaint*: 画笔指针
  * @result 0: 放行, 1: 拦截
  * */
-typedef std::function<int(HYWindow *, HYWidget *)> HYWidgetEventPaintHandel;
+typedef std::function<int(HYWindow *, HYWidget *, HYCanvas *, HYPaint *)> HYWidgetEventPaintHandel;
 
 /**
  * @brief 组件事件_位置改变
@@ -331,10 +333,7 @@ public:
     HYEventRegistry<HYWidgetEventPaintHandel, HYWidgetEventPaintHandelCall> OnPaint;
 
 
-
   } Events;
-
-
 };
 
 }// namespace HYGUI

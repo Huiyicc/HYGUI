@@ -15,7 +15,6 @@ HYPaint::~HYPaint() {
 
 HYPaint::HYPaint() {
   m_ptr = std::make_shared<SkPaint>();
-
 };
 
 HYPaint::HYPaint(SkPaint *ptr)

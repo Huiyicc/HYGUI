@@ -16,7 +16,7 @@ int HYWidgetHelpers::repaint(HYGUI::HYWindow *window, HYGUI::HYWidget *widget, H
   if (!(widget && window)) {
     return 0;
   }
-  widget->Events.OnPaint(window, widget);
+  widget->Events.OnPaint(window, widget, &widget->m_canvas, &widget->m_paint);
   return 0;
 }
 
